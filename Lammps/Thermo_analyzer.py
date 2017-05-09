@@ -5,10 +5,17 @@ It is required that the log.lammps file was run before to generate the parameter
 import numpy as np
 import matplotlib.pyplot as plt
 
+PATH="/home/sr802/Dropbox/PhD/Cambridge/Academical/3.Simulation/0.Lammps/2.Solid_fluid/2D"
+TotalPath=PATH+"/parameters.dat"
 
+#Display the header file
+f=open(TotalPath, 'r')
+FirstLine=f.readline().split()
+f.close()
 
-Nsampling=1000 #This is the number of interations, it took the system to stabilize (It is guessed)
-Param=np.loadtxt("parameters.dat",skiprows=1)
+Param=np.loadtxt(TotalPath,skiprows=1)
+n,m=np.shape(Param)
+Nsampling=int(n*0.3) #This is the number of interations, it took the system to stabilize (It is guessed)
 #plt.plot(Param[:,6])
 
 #plt.figure(2)
@@ -17,6 +24,7 @@ Param=np.loadtxt("parameters.dat",skiprows=1)
 #plt.figure(2)
 #plt.plot(Param[:,1])
 
-P_average=np.average(Param[Nsampling::,3])
-H_average=np.average(Param[Nsampling::,2]) 
-print P_average,H_average
+for i in xrange(m):
+    print "The Average %s is %lf " %(FirstLine[i],np.average(Param[::Nsampling,i]))
+
+plt.plot(Param[:,0],Param[:,2])
