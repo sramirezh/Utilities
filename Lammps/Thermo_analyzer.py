@@ -5,8 +5,12 @@ It is required that the log.lammps file was run before to generate the parameter
 import numpy as np
 import matplotlib.pyplot as plt
 
-PATH="/home/sr802/Dropbox/PhD/Cambridge/Academical/3.Simulation/0.Lammps/2.Solid_fluid/2D"
-TotalPath=PATH+"/parameters.dat"
+
+#Next two lines are for testing 
+#PATH="/home/sr802/Dropbox/PhD/Cambridge/Academical/3.Simulation/0.Lammps/2.Solid_fluid/2D"
+#TotalPath=PATH+"/parameters.dat"
+
+TotalPath="parameters.dat"
 
 #Display the header file
 f=open(TotalPath, 'r')
