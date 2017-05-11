@@ -1,3 +1,3 @@
 This is my "Hello git"
-# Utilies
+# Utilities
 Bash, C and python useful scripts.
