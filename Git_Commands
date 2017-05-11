@@ -1,4 +1,4 @@
-To Clone and keep updated 
+#To Clone and keep updated 
 
 1. Clone your fork:
 
@@ -13,3 +13,7 @@ git fetch upstream
 3. Updating your fork from original repo to keep up with their changes:
 
 git pull upstream master
+
+#To pull and push to/from
+
+git pull origin master
