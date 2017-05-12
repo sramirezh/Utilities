@@ -19,7 +19,7 @@ f.close()
 
 Param=np.loadtxt(TotalPath,skiprows=1)
 n,m=np.shape(Param)
-Nsampling=int(n*0.3) #This is the number of interations, it took the system to stabilize (It is guessed)
+Nsampling=int(n*0.5) #This is the number of interations, it took the system to stabilize (It is guessed)
 #plt.plot(Param[:,6])
 
 #plt.figure(2)
@@ -29,6 +29,6 @@ Nsampling=int(n*0.3) #This is the number of interations, it took the system to s
 #plt.plot(Param[:,1])
 
 for i in xrange(m):
-    print "The Average %s is %lf " %(FirstLine[i],np.average(Param[::Nsampling,i]))
+    print "The Average %s is %lf " %(FirstLine[i],np.average(Param[Nsampling::,i]))
 
 plt.plot(Param[:,0],Param[:,2])
