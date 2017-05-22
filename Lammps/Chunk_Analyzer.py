@@ -40,7 +40,7 @@ Averages[:,1]=-Averages[:,1]/(k+1) #*25.6871345049201*0.642178362623003*0.5
 
 
 """Creating the output file"""
-np.savetxt("Averages.dat",Averages,header="Height \t Pyy")
+np.savetxt("Averages.dat",Averages)
 #plt.plot(Averages[:,0],Averages[:,1])
 #plt.savefig("Pressure.png")
 
