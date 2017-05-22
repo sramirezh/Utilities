@@ -6,7 +6,7 @@ rm *.chunk
 rm Times.dat
 name=$1 
 
-pattern=`head -4 property.profile| tail -1| awk {'print $2" "$3'}` #This lines gets the pattern that has to be used to split the file
+pattern=`head -4 $name| tail -1| awk {'print $2" "$3'}` #This lines gets the pattern that has to be used to split the file
 csplit --digits=4 -z --quiet --prefix=outfile $name "/$pattern/" "{*}" #Splits between things with the
 
 mv outfile0000 header
