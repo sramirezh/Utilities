@@ -7,7 +7,7 @@ It generates a file "Averages.dat" that has the averaged heights and pressures.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 ##Next two lines are for testing 
 ##PATH="/home/sr802/Dropbox/PhD/Cambridge/Academical/3.Simulation/0.Lammps/2.Solid_fluid/2D"
@@ -41,8 +41,8 @@ Averages[:,1]=-Averages[:,1]/(k+1) #*25.6871345049201*0.642178362623003*0.5
 
 """Creating the output file"""
 np.savetxt("Averages.dat",Averages,header="Height \t Pyy")
-plt.plot(Averages[:,0],Averages[:,1])
-plt.savefig("Pressure.png")
+#plt.plot(Averages[:,0],Averages[:,1])
+#plt.savefig("Pressure.png")
 
 
 
