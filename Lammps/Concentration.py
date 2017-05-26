@@ -44,10 +44,10 @@ Creating the output file
 np.savetxt("SConcentration.dat",Concentration)
 
 
-#For Testing Porpuses
-import matplotlib.pyplot as plt
-plt.plot(Concentration[:,0],Concentration[:,1],'*')
-y=np.linspace(-0.1,1.1)
-x=np.zeros(len(y))
-x[:]=-2.11856
-plt.plot(x,y)
+##For Testing Porpuses
+#import matplotlib.pyplot as plt
+#plt.plot(Concentration[:,0],Concentration[:,1],'*')
+#y=np.linspace(-0.1,1.1)
+#x=np.zeros(len(y))
+#x[:]=-2.11856
+#plt.plot(x,y)
