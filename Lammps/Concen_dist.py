@@ -10,13 +10,21 @@ It generates a file "Sconcentration.dat" that has the averages of all data.
 """
 
 import numpy as np
-
+from scipy.interpolate import splev,splrep,splint
 
 #Reading the times to make it easier to read the file by chunks
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
-print "\nRemember to define the surface shift!!!!\n"
-xshift=-2.11856 #This is where the solid surface finishes. 
+print "\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n"
+
+#zshifts 
+#0.5, 0.8   is -2.118560 
+#1.0, 1.0   is -2.149910 
+#1.5, 1.5   is -1.714010 
+
+
+
+xshift=-2.149910   #This is where the solid surface finishes. 
 
 #Getting the shape of the data array 
 File_Name=str(int(Times[0]))+".chunk"
@@ -37,7 +45,6 @@ for k in xrange(x): #Runs over the sampled times.
     Chunk_Results=np.loadtxt(File_Name,skiprows=1)  
     for i in xrange(n):  
         Concentration[i,1]=Concentration[i,1]+Chunk_Results[i,4] #Just adding the density/mass#
-        
         #Computing the bulk concentration as defined by Bocquet.
         if Concentration[i,0]>=15 and Concentration[i,0]<=25:
             BulkConcentration.append(Chunk_Results[i,4])
@@ -69,36 +76,53 @@ def Integrate(x,y,xmin,xmax):
 
 Integrand=Concentration[:,1]/BulkC-1.0
                        
-SolAbso=Integrate(Concentration[:,1],Integrand,xmin,xmax)
+SolAbso=Integrate(Concentration[:,0],Integrand,xmin,xmax)
 
-print "The average concentration is %f and the solute absortion is %f" %(Average_c,SolAbso)
 
+"""
+Spline Calculations 
+"""
+tck=splrep(Concentration[:,0],Integrand)
+SplineX=np.linspace(0,8,400)
+SplineY=splev(SplineX,tck)
+Gamma=splint(0,8,tck)
+
+print "The average concentration is %f" %(Average_c)
+print "The bulk concentration is %f" %(BulkC)
+print "The solute adsorption is %f" %SolAbso
+print "The solute adsorption using splines is %f" %Gamma
                        
-#"""
-#Creating the output file
-#"""
-#np.savetxt("SConcentration.dat",Concentration)
-#
-#
-#"""
-#Uncomment for testing
-#"""
-# 
-#import matplotlib.pyplot as plt
-#plt.figure(1)
-#plt.plot(Concentration[:,0],Concentration[:,1])
-#
-#x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
-#y=np.zeros(len(x))
-#y[:]=BulkC
-#plt.plot(x,y)
-#plt.xlim([0,25])
+"""
+Creating the output file
+"""
+np.savetxt("Concentration.dat",Concentration)
+
+
+
+
+"""
+Uncomment for testing
+"""
+ 
+import matplotlib.pyplot as plt
+plt.figure(1)
+plt.plot(Concentration[:,0],Concentration[:,1])
+
+x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
+y=np.zeros(len(x))
+y[:]=BulkC
+plt.plot(x,y)
+plt.xlim([0,25])
+
 
 
 plt.figure(2)
 
-plt.plot(Concentration[:,0],Integrand)
+plt.plot(Concentration[:,0],Integrand,'*')
 x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
 y=np.zeros(len(x))
 plt.plot(x,y)
+plt.plot(SplineX,SplineY)
 plt.xlim([0,8])
+
+
