@@ -14,7 +14,17 @@ The positions of the stresses have to be given explicitly as CSV, and the index 
 import numpy as np
 import sys
 
-"""Functions"""
+print "\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n"
+
+#zshifts 
+#0.5, 0.8   is -2.118560 
+#1.0, 1.0   is -2.149910 
+#1.5, 1.5   is -1.714010 
+xshift=-1.714010 
+
+"""
+Functions
+"""
 
 def Parameter_Finder(List, String):
     """
@@ -52,7 +62,9 @@ f.close()
 Nparam=len(Parameters)-1 
 ExcludeP=2 #Excluded parameters, like the position of the chunk
 Parameters.remove("#")
-
+print "The parameters are:\n"
+for f in Parameters:
+    print f
 
 #Checking if there are stress calculations
 IsPress=np.zeros(Nparam)
@@ -103,6 +115,8 @@ for i in xrange(Nparam):
         Averages[:,i]=Averages[:,i]/(k+1) 
 
 
+
+Averages[:,1]=Averages[:,1]-xshift #Adding the shift due the surface
 """
 Creating the output file
 """
@@ -111,4 +125,6 @@ np.savetxt("Averages.dat",Averages)
 
 #For Testing Porpuses
 #import matplotlib.pyplot as plt
-#plt.plot(Averages[:,1],Averages[:,6])
+#
+#plt.plot(Averages[:,1],Averages[:,3])
+#plt.xlim([0,25])

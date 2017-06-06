@@ -83,9 +83,15 @@ SolAbso=Integrate(Concentration[:,0],Integrand,xmin,xmax)
 Spline Calculations 
 """
 tck=splrep(Concentration[:,0],Integrand)
+tck0=splrep(Concentration[:,0],Concentration[:,1])
 SplineX=np.linspace(0,8,400)
 SplineY=splev(SplineX,tck)
-Gamma=splint(0,8,tck)
+
+Gamma=splint(0,8,tck) #Solute Absorption
+
+#Generating Spline Concentration
+TSplineX=np.linspace(0,25,1500)
+TSplineY=splev(TSplineX,tck0)
 
 print "The average concentration is %f" %(Average_c)
 print "The bulk concentration is %f" %(BulkC)
@@ -96,8 +102,9 @@ print "The solute adsorption using splines is %f" %Gamma
 Creating the output file
 """
 np.savetxt("Concentration.dat",Concentration)
-
-
+np.savetxt("Spline_Concentration.dat", np.transpose([TSplineX,TSplineY]))
+np.savetxt("Integrand.dat",np.transpose([Concentration[:,0],Integrand]))
+np.savetxt("Spline_Integrand.dat",np.transpose([SplineX,SplineY]))
 
 
 """
@@ -106,12 +113,13 @@ Uncomment for testing
  
 import matplotlib.pyplot as plt
 plt.figure(1)
-plt.plot(Concentration[:,0],Concentration[:,1])
+plt.plot(Concentration[:,0],Concentration[:,1],'*')
 
 x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
 y=np.zeros(len(x))
 y[:]=BulkC
 plt.plot(x,y)
+plt.plot(TSplineX,TSplineY)
 plt.xlim([0,25])
 
 
