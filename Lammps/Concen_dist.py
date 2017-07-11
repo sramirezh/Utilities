@@ -22,9 +22,19 @@ print "\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n"
 #1.0, 1.0   is -2.149910 
 #1.5, 1.5   is -1.714010 
 
+#SC
+#0.5, 0.8   is -2.109250
+#1.0, 1.0   is -2.089910
+#1.5, 1.5   is -1.918170
 
 
-xshift=-2.149910   #This is where the solid surface finishes. 
+#1 Layer 
+#0.5, 0.8   is -1.064190
+#1.0, 1.0   is -1.100260
+#1.5, 1.5   is -0.833002
+
+
+xshift=-0.833002   #This is where the solid surface finishes. 
 
 #Getting the shape of the data array 
 File_Name=str(int(Times[0]))+".chunk"
@@ -40,6 +50,7 @@ Computing the averages and other parameters
 """
 BulkConcentration=[]
 for k in xrange(x): #Runs over the sampled times.
+    print k
    # print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(Times[k]))+".chunk"
     Chunk_Results=np.loadtxt(File_Name,skiprows=1)  

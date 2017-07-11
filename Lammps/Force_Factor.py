@@ -31,6 +31,16 @@ print "\nRemember to set the zdrift properly\n"
 #1.0, 1.0   is -2.149910 
 #1.5, 1.5   is -1.714010 
 
+#SC
+#0.5, 0.8   is -2.109250
+#1.0, 1.0   is -2.089910
+#1.5, 1.5   is -1.918170
+
+#1 Layer
+#0.5, 0.8   is -1.064190
+#1.0, 1.0   is -1.100260
+#1.5, 1.5   is -0.833002
+
 
 zshift=-1.714010 
 Averages[:,0]=FirstChunk[:,1]-zshift
