@@ -34,3 +34,12 @@ git push
 # Push our rewritten, smaller commit
 
 
+If you want remove all local changes from your working copy, simply stash them:
+
+git stash save --keep-index
+
+If you don't need them anymore, you now can drop that stash:
+
+git stash drop
+
+
