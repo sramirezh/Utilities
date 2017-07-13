@@ -24,25 +24,12 @@ n,m=np.shape(FirstChunk)
 
 Averages=np.zeros((n,2))
 
-print "\nRemember to set the zdrift properly\n"
 
-#zshifts 
-#0.5, 0.8   is -2.118560 
-#1.0, 1.0   is -2.149910 
-#1.5, 1.5   is -1.714010 
-
-#SC
-#0.5, 0.8   is -2.109250
-#1.0, 1.0   is -2.089910
-#1.5, 1.5   is -1.918170
-
-#1 Layer
-#0.5, 0.8   is -1.064190
-#1.0, 1.0   is -1.100260
-#1.5, 1.5   is -0.833002
-
-
-zshift=-1.714010 
+#Getting the zshift
+f=open("Zshift.dat")
+zshift=np.float(f.readline())
+f.close()
+ 
 Averages[:,0]=FirstChunk[:,1]-zshift
 """
 Computing the averages and other parameters
@@ -75,7 +62,8 @@ Ns=np.average(BulkSolutes)
 Nb=np.average(BulkTotal)
 Ffactor=Nb/(Nb-Ns)
 
-print "The average number of solutes in the bulk is Ns %f and total particles in the bulk Nb %f" %(Ns,Nb)
+print "The average number of solutes in the bulk is Ns %f" %Ns
+print "The average number of fluid (Solvent+solute) particles in the bulk Nb %f" %Nb
 print "The force factor is %f" %Ffactor
                        
 #"""

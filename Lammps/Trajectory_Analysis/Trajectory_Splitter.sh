@@ -1,5 +1,6 @@
 # This script reads the trajectory data and creates individual files for every timestep
 # The name of the file to be splitted is given as input in the command line. 
+#Notice that the number of particles inside the file for every step can vary.
 
 rm *.cxyz
 rm Times.dat

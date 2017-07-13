@@ -17,24 +17,10 @@ Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
 print "\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n"
 
-#zshifts 
-#0.5, 0.8   is -2.118560 
-#1.0, 1.0   is -2.149910 
-#1.5, 1.5   is -1.714010 
-
-#SC
-#0.5, 0.8   is -2.109250
-#1.0, 1.0   is -2.089910
-#1.5, 1.5   is -1.918170
-
-
-#1 Layer 
-#0.5, 0.8   is -1.064190
-#1.0, 1.0   is -1.100260
-#1.5, 1.5   is -0.833002
-
-
-xshift=-0.833002   #This is where the solid surface finishes. 
+#Getting the zshift
+f=open("Zshift.dat")
+xshift=np.float(f.readline())   #This is where the solid surface finishes. 
+f.close()
 
 #Getting the shape of the data array 
 File_Name=str(int(Times[0]))+".chunk"
@@ -117,31 +103,31 @@ np.savetxt("Spline_Concentration.dat", np.transpose([TSplineX,TSplineY]))
 np.savetxt("Integrand.dat",np.transpose([Concentration[:,0],Integrand]))
 np.savetxt("Spline_Integrand.dat",np.transpose([SplineX,SplineY]))
 
-
+print "Generated Concentration.dat Spline_Concentration.dat Integrand.dat Spline_Integrand.dat"
 """
 Uncomment for testing
 """
  
-import matplotlib.pyplot as plt
-plt.figure(1)
-plt.plot(Concentration[:,0],Concentration[:,1],'*')
-
-x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
-y=np.zeros(len(x))
-y[:]=BulkC
-plt.plot(x,y)
-plt.plot(TSplineX,TSplineY)
-plt.xlim([0,25])
-
-
-
-plt.figure(2)
-
-plt.plot(Concentration[:,0],Integrand,'*')
-x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
-y=np.zeros(len(x))
-plt.plot(x,y)
-plt.plot(SplineX,SplineY)
-plt.xlim([0,8])
+#import matplotlib.pyplot as plt
+#plt.figure(1)
+#plt.plot(Concentration[:,0],Concentration[:,1],'*')
+#
+#x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
+#y=np.zeros(len(x))
+#y[:]=BulkC
+#plt.plot(x,y)
+#plt.plot(TSplineX,TSplineY)
+#plt.xlim([0,25])
+#
+#
+#
+#plt.figure(2)
+#
+#plt.plot(Concentration[:,0],Integrand,'*')
+#x=np.linspace(min(Concentration[:,0]),max(Concentration[:,0]))
+#y=np.zeros(len(x))
+#plt.plot(x,y)
+#plt.plot(SplineX,SplineY)
+#plt.xlim([0,8])
 
 

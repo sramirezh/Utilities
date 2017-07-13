@@ -31,4 +31,4 @@ Nsampling=int(n*0.5) #This is the number of interations, it took the system to s
 for i in xrange(m):
     print "The Average %s is %lf " %(FirstLine[i],np.average(Param[Nsampling::,i]))
 
-plt.plot(Param[:,0],Param[:,5])
+#plt.plot(Param[:,0],Param[:,5])

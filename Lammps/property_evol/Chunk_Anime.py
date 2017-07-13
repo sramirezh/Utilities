@@ -7,17 +7,33 @@ pressure.
 
 The positions of the stresses have to be given explicitly as CSV, and the index counting starts at zero in chunk, for example:
     ['Chunk', 'Coord1', 'Ncount', 'vx', 'vz', 'density/mass', 'c_Stress[3]'], c_Stress[3] is the 6th entry. 
-    
-
 """
 
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
+import time
 
-#Getting the zshift
-f=open("Zshift.dat")
-zshift=np.float(f.readline())
-f.close()
+print "\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n"
+
+#zshifts 
+#0.5, 0.8   is -2.118560 
+#1.0, 1.0   is -2.149910 
+#1.5, 1.5   is -1.714010 
+
+#SC
+#0.5, 0.8   is -2.109250
+#1.0, 1.0   is -2.089910
+#1.5, 1.5   is -1.918170
+
+#1 Layer
+#0.5, 0.8   is -1.064190
+#1.0, 1.0   is -1.100260
+#1.5, 1.5   is -0.833002
+
+
+zshift=-1.714010 
+
 """
 Functions
 """
@@ -83,18 +99,23 @@ x=np.size(Times)
 #Getting the shape of the data array 
 File_Name=str(int(Times[0]))+".chunk"
 n,m=np.shape(np.loadtxt(File_Name,skiprows=1)) 
-
+   
 
 """
 Computing the averages and other parameters
 """
+
 Averages=np.zeros((n,Nparam))
 IsPressure=0
 for k in xrange(x): #Runs over the sampled times.
    # print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(Times[k]))+".chunk"
     Chunk_Results=np.loadtxt(File_Name,skiprows=1) 
-    
+    plt.plot(Chunk_Results[:,1],Chunk_Results[:,3])
+    plt.ylim(-0.3,0.1)
+    plt.xlim(zshift,25)
+    plt.pause(0.01)
+    plt.clf()
     for l in xrange(ExcludeP,Nparam): #Runs over the parameter
         if IsPress[l]==1:
             Averages[:,l]=Averages[:,l]-Chunk_Results[:,l]*Chunk_Results[:,index] #Stress per atom*mass/density
