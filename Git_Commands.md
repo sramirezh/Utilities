@@ -1,4 +1,4 @@
-#To Clone and keep updated 
+# To Clone and keep updated 
 
 1. Clone your fork:
 
@@ -14,27 +14,27 @@ git fetch upstream
 
 git pull upstream master
 
-#To pull and push to/from
+# To pull and push to/from
 
 git pull origin master
 
 
 
-#To remove large files, GitHub suggests:
+# To remove large files, GitHub suggests:
 
 $ git rm --cached giant_file
-# Stage our giant file for removal, but leave it on disk
+#Stage our giant file for removal, but leave it on disk
 
 git commit --amend -CHEAD
-# Amend the previous commit with your change
-# Simply making a new commit won't work, as you need
-# to remove the file from the unpushed history as well
-
+#Amend the previous commit with your change
+#Simply making a new commit won't work, as you need
+#to remove the file from the unpushed history as well
+1
 git push
-# Push our rewritten, smaller commit
+#Push our rewritten, smaller commit
 
 
-If you want remove all local changes from your working copy, simply stash them:
+# Remove all local changes from your working copy, simply stash them:
 
 git stash save --keep-index
 
