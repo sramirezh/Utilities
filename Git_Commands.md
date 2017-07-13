@@ -22,16 +22,12 @@ git pull origin master
 
 # To remove large files, GitHub suggests:
 
-$ git rm --cached giant_file
-#Stage our giant file for removal, but leave it on disk
+$ git rm --cached giant_file  Stage our giant file for removal, but leave it on disk
 
 git commit --amend -CHEAD
-#Amend the previous commit with your change
-#Simply making a new commit won't work, as you need
-#to remove the file from the unpushed history as well
-1
-git push
-#Push our rewritten, smaller commit
+Amend the previous commit with your change Simply making a new commit won't work, as you need to remove the file from the unpushed history as well
+
+git push Push our rewritten, smaller commit
 
 
 # Remove all local changes from your working copy, simply stash them:
