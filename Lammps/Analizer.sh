@@ -64,6 +64,7 @@ python $dir/Force_Factor.py
 printf "\n##########################################################################\n"
 echo "Analizing the Concentration Distribution"
 echo "##########################################################################"
+bash $dir/Chunk_Splitter.sh Sproperties.all 
 python $dir/Concen_dist.py
 
 rm *.chunk* 
