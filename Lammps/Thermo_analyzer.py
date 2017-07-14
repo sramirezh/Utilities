@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 #PATH="/home/sr802/Dropbox/PhD/Cambridge/Academical/3.Simulation/0.Lammps/2.Solid_fluid/2D"
 #TotalPath=PATH+"/parameters.dat"
 
-TotalPath="parameters.dat"
+TotalPath="Parameters.dat"
 
 #Display the header file
 f=open(TotalPath, 'r')
