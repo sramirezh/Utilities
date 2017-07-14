@@ -15,7 +15,6 @@ from scipy.interpolate import splev,splrep,splint
 #Reading the times to make it easier to read the file by chunks
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
-print "\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n"
 
 #Getting the zshift
 f=open("Zshift.dat")
@@ -36,7 +35,6 @@ Computing the averages and other parameters
 """
 BulkConcentration=[]
 for k in xrange(x): #Runs over the sampled times.
-    print k
    # print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(Times[k]))+".chunk"
     Chunk_Results=np.loadtxt(File_Name,skiprows=1)  
