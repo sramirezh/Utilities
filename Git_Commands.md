@@ -18,6 +18,10 @@ and then I have to push the changes that I got from the Upstream to the fork wit
 
 git push origin master 
 
+To check what is the origin and what is the fork, use 
+
+git remote -v
+
 
 https://help.github.com/articles/fork-a-repo/
 
