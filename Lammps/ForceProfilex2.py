@@ -18,10 +18,9 @@ Ns=391.576673
 Nb=2126.836227 #Number of fluid particles in the bulk
 GradChem=-0.125
 
-
 #Yawei data
 rhoS=0.135973
-rhoF=0.602 #Estimation from the plot
+rhoF=0.602 #Estimation from the plot 
 T=1
 
 """Loading the properties"""
@@ -35,7 +34,8 @@ FsY=-GradChem
 FfY=-FsY*rhoS/rhoF
 
 """Computing Hiroaki Forces"""
-FsH=-GradChem*(Nb-Ns)/Nb
+#Do not include the GradChem
+FsH=(Nb-Ns)/Nb
 FfH=-FsH*(Ns/(Nb-Ns))
               
 n,m=np.shape(f)
@@ -56,3 +56,23 @@ plt.plot(YForce[:,0],YForce[:,1])
 plt.plot(HForce[:,0],HForce[:,1])
 np.savetxt("YForce.dat",YForce)
 np.savetxt("HForce.dat",HForce)    
+
+
+#==============================================================================
+# Generatig the Files to be iterated in Lammps
+#==============================================================================
+
+zBulk=8
+Index=np.where(HForce[:,0]<zBulk)
+BinSize=HForce[1,0]-HForce[0,0]
+
+Zpos=np.append(HForce[Index,0],HForce[Index[0][-1],0]+BinSize)
+HF=HForce[Index,1]
+
+np.savetxt("Zpos_iterate.dat",Zpos)
+np.savetxt("YForce_iterate.dat",HF)
+
+
+
+
+
