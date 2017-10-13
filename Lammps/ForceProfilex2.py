@@ -67,7 +67,7 @@ Index=np.where(HForce[:,0]<zBulk)
 BinSize=HForce[1,0]-HForce[0,0]
 
 Zpos=np.append(HForce[Index,0],HForce[Index[0][-1],0]+BinSize)
-HF=HForce[Index,1]
+HF=np.transpose(HForce[Index,1])
 
 np.savetxt("Zpos_iterate.dat",Zpos)
 np.savetxt("YForce_iterate.dat",HF)
