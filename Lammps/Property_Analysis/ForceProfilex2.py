@@ -52,14 +52,14 @@ for i in xrange(n):
         YForce[i,1]=(FfY*f[i,4]+FsY*s[i,4])/All[i,4]
         HForce[i,1]=(FfH*f[i,4]+FsH*s[i,4])/All[i,4]
     
-#plt.plot(YForce[:,0],YForce[:,1])
-#plt.plot(HForce[:,0],HForce[:,1])
+plt.plot(YForce[:,0],YForce[:,1])
+plt.plot(HForce[:,0],HForce[:,1])
 np.savetxt("YForce.dat",YForce)
 np.savetxt("HForce.dat",HForce)    
 
 
 #==============================================================================
-# Generatig the Files to be iterated in Lammps
+# Generating the Files to be iterated in Lammps
 #==============================================================================
 
 zBulk=8
@@ -70,7 +70,7 @@ Zpos=np.append(HForce[Index,0],HForce[Index[0][-1],0]+BinSize)
 HF=np.transpose(HForce[Index,1])
 
 np.savetxt("Zpos_iterate.dat",Zpos)
-np.savetxt("YForce_iterate.dat",HF)
+np.savetxt("HForce_iterate.dat",HF)
 
 
 
