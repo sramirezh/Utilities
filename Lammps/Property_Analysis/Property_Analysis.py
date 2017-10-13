@@ -21,7 +21,7 @@ FProperties=np.loadtxt("LAverages.dat") #Solvent properties
 SProperties=np.loadtxt("SAverages.dat") #Solute properties
 AProperties=np.loadtxt("AAverages.dat") #All properties
 
-n,m=np.shape(Aproperties)
+n,m=np.shape(AProperties)
 
 T=1.0 # This could be improved
 
@@ -30,7 +30,7 @@ IntUp=8    #Upperintegration limit
 BulkMin=15  #Bulk Lower Limit
 BulkMax=25  #Bulk Upper Limit
 
-print "Working temperature is %f" %T
+print "\n Working temperature is %f \n" %T
 
 
 # =============================================================================
@@ -51,7 +51,7 @@ def Integrate(x, y, xmin, xmax):
 # =============================================================================
 # Computing the bulk Properties
 # =============================================================================
-def Concentrations(Properties, BulkMin, BulkMax):
+def BulkProperties(Properties, BulkMin, BulkMax):
     """
     :param Properties: Has all the averages computed from the chunks
     :param BulkMin: Minimum Position of the Bulk
@@ -73,7 +73,7 @@ def Concentrations(Properties, BulkMin, BulkMax):
     N=N/cont
 
 
-    return BulkC, N
+    return BulkC,N
 
 
 
@@ -102,8 +102,7 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
     :param FProperties: Solvent Properties
     :param AProperties: Fluid Properties
     :return:
-    Ffactor The force factor as defined in the first simulations
-    Creates the files to iterate in Lammps and the Force Distribution
+    The Force distribution
     """
     FsH = (Nb - Ns) / Nb
     FfH = -FsH * (Ns / (Nb - Ns))
@@ -129,6 +128,17 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
 
 
 def YForce(Cs,Cf,SProperties,FProperties,AProperties):
+    """
+    Yawei Force Calculation
+    :param Cs: Solute Concentration
+    :param Cf: Solvent Concentration
+    :param SProperties: Solute Properties
+    :param FProperties: Solvent Properties
+    :param AProperties: Fluid Properties
+    :return:
+    The Force distribution
+
+    """
     FsY = -1.0
     FfY = -FsY * Cs / Cf
     YForce = np.zeros((n, 2))
@@ -149,20 +159,65 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
 
 
 
+# ==============================================================================
+# Main
+# ==============================================================================
 
 
+# ==============================================================================
+# Solvent
+# ==============================================================================
+
+print "\nComputing Solvent properties\n"
+
+Cf,Nf=BulkProperties(FProperties, BulkMin, BulkMax)
+print "The bulk concentration is %f" %(Cf)
+print "The average concentration is %f" %(np.average(FProperties[:,4]))
+
+FGamma= Gamma(FProperties,Cf,IntLow,IntUp)
+
+print "The Solvent adsorption is %f" %FGamma
+
+# ==============================================================================
+# Solute
+# ==============================================================================
+
+print "\nComputing Solute properties\n"
+
+Cs,Ns=BulkProperties(SProperties, BulkMin, BulkMax)
+print "The bulk concentration is %f" %(Cs)
+print "The average concentration is %f" %(np.average(SProperties[:,4]))
+
+SGamma = Gamma(SProperties,Cs,IntLow,IntUp)
+
+print "The Solute adsorption is %f" %SGamma
+
+# ==============================================================================
+# Fluid
+# ==============================================================================
+
+print "\nComputing Fluid properties\n"
+
+C,N=BulkProperties(SProperties, BulkMin, BulkMax)
+print "The bulk concentration is %f" %(C)
+print "The average concentration is %f" %(np.average(Properties[:,4]))
 
 
-    # ==============================================================================
-    # Generating the Files to be iterated in Lammps
-    # ==============================================================================
+# ==============================================================================
+# Force Calculations
+# ==============================================================================
+print "\n Starting the Force Calculations\n"
+HForce = HForce(Ns,N,SProperties,FProperties,AProperties)
+YForce = YForce(Cs,Cf,SProperties,FProperties,AProperties)
+Index = np.where(HForce[:, 0] < BulkMax)
+BinSize = HForce[1, 0] - HForce[0, 0]
 
-    zBulk = 8
-    Index = np.where(HForce[:, 0] < zBulk)
-    BinSize = HForce[1, 0] - HForce[0, 0]
+Zpos = np.append(HForce[Index, 0], HForce[Index[0][-1], 0] + BinSize)
+HF = np.transpose(HForce[Index, 1])
+YF = np.transpose(YForce[Index, 1])
 
-    Zpos = np.append(HForce[Index, 0], HForce[Index[0][-1], 0] + BinSize)
-    HF = np.transpose(HForce[Index, 1])
+print "Creating the Files to iterate in Lammps"
+np.savetxt("Zpos_iterate.dat", Zpos)
+np.savetxt("HForce_iterate.dat", HF)
+np.savetxt("YForce_iterate.dat", YF)
 
-    np.savetxt("Zpos_iterate.dat", Zpos)
-    np.savetxt("HForce_iterate.dat", HF)

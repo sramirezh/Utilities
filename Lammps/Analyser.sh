@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #############################################
 # This code is intended to analyze everything from the Measurement run 
 #############################################
@@ -7,8 +8,8 @@ dir=$(dirname $0) #to get the directory where the script and other source files 
 printf "\n##########################################################################\n"
 echo "Analyzing the log file"
 echo "##########################################################################"
-bash $dir/Thermo_dump.sh log.lammps
-python $dir/Thermo_analyzer.py
+bash $dir/Log_Analysis/Thermo_dump.sh log.lammps
+python $dir/Log_Analysis/Thermo_analyzer.py
 
 printf "\nGenerated Parameters.dat \n"
 
@@ -25,49 +26,41 @@ echo "##########################################################################
 
 
 printf "\n**************************************************************************\n"
-echo "Analyzing the Solute properties"
+echo "Averaging the Solute properties"
 echo "**************************************************************************"
-bash $dir/Chunk_Splitter.sh Sproperties.all
-python $dir/Chunk_Analyzer.py
+bash $dir/Chunk_Analysis/Chunk_Splitter.sh Sproperties.all
+python $dir/Chunk_Analysis/Chunk_Analyzer.py
 mv Averages.dat SAverages.dat
-for f in *.chunk;do mv "$f" "$f"s;done  #To rename as .chunks to analyze afterwards with Force_Factor.py
 
 printf "\nGenerated SAverages.dat  \n"
 
 printf "\n**************************************************************************\n"
-echo "Analyzing the Solvent properties"
+echo "Averaging the Solvent properties"
 echo "**************************************************************************"
-bash $dir/Chunk_Splitter.sh Lproperties.all
-python $dir/Chunk_Analyzer.py
+bash $dir/Chunk_Analysis/Chunk_Splitter.sh Lproperties.all
+python $dir/Chunk_Analysis/Chunk_Analyzer.py
 mv Averages.dat LAverages.dat
 
 printf "\nGenerated LAverages.dat  \n"
 
 printf "\n**************************************************************************\n"
-echo "Analyzing the Fluid properties"
+echo "Averaging the Fluid properties"
 echo "**************************************************************************"
-bash $dir/Chunk_Splitter.sh properties.all
-python $dir/Chunk_Analyzer.py
+bash $dir/Chunk_Analysis/Chunk_Splitter.sh properties.all
+python $dir/Chunk_Analysis/Chunk_Analyzer.py
 mv Averages.dat AAverages.dat
 
 
 printf "\nGenerated AAverages.dat \n"
 
+rm *.chunk*
 
 printf "\n##########################################################################\n"
-echo "Analyzing the force factor for the chemical potential"
+echo "Analyzing the properties"
 echo "##########################################################################"
 
-python $dir/Force_Factor.py
 
 
-printf "\n##########################################################################\n"
-echo "Analyzing the Concentration Distribution"
-echo "##########################################################################"
-bash $dir/Chunk_Splitter.sh Sproperties.all 
-python $dir/Concen_dist.py
-
-rm *.chunk* 
 
 
 
