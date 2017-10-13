@@ -198,9 +198,9 @@ print "The Solute adsorption is %f" %SGamma
 
 print "\nComputing Fluid properties\n"
 
-C,N=BulkProperties(SProperties, BulkMin, BulkMax)
+C,N=BulkProperties(AProperties, BulkMin, BulkMax)
 print "The bulk concentration is %f" %(C)
-print "The average concentration is %f" %(np.average(Properties[:,4]))
+print "The average concentration is %f" %(np.average(AProperties[:,4]))
 
 
 # ==============================================================================
