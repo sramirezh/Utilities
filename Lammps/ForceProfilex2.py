@@ -52,8 +52,8 @@ for i in xrange(n):
         YForce[i,1]=(FfY*f[i,4]+FsY*s[i,4])/All[i,4]
         HForce[i,1]=(FfH*f[i,4]+FsH*s[i,4])/All[i,4]
     
-plt.plot(YForce[:,0],YForce[:,1])
-plt.plot(HForce[:,0],HForce[:,1])
+#plt.plot(YForce[:,0],YForce[:,1])
+#plt.plot(HForce[:,0],HForce[:,1])
 np.savetxt("YForce.dat",YForce)
 np.savetxt("HForce.dat",HForce)    
 
