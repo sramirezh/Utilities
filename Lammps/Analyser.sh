@@ -59,6 +59,7 @@ printf "\n######################################################################
 echo "Analyzing the properties"
 echo "##########################################################################"
 
+python $dir/Property_Analysis/Property_Analysis.py
 
 
 
