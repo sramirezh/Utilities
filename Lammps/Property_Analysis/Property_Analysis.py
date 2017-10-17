@@ -118,7 +118,7 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
         else:
             HForce[i, 1] = (FfH * FProperties[i, 4] + FsH * SProperties[i, 4]) / AProperties[i, 4]
 
-    np.savetxt("Hforce.dat",HForce)
+    np.savetxt("HForce.dat",HForce)
     Ffactor = 1.0 / FsH
 
     print "The Force Factor is  %f" %Ffactor
