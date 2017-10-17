@@ -9,7 +9,7 @@ printf "\n######################################################################
 echo "Analyzing the log file"
 echo "##########################################################################"
 bash $dir/Log_Analysis/Thermo_dump.sh log.lammps
-python $dir/Log_Analysis/Thermo_analyser.py
+python $dir/Log_Analysis/Thermo_Analyser.py
 
 printf "\nGenerated Parameters.dat \n"
 
