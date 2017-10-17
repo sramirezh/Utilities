@@ -11,8 +11,8 @@ Chunk,Coord,Ncout,Vx,Rho,[Pzz,Pxx]
 """
 
 import numpy as np
-import subprocess
-
+from subprocess import Popen,PIPE
+from shlex import split
 #=============================================================================
 #Input files and parameters
 #=============================================================================
@@ -31,10 +31,10 @@ BulkMin=15  #Bulk Lower Limit
 BulkMax=25  #Bulk Upper Limit
 
 #Getting the Input temperature
-bashCommand = 'grep nvt log.lammps'
-process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-output, error = process.communicate()
-T=np.float(output.split()[-2])
+p1 = Popen(split('grep "nvt" log.lammps'),stdout=PIPE)
+p2 = Popen(split('head -1'), stdin=p1.stdout, stdout=PIPE)
+out,err=p2.communicate()
+T=out.split()[-2]
 print "\nWorking temperature is %f \n" %T
 
 # =============================================================================
