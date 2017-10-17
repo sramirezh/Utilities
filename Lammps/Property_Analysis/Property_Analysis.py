@@ -34,7 +34,7 @@ BulkMax=25  #Bulk Upper Limit
 bashCommand = 'grep nvt log.lammps'
 process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
 output, error = process.communicate()
-T=float(output.split()[-2])
+T=np.float(output.split()[-2])
 print "\nWorking temperature is %f \n" %T
 
 # =============================================================================
