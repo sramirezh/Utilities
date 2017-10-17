@@ -34,7 +34,7 @@ BulkMax=25  #Bulk Upper Limit
 p1 = Popen(split('grep "nvt" log.lammps'),stdout=PIPE)
 p2 = Popen(split('head -1'), stdin=p1.stdout, stdout=PIPE)
 out,err=p2.communicate()
-T=out.split()[-2]
+T=np.float(out.split()[-2])
 print "\nWorking temperature is %f \n" %T
 
 # =============================================================================
