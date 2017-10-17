@@ -29,7 +29,7 @@ printf "\n**********************************************************************
 echo "Averaging the Solute properties"
 echo "**************************************************************************"
 bash $dir/Chunk_Analysis/Chunk_Splitter.sh Sproperties.all
-python $dir/Chunk_Analysis/Chunk_Analyzer.py
+python $dir/Chunk_Analysis/Chunk_Analyser.py
 mv Averages.dat SAverages.dat
 
 printf "\nGenerated SAverages.dat  \n"
@@ -38,7 +38,7 @@ printf "\n**********************************************************************
 echo "Averaging the Solvent properties"
 echo "**************************************************************************"
 bash $dir/Chunk_Analysis/Chunk_Splitter.sh Lproperties.all
-python $dir/Chunk_Analysis/Chunk_Analyzer.py
+python $dir/Chunk_Analysis/Chunk_Analyser.py
 mv Averages.dat LAverages.dat
 
 printf "\nGenerated LAverages.dat  \n"
@@ -47,7 +47,7 @@ printf "\n**********************************************************************
 echo "Averaging the Fluid properties"
 echo "**************************************************************************"
 bash $dir/Chunk_Analysis/Chunk_Splitter.sh properties.all
-python $dir/Chunk_Analysis/Chunk_Analyzer.py
+python $dir/Chunk_Analysis/Chunk_Analyser.py
 mv Averages.dat AAverages.dat
 
 

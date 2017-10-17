@@ -11,7 +11,7 @@ Chunk,Coord,Ncout,Vx,Rho,[Pzz,Pxx]
 """
 
 import numpy as np
-
+import subprocess
 
 #=============================================================================
 #Input files and parameters
@@ -23,21 +23,23 @@ AProperties=np.loadtxt("AAverages.dat") #All properties
 
 n,m=np.shape(AProperties)
 
-T=1.0 # This could be improved
+
 
 IntLow=0    #Lower integration limit
 IntUp=8    #Upperintegration limit
 BulkMin=15  #Bulk Lower Limit
 BulkMax=25  #Bulk Upper Limit
 
-print "\n Working temperature is %f \n" %T
-
+#Getting the Input temperature
+bashCommand = 'grep nvt log.lammps'
+process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+output, error = process.communicate()
+T=float(output.split()[-2])
+print "\nWorking temperature is %f \n" %T
 
 # =============================================================================
 # Function Definition
 # =============================================================================
-
-
 def Integrate(x, y, xmin, xmax):
     """
     Integrate the data in x and y from xmin to xmax

@@ -7,7 +7,6 @@ rm Times.dat 2>/dev/null
 name=$1 
 
 pattern=`head -4 $name| tail -1| awk {'print $2'}` #This lines gets the pattern that has to be used to split the file
-echo $pattern
 csplit --digits=4 -z --quiet --prefix=outfile $name "/[0-9] $pattern [0-9]/" "{*}" #Splits between things with the
 
 mv outfile0000 header
