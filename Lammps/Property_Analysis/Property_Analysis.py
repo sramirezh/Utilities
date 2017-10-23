@@ -23,7 +23,7 @@ AProperties=np.loadtxt("AAverages.dat") #All properties
 
 n,m=np.shape(AProperties)
 
-
+Zshift=float(np.loadtxt("Zshift.dat"))
 
 IntLow=0    #Lower integration limit
 IntUp=8    #Upperintegration limit
@@ -94,6 +94,7 @@ def Gamma(Properties,BulkC,IntLow,IntUp):
     return Gamma
 
 
+
 def HForce(Ns,Nb,SProperties,FProperties,AProperties):
     """
     Hiroaki Force Calculation
@@ -104,12 +105,14 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
     :param FProperties: Solvent Properties
     :param AProperties: Fluid Properties
     :return:
-    The Force distribution
+    The Force distribution only up to IntUp, after that it is assumed that the force is zero
     """
     FsH = (Nb - Ns) / Nb
     FfH = -FsH * (Ns / (Nb - Ns))
+    Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
+    n=len(Indexes)
     HForce = np.zeros((n, 2))
-    HForce[:, 0] = SProperties[:, 1]
+    HForce[:, 0] = SProperties[Indexes, 1]+Zshift
 
     for i in xrange(n):
         if AProperties[i, 4] == 0:
@@ -132,19 +135,21 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
 def YForce(Cs,Cf,SProperties,FProperties,AProperties):
     """
     Yawei Force Calculation
-    :param Cs: Solute Concentration
-    :param Cf: Solvent Concentration
+    :param Cs: Solute Concentration in the Bulk
+    :param Cf: Solvent Concentration in the Bulk
     :param SProperties: Solute Properties
     :param FProperties: Solvent Properties
     :param AProperties: Fluid Properties
     :return:
-    The Force distribution
+    The Force distribution only up to IntUp, after that it is assumed that the force is zero
 
     """
-    FsY = -1.0
+    FsY = -T/Cs
     FfY = -FsY * Cs / Cf
+    Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
+    n=len(Indexes)
     YForce = np.zeros((n, 2))
-    YForce[:, 0] = FProperties[:, 1]
+    YForce[:, 0] = FProperties[Indexes, 1]+Zshift
 
     for i in xrange(n):
         if AProperties[i, 4] == 0:
