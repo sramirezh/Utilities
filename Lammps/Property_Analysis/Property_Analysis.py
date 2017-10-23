@@ -153,7 +153,7 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
         else:
             YForce[i, 1] = (FfY * FProperties[i, 4] + FsY * SProperties[i, 4]) / AProperties[i, 4]
 
-    np.savetxt("Yforce.dat", YForce)
+    np.savetxt("YForce.dat", YForce)
 
     print "Created Yawei Force distribution File YForce.dat "
 
