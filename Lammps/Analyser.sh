@@ -2,6 +2,7 @@
 #############################################
 # This code is intended to analyze everything from the Measurement run
 #############################################
+clear
 dir=$(dirname $0) #to get the directory where the script and other source files are.
 
 printf "\n##########################################################################\n"
