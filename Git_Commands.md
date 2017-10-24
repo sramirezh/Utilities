@@ -49,4 +49,7 @@ If you dont need them anymore, you now can drop that stash:
 
 git stash drop
 
+# Change from SSH to HTTP 
 
+git remote -v to check what is the current URL
+git remote set-url origin URL, to set the new URL
