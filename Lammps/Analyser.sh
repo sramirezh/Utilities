@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #############################################
-# This code is intended to analyze everything from the Measurement run 
+# This code is intended to analyze everything from the Measurement run
 #############################################
-
+Lets seee
 dir=$(dirname $0) #to get the directory where the script and other source files are.
 
 printf "\n##########################################################################\n"
@@ -60,8 +60,3 @@ echo "Analyzing the properties"
 echo "##########################################################################"
 
 python $dir/Property_Analysis/Property_Analysis.py
-
-
-
-
-
