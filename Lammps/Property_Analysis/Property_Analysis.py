@@ -105,14 +105,14 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
     :param FProperties: Solvent Properties
     :param AProperties: Fluid Properties
     :return:
-    The Force distribution only up to IntUp, after that it is assumed that the force is zero
+    The Force distribution only up to IntUp, after that it is assumed that the force is zero, the positions assume the zero in the
     """
     FsH = (Nb - Ns) / Nb
     FfH = -FsH * (Ns / (Nb - Ns))
     Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
     n=len(Indexes)
     HForce = np.zeros((n, 2))
-    HForce[:, 0] = SProperties[Indexes, 1]+Zshift
+    HForce[:, 0] = SProperties[Indexes, 1]
 
     for i in xrange(n):
         if AProperties[i, 4] == 0:
@@ -149,7 +149,7 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
     Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
     n=len(Indexes)
     YForce = np.zeros((n, 2))
-    YForce[:, 0] = FProperties[Indexes, 1]+Zshift
+    YForce[:, 0] = FProperties[Indexes, 1]
 
     for i in xrange(n):
         if AProperties[i, 4] == 0:
@@ -219,7 +219,7 @@ YForce = YForce(Cs,Cf,SProperties,FProperties,AProperties)
 Index = np.where(HForce[:, 0] < BulkMax)
 BinSize = HForce[1, 0] - HForce[0, 0]
 
-Zpos = np.append(HForce[Index, 0], HForce[Index[0][-1], 0] + BinSize)
+Zpos = np.append(HForce[Index, 0], HForce[Index[0][-1], 0] + BinSize)+Zshift
 HF = np.transpose(HForce[Index, 1])
 YF = np.transpose(YForce[Index, 1])
 
