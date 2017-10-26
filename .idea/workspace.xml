@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b215d31b-440e-4800-8274-3b66eea00625" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/Utilities.iml" afterPath="$PROJECT_DIR$/.idea/Utilities.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" afterPath="$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh" afterPath="$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -19,11 +17,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Property_Analysis.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Property_Analysis.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="657">
-              <caret line="221" column="76" lean-forward="true" selection-start-line="221" selection-start-column="76" selection-end-line="221" selection-end-column="76" />
+            <state relative-caret-position="711">
+              <caret line="224" column="0" lean-forward="true" selection-start-line="224" selection-start-column="0" selection-end-line="224" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -32,8 +30,18 @@
       <file leaf-file-name="Analyser.sh" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Lammps/Analyser.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1098">
-              <caret line="61" column="0" lean-forward="false" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
+            <state relative-caret-position="162">
+              <caret line="9" column="0" lean-forward="false" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="48" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Thermo_dump.sh" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="180">
+              <caret line="10" column="26" lean-forward="false" selection-start-line="10" selection-start-column="26" selection-end-line="10" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -76,6 +84,7 @@
         <option value="$PROJECT_DIR$/Lammps/Chunk_Analysis/Chunk_Splitter.sh" />
         <option value="$PROJECT_DIR$/Lammps/Analyser.sh" />
         <option value="$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" />
+        <option value="$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh" />
       </list>
     </option>
   </component>
@@ -124,6 +133,12 @@
               <item name="Utilities" type="462c0819:PsiDirectoryNode" />
               <item name="Lammps" type="462c0819:PsiDirectoryNode" />
               <item name="Chunk_Analysis" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Utilities" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Utilities" type="462c0819:PsiDirectoryNode" />
+              <item name="Lammps" type="462c0819:PsiDirectoryNode" />
+              <item name="Log_Analysis" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -400,13 +415,20 @@
       <option name="project" value="LOCAL" />
       <updated>1508800682040</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Added the Zshift and cut the force after 8 sigma, The Zpos is shifted">
+      <created>1508922837679</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1508922837680</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="-28" width="1920" height="1108" extended-state="6" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19583778" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19583778" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -442,7 +464,8 @@
     <MESSAGE value="&quot;Now It reads the temperature from log.lammps&quot;" />
     <MESSAGE value="&quot;Small Change in the name of the output&quot;" />
     <MESSAGE value="Added the Zshift and cut the force after 8 sigma" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added the Zshift and cut the force after 8 sigma" />
+    <MESSAGE value="Added the Zshift and cut the force after 8 sigma, The Zpos is shifted" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added the Zshift and cut the force after 8 sigma, The Zpos is shifted" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -457,16 +480,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Analytic_Properties.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1674">
-          <caret line="93" column="15" lean-forward="false" selection-start-line="93" selection-start-column="15" selection-end-line="93" selection-end-column="15" />
-          <folding>
-            <element signature="e#168#186#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Lammps/Analyser.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="954">
@@ -813,18 +826,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Lammps/Analyser.sh">
+    <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1098">
-          <caret line="61" column="0" lean-forward="false" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
+        <state relative-caret-position="711">
+          <caret line="224" column="0" lean-forward="true" selection-start-line="224" selection-start-column="0" selection-end-line="224" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
+    <entry file="file://$PROJECT_DIR$/Lammps/Analyser.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="657">
-          <caret line="221" column="76" lean-forward="true" selection-start-line="221" selection-start-column="76" selection-end-line="221" selection-end-column="76" />
+        <state relative-caret-position="162">
+          <caret line="9" column="0" lean-forward="false" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="10" column="26" lean-forward="false" selection-start-line="10" selection-start-column="26" selection-end-line="10" selection-end-column="26" />
           <folding />
         </state>
       </provider>

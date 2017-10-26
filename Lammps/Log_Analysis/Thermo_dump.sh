@@ -6,5 +6,10 @@ rm Parameters.dat 2>/dev/null
 a=$(grep -n "Per MPI" $File| awk -F":" '{print $1}') #the awk gets the first column when they are separated by :
 tail -n +$((a+1)) $File > out
 b=$(grep -n "Loop time" out| awk -F":" '{print $1}')
-head -$((b-1)) out> Parameters.dat
-rm out
+if [ -z "$b" ];
+then
+    mv out  Parameters.dat
+else
+    head -$((b-1)) out> Parameters.dat
+fi
+rm out 2>/dev/null
