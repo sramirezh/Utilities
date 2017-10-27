@@ -186,9 +186,10 @@ def PosConstant(x,y,Tol):
     IndexMax=np.argmax(y)
     IndexMin=np.argmin(y)
     ExtremeIndex=max(IndexMax,IndexMin)
-    Index_c=np.where(np.abs(der1)<Tol)[0] #Indexes where the function is approximately constant
-    LastIndex=np.where(Index_c>ExtremeIndex)
-    index=np.argmin(np.abs(y[Index_c[LastIndex]]))
+    ExtremeIndex = max(IndexMax, IndexMin)
+    Index_c = np.where(np.abs(der1) < Tol)[0]  # Indexes where the function is approximately constant
+    LastIndex = np.where(Index_c > ExtremeIndex)[0][0]
+    index = Index_c[LastIndex]
     return index
 
 # ==============================================================================

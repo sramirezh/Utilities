@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" line="210" />
+    <bookmark url="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" line="211" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b215d31b-440e-4800-8274-3b66eea00625" name="Default" comment="">
@@ -20,8 +20,8 @@
       <file leaf-file-name="Property_Analysis.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
-              <caret line="178" column="25" lean-forward="false" selection-start-line="178" selection-start-column="25" selection-end-line="178" selection-end-column="25" />
+            <state relative-caret-position="459">
+              <caret line="176" column="13" lean-forward="true" selection-start-line="176" selection-start-column="13" selection-end-line="176" selection-end-column="13" />
               <folding>
                 <element signature="e#434#452#0" expanded="true" />
               </folding>
@@ -432,7 +432,14 @@
       <option name="project" value="LOCAL" />
       <updated>1509020281848</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Generates Force distribution with less points">
+      <created>1509116076360</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1509116076360</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -476,7 +483,8 @@
     <MESSAGE value="Added the Zshift and cut the force after 8 sigma" />
     <MESSAGE value="Added the Zshift and cut the force after 8 sigma, The Zpos is shifted" />
     <MESSAGE value="Now generates data even from unfinished simulations" />
-    <option name="LAST_COMMIT_MESSAGE" value="Now generates data even from unfinished simulations" />
+    <MESSAGE value="Generates Force distribution with less points" />
+    <option name="LAST_COMMIT_MESSAGE" value="Generates Force distribution with less points" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -877,8 +885,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="178" column="25" lean-forward="false" selection-start-line="178" selection-start-column="25" selection-end-line="178" selection-end-column="25" />
+        <state relative-caret-position="459">
+          <caret line="176" column="13" lean-forward="true" selection-start-line="176" selection-start-column="13" selection-end-line="176" selection-end-column="13" />
           <folding>
             <element signature="e#434#452#0" expanded="true" />
           </folding>
