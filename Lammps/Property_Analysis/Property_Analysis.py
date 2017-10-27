@@ -13,6 +13,8 @@ Chunk,Coord,Ncout,Vx,Rho,[Pzz,Pxx]
 import numpy as np
 from subprocess import Popen,PIPE
 from shlex import split
+import matplotlib.pyplot as plt
+
 #=============================================================================
 #Input files and parameters
 #=============================================================================
@@ -107,7 +109,7 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
     :return:
     The Force distribution only up to IntUp, after that it is assumed that the force is zero, the positions assume the zero in the
     """
-    FsH = (Nb - Ns) / Nb
+    FsH = -(Nb - Ns) / Nb
     FfH = -FsH * (Ns / (Nb - Ns))
     Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
     n=len(Indexes)
@@ -165,6 +167,29 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
     return YForce
 
 
+def PosConstant(x,y,Tol):
+    """
+    Finds where a Force distribution type function no longer changes under the given Tolerance, analysing
+    the points after the minimum and the maximum of the function. The chosen
+    point corresponds to the minimum in the set of points
+
+
+    :param x:
+    :param y:
+    :param Tol: Tolerance
+    :return: The index of the position of the last point to be taken into account
+    """
+
+    
+    BinSize = x[1] - x[0]
+    der1=np.gradient(y,BinSize)    
+    IndexMax=np.argmax(y)
+    IndexMin=np.argmin(y)
+    ExtremeIndex=max(IndexMax,IndexMin)
+    Index_c=np.where(np.abs(der1)<Tol)[0] #Indexes where the function is approximately constant
+    LastIndex=np.where(Index_c>ExtremeIndex)
+    index=np.argmin(np.abs(y[Index_c[LastIndex]]))
+    return index
 
 # ==============================================================================
 # Main
@@ -214,17 +239,28 @@ print "The average concentration is %f" %(np.average(AProperties[:,4]))
 # Force Calculations
 # ==============================================================================
 print "\n Starting the Force Calculations\n"
+
+
 HForce = HForce(Ns,N,SProperties,FProperties,AProperties)
 YForce = YForce(Cs,Cf,SProperties,FProperties,AProperties)
-Index = np.where(HForce[:, 0] < BulkMax)
 BinSize = HForce[1, 0] - HForce[0, 0]
+# ==============================================================================
+# Determining where there is no more variation
+# ==============================================================================
 
-Zpos = np.append(HForce[Index, 0], HForce[Index[0][-1], 0] + BinSize)+Zshift
-HF = np.transpose(HForce[Index, 1])
-YF = np.transpose(YForce[Index, 1])
+
+    
+Cut_off=PosConstant(HForce[:,0],HForce[:,1],0.001)+1
+    
+Zpos =HForce[:Cut_off+1, 0]+Zshift
+HF = np.transpose(HForce[:Cut_off, 1])
+YF = np.transpose(YForce[:Cut_off, 1])
 
 print "Creating the Files to iterate in Lammps"
 np.savetxt("Zpos_iterate.dat", Zpos)
 np.savetxt("HForce_iterate.dat", HF)
 np.savetxt("YForce_iterate.dat", YF)
+
+plt.plot(HForce[:,0],HForce[:,1])
+plt.plot(HForce[Cut_off,0],HForce[Cut_off,1],'o')
 

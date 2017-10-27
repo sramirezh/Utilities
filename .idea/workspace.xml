@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" line="185" />
+    <bookmark url="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" line="210" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b215d31b-440e-4800-8274-3b66eea00625" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh" afterPath="$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" afterPath="$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -17,12 +17,14 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Property_Analysis.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Property_Analysis.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="711">
-              <caret line="224" column="0" lean-forward="true" selection-start-line="224" selection-start-column="0" selection-end-line="224" selection-end-column="0" />
-              <folding />
+            <state relative-caret-position="495">
+              <caret line="178" column="25" lean-forward="false" selection-start-line="178" selection-start-column="25" selection-end-line="178" selection-end-column="25" />
+              <folding>
+                <element signature="e#434#452#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -37,7 +39,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Thermo_dump.sh" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Thermo_dump.sh" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="180">
@@ -83,8 +85,8 @@
         <option value="$PROJECT_DIR$/Lammps/Property_Analysis/ForceProfilex2.py" />
         <option value="$PROJECT_DIR$/Lammps/Chunk_Analysis/Chunk_Splitter.sh" />
         <option value="$PROJECT_DIR$/Lammps/Analyser.sh" />
-        <option value="$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" />
         <option value="$PROJECT_DIR$/Lammps/Log_Analysis/Thermo_dump.sh" />
+        <option value="$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py" />
       </list>
     </option>
   </component>
@@ -95,9 +97,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
-    <option name="y" value="-28" />
-    <option name="width" value="1920" />
-    <option name="height" value="1108" />
+    <option name="x" value="-1" />
+    <option name="y" value="-35" />
+    <option name="width" value="1922" />
+    <option name="height" value="1116" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -114,7 +117,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
@@ -144,6 +146,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -422,13 +425,20 @@
       <option name="project" value="LOCAL" />
       <updated>1508922837680</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Now generates data even from unfinished simulations">
+      <created>1509020281848</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1509020281848</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="-28" width="1920" height="1108" extended-state="6" />
+    <frame x="-1" y="-35" width="1922" height="1116" extended-state="6" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19583778" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20010673" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -465,7 +475,8 @@
     <MESSAGE value="&quot;Small Change in the name of the output&quot;" />
     <MESSAGE value="Added the Zshift and cut the force after 8 sigma" />
     <MESSAGE value="Added the Zshift and cut the force after 8 sigma, The Zpos is shifted" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added the Zshift and cut the force after 8 sigma, The Zpos is shifted" />
+    <MESSAGE value="Now generates data even from unfinished simulations" />
+    <option name="LAST_COMMIT_MESSAGE" value="Now generates data even from unfinished simulations" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -492,7 +503,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2808">
           <caret line="156" column="0" lean-forward="false" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -518,7 +531,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3120">
           <caret line="156" column="0" lean-forward="true" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -588,7 +603,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="18">
           <caret line="34" column="0" lean-forward="false" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -596,7 +613,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -622,7 +641,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -638,7 +659,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -664,7 +687,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -690,7 +715,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2808">
           <caret line="156" column="0" lean-forward="false" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -716,7 +743,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2808">
           <caret line="156" column="0" lean-forward="false" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -742,7 +771,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2808">
           <caret line="156" column="0" lean-forward="false" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -768,7 +799,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3120">
           <caret line="156" column="0" lean-forward="true" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -826,14 +859,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="711">
-          <caret line="224" column="0" lean-forward="true" selection-start-line="224" selection-start-column="0" selection-end-line="224" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Lammps/Analyser.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
@@ -847,6 +872,16 @@
         <state relative-caret-position="180">
           <caret line="10" column="26" lean-forward="false" selection-start-line="10" selection-start-column="26" selection-end-line="10" selection-end-column="26" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Lammps/Property_Analysis/Property_Analysis.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="495">
+          <caret line="178" column="25" lean-forward="false" selection-start-line="178" selection-start-column="25" selection-end-line="178" selection-end-column="25" />
+          <folding>
+            <element signature="e#434#452#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
