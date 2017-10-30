@@ -53,3 +53,13 @@ git stash drop
 
 git remote -v to check what is the current URL
 git remote set-url origin URL, to set the new URL
+
+
+# new repo from an existing project
+git init.
+Type git add to add all of the relevant files.
+You’ll probably want to create a .gitignore file right away, to indicate all of the files you don’t want to track. Use git add .gitignore, too.
+Type git commit
+
+
+
