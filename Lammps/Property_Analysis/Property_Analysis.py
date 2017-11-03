@@ -111,6 +111,11 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
     """
     FsH = -(Nb - Ns) / Nb
     FfH = -FsH * (Ns / (Nb - Ns))
+    
+    #True forces (Need to be multiplied by the gradient)
+    FsHtrue=-1
+    FfHtrue=-FsHtrue * (Ns / (Nb - Ns))
+    
     Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
     n=len(Indexes)
     HForce = np.zeros((n, 2))
@@ -125,7 +130,9 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
 
     np.savetxt("HForce.dat",HForce)
     Ffactor = 1.0 / FsH
-
+    print "*********************Running Hiroaki Calculations*********************\n"
+    print "The force on the Solutes is %f, on the Solvents %f" %(FsH,FfH)  
+    print "The (TRUE!!!) force on the Solutes is %f, on the Solvents %f" %(FsHtrue,FfHtrue)
     print "The Force Factor is  %f" %Ffactor
     print "Created Hiroaki Force distribution File HForce.dat "
 
@@ -161,7 +168,8 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
             YForce[i, 1] = (FfY * FProperties[i, 4] + FsY * SProperties[i, 4]) / AProperties[i, 4]
 
     np.savetxt("YForce.dat", YForce)
-
+    print "\n*********************Running Yawei Calculations*********************\n"
+    print "The force on the Solutes is %f, on the Solvents %f" %(FsY,FfY)  
     print "Created Yawei Force distribution File YForce.dat "
 
     return YForce
@@ -256,12 +264,13 @@ Cut_off=PosConstant(HForce[:,0],HForce[:,1],0.001)+1
 Zpos =HForce[:Cut_off+1, 0]+Zshift
 HF = np.transpose(HForce[:Cut_off, 1])
 YF = np.transpose(YForce[:Cut_off, 1])
-
+print "The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos)
 print "Creating the Files to iterate in Lammps"
 np.savetxt("Zpos_iterate.dat", Zpos)
 np.savetxt("HForce_iterate.dat", HF)
 np.savetxt("YForce_iterate.dat", YF)
 
+plt.close("all")
 plt.plot(HForce[:,0],HForce[:,1])
 plt.plot(HForce[Cut_off,0],HForce[Cut_off,1],'o')
 
