@@ -93,3 +93,7 @@ Notes:
 TODO:
 
 * Conf copy mode to use system clipboard. See PragProg book.
+
+## Forwarding over remote ssh
+
+https://dchua.com/2014/07/15/x11-forwarding-over-remote-ssh-tmux/
