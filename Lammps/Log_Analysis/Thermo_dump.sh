@@ -13,3 +13,4 @@ else
     head -$((b-1)) out> Parameters.dat
 fi
 rm out 2>/dev/null
+tail -n +2 Parameters.dat >Param_noheader.dat
