@@ -1,5 +1,4 @@
-#define NumberOfParticles 50                                /* number of particle s*/
-#define NtotIterations 4000                                 /* number of total MC iterations */
+#define NumberOfParticles 75                                /* number of particle s*/
 #define SQR(x) ((x)*(x))                                    /* Defines the operation x^2*/
 #define CUBE(x) ((x)*(x)*(x)) 				    /* Defines the operation x^3*/
 
@@ -14,24 +13,27 @@ typedef struct {
 
 //void Initialize();                                      
 double RAND();  //Generates a Random Number between [0,1]
-void Initialize();  //Initializes the systems, particles start at random positions.                                              
-void EnergyParticle(vector Positions,int i,double *En,double *Vir); // calculates the energy of particle i with all other particles
-void EnergySystem(); // calculates total system energy
+void Initialize(int token);  	/*Initializes the systems, particles start at random positions, 
+				with random velocities but the center of mass has zero velocity. token=1, to create new initial conf
+				token=0 to read initial configuration file*/
+void read_init_conf();          /*Reads initial configuration file*/
+void KineticEnergy();           /*Computes the (Adimensional)kinetic energy, supposing the particles have equal mass=1 */
+void Force();                   // Calculate The Forces And Potential Energy (Adimensional), don't take into account all the images as in the MC'
+                              
 
-void MC_move(int i); // Attemps to displace the k-th particle.
-
-void MC_iteration(); // Attemps to make N MC movements, where N=NumberOfParticles.
 /*************** VARIABLES ***************/
-vector Positions[NumberOfParticles];
-double Sigma, A, Cutoff;
+vector Positions[NumberOfParticles], Velocities[NumberOfParticles],Forces[NumberOfParticles];
+vector NewPositions[NumberOfParticles], NewVelocities[NumberOfParticles], OldForces[NumberOfParticles];
+double Sigma, A, Cutoff,Temperature, tmax; //,,,,Maximum time of simulation
 double Beta;
 double Rho, Length;
 double Eni, Viri;
-double TotalEnergy, EnergyPerParticle;
-double TotalVirial, Pressure;
+double EPotential,EKinetic;
+double Pressure;
 double Etail, Ptail;
 double AverageEnPerPar, AveragePressure;
-double Delta;
-int Naccepted, Nattempts;
+double Deltat;  //time step.
+int Naccepted, Nattempts, NEW_INITIAL_POSITION; //,,A control variable to recalculate the initial configuration (1) or not (0)
 double Acceptance;
-
+double TemperatureK; //Temperature Calculated from the kinetic Energy.
+double SimulationTime; //Simulation Time

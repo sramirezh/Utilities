@@ -2,165 +2,240 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include "MC_NVT2.h"
+#include "Widom.h"
 
 
 int main(void)
 {
-
-FILE *ptr_file;
-ptr_file=fopen("Data","w");
-Rho=0.5;
-Delta=1.0/1.0;
-A=1.0;
-Cutoff=2.0;
-Beta=1.0;
-Sigma=1.0;
+FILE *file;
+file=fopen("Output","w");
+Cutoff=2.5;
+T=1.0
 srand48(time(NULL));
+X=1000 #Number of trial insertions
 
-clock_t start = clock(); 
+clock_t start = clock();
 
-	
-Length=pow(NumberOfParticles/Rho,1.0/3.0)*Sigma;
-Initialize();
-EnergySystem();
-fprintf(ptr_file, "0 %lf %lf %lf \n" ,TotalEnergy/NumberOfParticles, Pressure,(double)Naccepted/Nattempts);
-//Performs the MC iterations
-int i;
-for (i=0;i<NtotIterations;i++){
-	MC_iteration();
-	EnergySystem();
-	fprintf(ptr_file, "%d %lf %lf %lf \n" ,i+1,TotalEnergy/NumberOfParticles,Pressure,(double)Naccepted/Nattempts);
+
+
+//Performs the MD
+printf("Starting the run...\n");
+SimulationTime=0.0; //Initializing time
+
+int i,j;
+
+//fprintf(file, "t	U	K	E	T	P \n");
+
+while (SimulationTime<=tmax)
+{
+	KineticEnergy();
+	Force();
+	fprintf(file, "%lf %lf %lf %lf %lf %lf \n" ,SimulationTime,EPotential/NumberOfParticles,EKinetic/NumberOfParticles,(EPotential+EKinetic)/NumberOfParticles,TemperatureK,Pressure);
+
+	//Position Update.
+	for(i=0;i<NumberOfParticles;i++)
+	{
+
+		Positions[i].x=Positions[i].x+Velocities[i].x*Deltat+0.5*(Forces[i].x)*Deltat*Deltat;
+		Positions[i].y=Positions[i].y+Velocities[i].y*Deltat+0.5*(Forces[i].y)*Deltat*Deltat;
+		Positions[i].z=Positions[i].z+Velocities[i].z*Deltat+0.5*(Forces[i].z)*Deltat*Deltat;
+	}
+
+	//Reassigning the forces
+	for (j=0;j<NumberOfParticles;j++)
+	{
+		OldForces[j].x=Forces[j].x;
+		OldForces[j].y=Forces[j].y;
+		OldForces[j].z=Forces[j].z;
+	}
+	Force();
+	//Velocity Update.
+	for(i=0;i<NumberOfParticles;i++)
+	{
+		Velocities[i].x=Velocities[i].x+0.5*(Forces[i].x+OldForces[i].x)*Deltat;
+		Velocities[i].y=Velocities[i].y+0.5*(Forces[i].y+OldForces[i].y)*Deltat;
+		Velocities[i].z=Velocities[i].z+0.5*(Forces[i].z+OldForces[i].z)*Deltat;
+	}
+
+//Time Update.
+SimulationTime+=Deltat;
+
 }
 
-printf("Elapsed Time : %f \n", ((double)clock() - start) / CLOCKS_PER_SEC);  
+fclose(file);
 
-fclose(ptr_file);
 
 }
-
 
 double RAND()
-{	
+{
 	return drand48();
 
 }
 
-void Initialize() {
+void Initialize(int token) {
   	int i;
-  	for(i=0; i<NumberOfParticles; i++)
+	double scale;
+
+	if (token==1)
 	{
-  		Positions[i].x = RAND()*Length;
-  	  	Positions[i].y = RAND()*Length;
-  	  	Positions[i].z = RAND()*Length;
-  	}
-}
+	FILE *ptr_file;
+	ptr_file=fopen("initial_conf","w");
+		printf("Creating a new initial configuration... \n");
+		vector vcm;
+		vcm.x=vcm.y=vcm.z=0; //Initializing center of mass velocity vector
 
-void EnergyParticle(vector pos,int i,double *En,double *Vir)
-{
-double r2,Virij,Enij;
-vector dr;
-int j,k,l,m;
-Enij=Virij=0.0;
-for(j=0;j<NumberOfParticles;j++)
-{
-//if(i!=j){
-	dr.x=pos.x-Positions[j].x;
-	dr.y=pos.y-Positions[j].y;
-	dr.z=pos.z-Positions[j].z;
+		//Setting the initial positions and velocities, generated from a random distribution.
+	  	for(i=0; i<NumberOfParticles; i++)
+		{
 
-	
-	for (k=-1;k<2;k++){
-		for (l=-1;l<2;l++){
-			for (m=-1;m<2;m++){
-				if( j==i && k==0 && l==0 && m==0){}
-				else{
-									
-					// apply periodic boundary conditions
-					dr.x-=Length*rint(dr.x/Length)+k*Length;
-					dr.y-=Length*rint(dr.y/Length)+l*Length;
-					dr.z-=Length*rint(dr.z/Length)+m*Length;
-					r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-					// calculate the energy
-					if(r2<SQR(Cutoff*Length))
-					{
-						Enij+=(A*SQR(Sigma)*exp(-pow(r2,0.5)/Sigma))/r2;
-						Virij+=(A*SQR(Sigma)*exp(-pow(r2,0.5)/Sigma))/r2*((pow(r2,0.5)/Sigma)+2.0);
-					}
-				}
-				
-			}
+	  		Positions[i].x = RAND()*Length;
+	  	  	Positions[i].y = RAND()*Length;
+	  	  	Positions[i].z = RAND()*Length;
+			Velocities[i].x=RAND()-0.5;
+			Velocities[i].y=RAND()-0.5;
+			Velocities[i].z=RAND()-0.5;
+			vcm.x=vcm.x+Velocities[i].x;
+			vcm.y=vcm.y+Velocities[i].y;
+			vcm.z=vcm.z+Velocities[i].z;
+
+	  	}
+  		//Calculating the velocity of the center of mass.
+		vcm.x=vcm.x/NumberOfParticles;
+		vcm.y=vcm.y/NumberOfParticles;
+		vcm.z=vcm.z/NumberOfParticles;
+
+		//Correction due to the movement of the center of mass.
+		for (i=0; i<NumberOfParticles; i++)
+		{
+			Velocities[i].x=Velocities[i].x-vcm.x;
+			Velocities[i].y=Velocities[i].y-vcm.y;
+			Velocities[i].z=Velocities[i].z-vcm.z;
 		}
+
+		//Scaling Velocities to set initial kinetic Energy
+		KineticEnergy();
+		scale=sqrt((NumberOfParticles)/(EKinetic));
+		double sumx,sumy,sumz;
+		sumx=sumy=sumz=0;
+		for(i=0;i<NumberOfParticles;i++)
+		{
+			Velocities[i].x*=scale;
+			Velocities[i].y*=scale;
+			Velocities[i].z*=scale;
+			sumx+=Velocities[i].x;
+			sumy+=Velocities[i].y;
+			sumz+=Velocities[i].z;
+		}
+		//Checking if the velocity definition and scaling is correct
+		KineticEnergy();
+		printf("Checking if the velocity definition and scaling is correct \n");
+		printf("Kinetic Energy/ Equipartition: %lf \n",EKinetic*2.0/(3.0*NumberOfParticles));
+		printf("Momentum in (x,y,z):(%lf,%lf,%lf) \n",sumx,sumy,sumz);
+
+		//Saving the initial Configuration file.
+		printf("Saving initial configuration file \n");
+		for(i=0;i<NumberOfParticles;i++)
+		{
+			fprintf(ptr_file, "%lf %lf %lf %lf %lf %lf \n" ,Positions[i].x,Positions[i].y,Positions[i].z,Velocities[i].x,Velocities[i].y,Velocities[i].z);
+		}
+		fclose(ptr_file);
+	}
+	else if (token==0)
+	{
+	read_init_conf();
+	printf("Reading initial configuration file... \n");
 	}
 
 }
-*En=Enij;
-*Vir=Virij;
-//}
-}
 
-// calculates total system energy
-void EnergySystem(void)
-{
-  double Eni,Viri;
-  int i;
+void read_conf() {
+  int i,n;
+  FILE*f;
+  double x,y,z,vx,vy,vz;
 
-  TotalEnergy=0.0;
-  TotalVirial=0.0;
-  for(i=0;i<NumberOfParticles;i++)  //It doesnt calculate the last because it has already been taken into account with all the others.
-  {
-    EnergyParticle(Positions[i],i,&Eni,&Viri);
+  f = fopen("initial_conf","r");
 
-    TotalEnergy+=Eni;
-    TotalVirial+=Viri;
+  for(i=0; i<NumberOfParticles; i++) {
+    fscanf(f, "%lf %lf %lf %lf %lf %lf", &x, &y, &z, &vx, &vy, &vz);
+    Positions[i].x = x;
+    Positions[i].y = y;
+    Positions[i].z = z;
+    Velocities[i].x = vx;
+    Velocities[i].y = vy;
+    Velocities[i].z = vz;
   }
-   //Avoiding Overcounting
-   TotalVirial=TotalVirial*0.5;
-   TotalEnergy=TotalEnergy*0.5;
-   Pressure=Rho*CUBE(Sigma)+(1.0/(3.0*CUBE(Length)))*Beta*TotalVirial; 
-  
-  //tail-correction
-  Pressure+=(2.0/3.0)*SQR(Rho*Sigma)*M_PI*A*exp(-Cutoff*Length/Sigma)*(Cutoff*Length+3.0*Sigma);	
-  TotalEnergy+=2.0*M_PI*NumberOfParticles*Rho*A*pow(Sigma,3.0)*exp(-Cutoff*Length/Sigma);
+
+  fclose(f);
 }
 
-void MC_move(int i){
-{
-  double EnergyNew,VirialNew,EnergyOld,VirialOld;
-  vector NewPosition;
-  Nattempts+=1.0;
-  // calculate old energy
-  EnergyParticle(Positions[i],i,&EnergyOld,&VirialOld);
-
-  // give a random displacement
-  NewPosition.x=Positions[i].x+(RAND()-0.5)*Delta*Length;
-  NewPosition.y=Positions[i].y+(RAND()-0.5)*Delta*Length;
-  NewPosition.z=Positions[i].z+(RAND()-0.5)*Delta*Length;
-
-  // calculate new energy
-  EnergyParticle(NewPosition,i,&EnergyNew,&VirialNew);
-         
-  if(RAND()<exp(-Beta*(EnergyNew-EnergyOld)))
-  {
-   Naccepted+=1.0;
-   // update new position if movement is accepted
-   Positions[i].x=NewPosition.x;
-   Positions[i].y=NewPosition.y;
-   Positions[i].z=NewPosition.z;
-  }
-}
-
-}
-
-void MC_iteration()
-{
-Naccepted=0.0;
-Nattempts=0.0;
+void KineticEnergy(){
 int i;
-for (i=0;i<NumberOfParticles;i++)
+EKinetic=0;
+	for (i=0; i<NumberOfParticles; i++)
+	{
+		EKinetic+=(SQR(Velocities[i].x)+SQR(Velocities[i].y)+SQR(Velocities[i].z));
+	}
+	EKinetic=0.5*EKinetic/A; //Adimensional Kinetic Energy
+	TemperatureK=2.0*EKinetic/(3.0*NumberOfParticles); //Adimensional Temperature;
+}
+
+
+// Calculate The Forces And Potential Energy
+void Force()
 {
-	MC_move(i);
-}
-}
+  int i,j;
+  double r2,Virial;
+  vector dr;
 
+  // set forces, potential energy and pressure to zero
+  for(i=0;i<NumberOfParticles;i++)
+  {
+    Forces[i].x=0.0;
+    Forces[i].y=0.0;
+    Forces[i].z=0.0;
+  }
 
+  EPotential=0.0;
+  Pressure=0.0;
+
+  // loop over all particle pairs
+  for(i=0;i<NumberOfParticles-1;i++)
+  {
+    for(j=i+1;j<NumberOfParticles;j++)
+    {
+	dr.x=Positions[i].x-Positions[j].x;
+	dr.y=Positions[i].y-Positions[j].y;
+	dr.z=Positions[i].z-Positions[j].z;
+
+      // apply boundary conditions
+	dr.x-=Length*rint(dr.x/Length);
+	dr.y-=Length*rint(dr.y/Length);
+	dr.z-=Length*rint(dr.z/Length);
+
+      r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+
+      // check if the distance is within the cutoff radius
+      if(r2<SQR(Cutoff*Length))
+      {
+        EPotential+=(SQR(Sigma)*exp(-pow(r2,0.5)/Sigma))/r2; //Adimensional Potential Energy
+        Virial=(A*SQR(Sigma)*exp(-pow(r2,0.5)/Sigma))/r2*((pow(r2,0.5)/Sigma)+2.0);
+	Pressure+=Virial;
+
+        Forces[i].x+=Virial/r2*dr.x;
+        Forces[i].y+=Virial/r2*dr.y;
+        Forces[i].z+=Virial/r2*dr.z;
+
+        Forces[j].x-=Virial/r2*dr.x;
+        Forces[j].y-=Virial/r2*dr.y;
+        Forces[j].z-=Virial/r2*dr.z;
+      }
+    }
+  }
+  Pressure=(1.0*CUBE(Sigma)/(3.0*CUBE(Length)))*(2.0*(EKinetic/A)-Pressure);
+
+  //tail-correction
+  Pressure+=(2.0/3.0)*SQR(Rho)*pow(Sigma,5.0)*M_PI*A*exp(-Cutoff*Length/Sigma)*(Cutoff*Length+3.0*Sigma);
+  EPotential+=2.0*M_PI*NumberOfParticles*Rho*pow(Sigma,3.0)*exp(-Cutoff*Length/Sigma);
+
+}
