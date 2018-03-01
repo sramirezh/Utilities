@@ -7,17 +7,16 @@
 
 int main(int argc, char *argv[])
 {
-								double mu1;
+//All the scaling are respect to sigma11,Epsilon11.
+								double mu1Source,mu2Source,mu1Sink,mu2Sink;
 								FILE *file;
 								file=fopen("Output","w");
 								srand48(time(NULL));
 								clock_t start = clock();
 
-//Some input parameters
+								//Some input parameters
 								double Box []= {-30,30,-10,10,-10,10};
-								Sigma=1;
-								Epsilon=1;
-								Beta=1;
+								Beta=1.0;
 
 
 								//Basic Calculations
@@ -25,8 +24,12 @@ int main(int argc, char *argv[])
 								Ly=Box[3]-Box[2];
 								Lz=Box[5]-Box[4];
 
+								printf("Reading the potential parameters...\n");
+								Sigma=readIn2dData("Sigma.param",0);
 
-								Rc=pow(2.0,1.0/6.0)*Sigma;
+								Epsilon=readIn2dData("Epsilon.param",0);
+
+								Ntypes=n;
 
 								printf("Reading the configuration file...\n");
 								Data=readIn2dData(argv[1],2);
@@ -34,21 +37,52 @@ int main(int argc, char *argv[])
 								cout<<"The input data has "<<n<<" rows and "<<m<<" columns\n";
 								cout<<"Starting the calculations \n";
 
+								//Assuming the Cutoff radius scales with the 00 interaction parameter
+								Rc=pow(2.0,1.0/6.0)*Sigma[0][0];
 
-								Eshift=LJ(SQR(Rc));
-								//TotalPe();
+								std::cout << "Rc " <<Rc<< '\n';
+								Eshift=EnergyShift();
+								//double Pe=TotalPe();
 
 								//Computing the chemical potential
+
 								double Source []= {-20,-10,-10,10,-10,10};
-								mu1=ChemPot(Source,1);
-								std::cout <<  mu1<< '\n';
-//while (SimulationTime<=tmax)
+								double Sink [] ={10,20,-10,10,-10,10};
+
+								mu1Source=ChemPot(Source,1);
+								mu2Source=ChemPot(Source,2);
+								mu1Sink=ChemPot(Sink,1);
+								mu2Sink=ChemPot(Sink,2);
+								std::cout << "mu1Source " <<mu1Source<<" mu2Source "<< mu2Source<< '\n';
+								std::cout << "mu1Sink " <<mu1Sink<<" mu2Sink "<< mu2Sink<< '\n';
+								// prinf("In the Sink mu1= %lf mu2= %lf \n", mu1Sink, mu2Sink);
 								fclose(file);
 }
 
+Mat EnergyShift()
+{
+	int i,j;
+
+	Mat matrix;
+	double E;
+	for (i=0;i<Ntypes;i++)
+	{
+		Vec row;
+		for (j=0;j<Ntypes;j++)
+		{
+		E=LJ(SQR(Rc),i,j);
+		row.push_back(E);
+		}
+	matrix.push_back(row);
+
+	}
+
+	return matrix;
+}
 
 double ChemPot(double region[6],int type)
-/* Passes the region where the atoms are going to be inserted and the atom specie (type).*/
+/* Passes the region where the atoms are going to be inserted and the atom specie (type).
+Returns the chemical potential for that species*/
 {
 								int X=10000; //Trial insertions.
 								int i;
@@ -61,15 +95,6 @@ double ChemPot(double region[6],int type)
 								Data.push_back(Row); //adding a new entrance in the array containing all the particles
 								Data[n][0]=type;
 
-
-// Row.push_back(type);
-// Row.push_back(lx*RAND()+region[0]);
-// Row.push_back(ly*RAND()+region[2]);
-// Row.push_back(lz*RAND()+region[4]);
-// Data.push_back(Row); //Creates a new entrance in the array containing all the particles
-//
-// U=EnergyParticle(n); //Energy due to the last particle inserted
-// std::cout << U << '\n';
 								double BF=0; //Boltzmann factor
 								for (i=0; i<X; i++)
 								{
@@ -101,7 +126,7 @@ double Density(double region[6],int type)
 										Npart++;
 									}
 								}
-								rho=Npart/Volume*CUBE(Sigma);
+								rho=Npart/Volume*CUBE(Sigma[0][0]);
 								return(rho);
 
 }
@@ -147,7 +172,9 @@ double EnergyParticle(int i)
 																								// calculate the energy
 																								if(r2<SQR(Rc))
 																								{
-																																Ei+=LJ(r2)-Eshift;
+																									int type1=int(Data[i][0])-1;
+																									int type2=int(Data[j][0])-1;
+																									Ei+=LJ(r2,type1,type1)-Eshift[type1][type2];
 																								}
 																}
 								}
@@ -155,12 +182,12 @@ double EnergyParticle(int i)
 }
 
 
-double LJ(double r2)
+double LJ(double r2, int type1, int type2)
 {
 								double V;
-								double s2r=SQR(Sigma)/r2;
+								double s2r=SQR(Sigma[type1][type2])/r2;
 
-								V=4*Epsilon*(pow(s2r,6)-pow(s2r,3));
+								V=4.0*Epsilon[type1][type2]*(pow(s2r,6)-pow(s2r,3));
 
 								return V;
 }
@@ -169,29 +196,6 @@ double RAND()
 {
 								return drand48();
 }
-
-
-
-//
-// void read_conf() {
-//   int i,n;
-//   FILE*f;
-//   double x,y,z,vx,vy,vz;
-//
-//   f = fopen("initial_conf","r");
-//
-//   for(i=0; i<NumberOfParticles; i++) {
-//     fscanf(f, "%lf %lf %lf %lf %lf %lf", &x, &y, &z, &vx, &vy, &vz);
-//     Positions[i].x = x;
-//     Positions[i].y = y;
-//     Positions[i].z = z;
-//     Velocities[i].x = vx;
-//     Velocities[i].y = vy;
-//     Velocities[i].z = vz;
-//   }
-//
-//   fclose(f);
-// }
 
 
 vector<vector<double> > readIn2dData(const char* filename,int Skiprows)
@@ -265,83 +269,3 @@ vector<vector<double> > readIn2dData(const char* filename,int Skiprows)
 //  fclose(ptr_file);
 // }
 //
-// Vec average(){
-// int i,j;
-// Vec Average(m);
-//
-// for (j=0;j<m;j++)
-// {
-//  double Result=0;
-//  for(i=0; i<n; i++)
-//   {
-//   Result=Result+InputData[i][j];
-//   }
-//  Average[j]=Result/n;
-//
-// }
-//
-// return(Average);
-//
-// }
-
-
-
-
-// Calculate The Forces And Potential Energy
-// void Force()
-// {
-//   int i,j;
-//   double r2,Virial;
-//   vector dr;
-//
-//   // set forces, potential energy and pressure to zero
-//   for(i=0;i<NumberOfParticles;i++)
-//   {
-//     Forces[i].x=0.0;
-//     Forces[i].y=0.0;
-//     Forces[i].z=0.0;
-//   }
-//
-//   EPotential=0.0;
-//   Pressure=0.0;
-//
-//   // loop over all particle pairs
-//   for(i=0;i<NumberOfParticles-1;i++)
-//   {
-//     for(j=i+1;j<NumberOfParticles;j++)
-//     {
-//  dr.x=Positions[i].x-Positions[j].x;
-//  dr.y=Positions[i].y-Positions[j].y;
-//  dr.z=Positions[i].z-Positions[j].z;
-//
-//       // apply boundary conditions
-//  dr.x-=Length*rint(dr.x/Length);
-//  dr.y-=Length*rint(dr.y/Length);
-//  dr.z-=Length*rint(dr.z/Length);
-//
-//       r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-//
-//       // check if the distance is within the cutoff radius
-//       if(r2<SQR(Cutoff*Length))
-//       {
-//         EPotential+=(SQR(Sigma)*exp(-pow(r2,0.5)/Sigma))/r2; //Adimensional Potential Energy
-//         Virial=(A*SQR(Sigma)*exp(-pow(r2,0.5)/Sigma))/r2*((pow(r2,0.5)/Sigma)+2.0);
-//  Pressure+=Virial;
-//
-//         Forces[i].x+=Virial/r2*dr.x;
-//         Forces[i].y+=Virial/r2*dr.y;
-//         Forces[i].z+=Virial/r2*dr.z;
-//
-//         Forces[j].x-=Virial/r2*dr.x;
-//         Forces[j].y-=Virial/r2*dr.y;
-//         Forces[j].z-=Virial/r2*dr.z;
-//       }
-//     }
-//   }
-//   Pressure=(1.0*CUBE(Sigma)/(3.0*CUBE(Length)))*(2.0*(EKinetic/A)-Pressure);
-//
-//   //tail-correction
-//   Pressure+=(2.0/3.0)*SQR(Rho)*pow(Sigma,5.0)*M_PI*A*exp(-Cutoff*Length/Sigma)*(Cutoff*Length+3.0*Sigma);
-//   EPotential+=2.0*M_PI*NumberOfParticles*Rho*pow(Sigma,3.0)*exp(-Cutoff*Length/Sigma);
-//
-// }
