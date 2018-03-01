@@ -19,14 +19,15 @@ using namespace std;
 typedef vector<double> Vec;
 typedef vector<Vec> Mat;
 /*************** FUNCTIONS ***************/
-Vec average();
 Mat readIn2dData(const char* filename,int Skiprows);     /*Reads the input file*/
-double LJ(double r2);
+Mat EnergyShift();
+double LJ(double r2, int i, int j);
 double RAND();
 double EnergyParticle(int i);
 double TotalPe();
 double ChemPot(double region[6], int type);
 double Density(double region[6], int type);
+
 //void PrintResults(); //Prints the Results
 
 /*************** VARIABLES ***************/
@@ -34,11 +35,10 @@ double Density(double region[6], int type);
 //double data[rows];
 //double correlation[rows];
 //double results[3]; //contains the average,  autocorrelation time and the error.
-double Eshift;
 double Lx,Ly,Lz;
-double Sigma [][],Epsilon[][];
 double Beta;
 double Rc;   //Cutoff Radius
+int Ntypes; //Number of species
 Mat Data; //Matrix with the input data
-Mat Sigma, Epsilon; //Matrices with the LJ parameters.
+Mat Sigma, Epsilon, Eshift; //Matrices with the LJ parameters.
 int n,m;  //Row and column number of the input data
