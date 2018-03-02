@@ -7,10 +7,12 @@
 
 int main(int argc, char *argv[])
 {
-//All the scaling are respect to sigma11,Epsilon11.
+/*All the scaling are respect to sigma11,Epsilon11.
+The input parameter is the trajectory file.
+*/
 								double mu1Source,mu2Source,mu1Sink,mu2Sink;
 								FILE *file;
-								file=fopen("Output.dat","w");
+								file=fopen("Output","w");
 								srand48(time(NULL));
 								clock_t start = clock();
 
@@ -39,15 +41,9 @@ int main(int argc, char *argv[])
 
 								//Assuming the Cutoff radius scales with the 00 interaction parameter
 								Rc=pow(2.0,1.0/6.0)*Sigma[0][0];
-
-<<<<<<< HEAD
-								//std::cout << "Rc " <<Rc<< '\n';
-=======
 								std::cout << "Rc " <<Rc<< '\n';
->>>>>>> 88e7ae54d64dad2c86efc007bda3ebb6a31899da
 								Eshift=EnergyShift();
 								//double Pe=TotalPe();
-
 								//Computing the chemical potential
 
 								double Source []= {-20,-10,-10,10,-10,10};
@@ -57,14 +53,9 @@ int main(int argc, char *argv[])
 								mu2Source=ChemPot(Source,2);
 								mu1Sink=ChemPot(Sink,1);
 								mu2Sink=ChemPot(Sink,2);
-<<<<<<< HEAD
-								std::cout << "Printing the chemical potentials to the file Output.dat" << '\n';
-								fprintf(file," %lf %lf %lf %lf \n", mu1Source, mu2Source, mu1Sink, mu2Sink);
-=======
 								std::cout << "mu1Source " <<mu1Source<<" mu2Source "<< mu2Source<< '\n';
 								std::cout << "mu1Sink " <<mu1Sink<<" mu2Sink "<< mu2Sink<< '\n';
 								// prinf("In the Sink mu1= %lf mu2= %lf \n", mu1Sink, mu2Sink);
->>>>>>> 88e7ae54d64dad2c86efc007bda3ebb6a31899da
 								fclose(file);
 }
 
