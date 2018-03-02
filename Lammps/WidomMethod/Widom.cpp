@@ -53,9 +53,9 @@ The input parameter is the trajectory file.
 								mu2Source=ChemPot(Source,2);
 								mu1Sink=ChemPot(Sink,1);
 								mu2Sink=ChemPot(Sink,2);
-								std::cout << "mu1Source " <<mu1Source<<" mu2Source "<< mu2Source<< '\n';
-								std::cout << "mu1Sink " <<mu1Sink<<" mu2Sink "<< mu2Sink<< '\n';
-								// prinf("In the Sink mu1= %lf mu2= %lf \n", mu1Sink, mu2Sink);
+								
+								std::cout << "Printing the chemical potentials to the file Output.dat" << '\n';
+								fprintf(file," %lf %lf %lf %lf \n", mu1Source, mu2Source, mu1Sink, mu2Sink);
 								fclose(file);
 }
 
