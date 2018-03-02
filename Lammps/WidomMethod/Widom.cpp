@@ -12,7 +12,7 @@ The input parameter is the trajectory file.
 */
 								double mu1Source,mu2Source,mu1Sink,mu2Sink;
 								FILE *file;
-								file=fopen("Output","w");
+								file=fopen("Output.dat","w");
 								srand48(time(NULL));
 								clock_t start = clock();
 
@@ -41,7 +41,6 @@ The input parameter is the trajectory file.
 
 								//Assuming the Cutoff radius scales with the 00 interaction parameter
 								Rc=pow(2.0,1.0/6.0)*Sigma[0][0];
-								std::cout << "Rc " <<Rc<< '\n';
 								Eshift=EnergyShift();
 								//double Pe=TotalPe();
 								//Computing the chemical potential
@@ -53,7 +52,7 @@ The input parameter is the trajectory file.
 								mu2Source=ChemPot(Source,2);
 								mu1Sink=ChemPot(Sink,1);
 								mu2Sink=ChemPot(Sink,2);
-								
+
 								std::cout << "Printing the chemical potentials to the file Output.dat" << '\n';
 								fprintf(file," %lf %lf %lf %lf \n", mu1Source, mu2Source, mu1Sink, mu2Sink);
 								fclose(file);
