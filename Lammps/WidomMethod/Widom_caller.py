@@ -15,6 +15,9 @@ import subprocess
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+
+f = open('Mu.log', 'w') #Creating a log file
+
 #Compiling the code
 
 args = ['g++', dir_path+'/Widom.cpp','-o','Widom.o']
@@ -26,16 +29,21 @@ subprocess.call(args,stdout=FNULL, stderr=subprocess.STDOUT)
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
 
-print "Creating the Sigma and Epsilon Matrices files"
+f.write ("Creating the Sigma and Epsilon Matrices files...\n")
 Epsilon=np.matrix('1.0 1.0; 1.0 1.0')
 Sigma=np.matrix('1.0 1.0; 1.0 1.0')
 
 np.savetxt("Epsilon.param",Epsilon)
 np.savetxt("Sigma.param",Sigma)
 
+
+#Starting the analysis
+
+
+
 Results=[]
 for k in xrange(x): #Runs over the sampled times.
-    print("Analizing configuration %d of %d" %(k+1,x))
+    f.write("Analysing configuration %d of %d \n" %(k+1,x))
     File_Name=str(int(Times[k]))+".cxyz"
     args=['./Widom.o', File_Name]
     subprocess.call(args,stdout=FNULL, stderr=subprocess.STDOUT)
@@ -50,4 +58,5 @@ error=np.sqrt(np.var(Results[:,1::],axis=0)/x)
 
 np.savetxt("Statistics.dat",np.append(Av,error))
 
-print "\nGenerated Results.dat with the time series of the chemical potentials and Statistics.dat with the averages and errors"
+f.write("\nGenerated Results.dat with the time series of the chemical potentials and Statistics.dat with the averages and errors\n")
+f.close()

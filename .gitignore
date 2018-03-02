@@ -3,3 +3,5 @@
 *.xyz
 *.o
 *.cxyz
+*.param
+*.log
