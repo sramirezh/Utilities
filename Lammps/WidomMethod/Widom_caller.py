@@ -26,6 +26,13 @@ subprocess.call(args,stdout=FNULL, stderr=subprocess.STDOUT)
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
 
+print "Creating the Sigma and Epsilon Matrices files"
+Epsilon=np.matrix('1.0 1.0; 1.0 1.0')
+Sigma=np.matrix('1.0 1.0; 1.0 1.0')
+
+np.savetxt("Epsilon.param",Epsilon)
+np.savetxt("Sigma.param",Sigma)
+
 Results=[]
 for k in xrange(x): #Runs over the sampled times.
 
