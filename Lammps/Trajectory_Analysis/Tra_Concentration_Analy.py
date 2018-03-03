@@ -12,8 +12,15 @@ import numpy as np
 
 
 
-print "Remember to define the Volume"
+print "Remember to define the Volume and the length in X so the bins are the same as in Lammps"
 
+xmin=-30
+xmax=30
+L=xmax-xmin
+binS=0.05
+Nbins=int(L/0.05)
+
+print Nbins
 #Reading the times to make it easier to read the file by chunks
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
@@ -22,23 +29,19 @@ x=np.size(Times)
 File_Name=str(int(Times[0]))+".cxyz"
 Data=np.genfromtxt(File_Name,skip_header=2)
 
-xmax=np.max(Data[:,1])
-xmin=np.min(Data[:,1])
-
-
-Xarray=np.linspace(xmin,xmax)
-delta=Xarray[1]-Xarray[0]
+Xarray=np.linspace(xmin,xmax,Nbins)
+delta=binS
 
 print "Delta is %lf"%delta
 
-CenterPos=Xarray[:-1]+delta/2
+CenterPos=Xarray[:-1]+0.5*binS
 l=CenterPos.size
 Ns=np.zeros(l)
 Nf=np.zeros(l)
 """
 Computing the averages and other parameters
 """
-cont=0
+
 for k in xrange(x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(Times[k]))+".cxyz"
@@ -48,18 +51,19 @@ for k in xrange(x): #Runs over the sampled times.
 
     #Checking if the solutes go through the surface,
     for i in xrange(n):
-	if Data[i,0]==1:
-		Nf[np.minimum(int(np.floor(Data[i,1]/delta)),l-1)]+=1
-	if Data[i,0]==2:
-		Ns[np.minimum(int(np.floor(Data[i,1]/delta)),l-1)]+=1
-    cont+=1
+        if Data[i,0]==1:
+            Nf[np.minimum(int(np.floor((Data[i,1]-xmin)/delta)),l-1)]+=1 #The -xmin is to avoid negative indexes
+
+        if Data[i,0]==2:
+            Ns[np.minimum(int(np.floor((Data[i,1]-xmin)/delta)),l-1)]+=1
+
 
 Ly=20 #30
 Lz=20 #37.02016
 
 Volume=delta*Ly*Lz
-Ns=Ns/cont/Volume
-Nf=Nf/cont/Volume
+Ns=Ns/x/Volume
+Nf=Nf/x/Volume
 #Creating the output file
 Ns=np.column_stack((CenterPos,Ns))
 Nf=np.column_stack((CenterPos,Nf))
@@ -69,4 +73,4 @@ np.savetxt("FConcentration.dat",Nf)
 #
 ##For Testing Porpuses
 #import matplotlib.pyplot as plt
-#plt.plot(Concentration[:,0],Concentration[:,1],'*')
+#plt.plot(CenterPos,Ns[:,1],'*')
