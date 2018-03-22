@@ -16,7 +16,7 @@ printf "\n######################################################################
 echo "Analyzing the trajectory File"
 echo "##########################################################################"
 bash $dir/Trajectory_Analysis/Trajectory_Splitter.sh -i trajectory.xyz -s Initial
-python $dir/Trajectory_Analysis/Trajectory_Analiser.py
+python $dir/Trajectory_Analysis/Trajectory_Analyser.py
 printf "\nGenerated 0.xyz and Zshift.dat \n"
 
 printf "\n##########################################################################\n"
