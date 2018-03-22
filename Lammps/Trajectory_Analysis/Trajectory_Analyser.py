@@ -9,7 +9,7 @@ It prints the force factor for pressure driven simulations and also other geomet
 
 In My particle definition
 1=Solvent
-2=solutes
+2=Solutes
 3=Lower Solid Wall
 4=Upper Solid Wall
 
@@ -19,6 +19,29 @@ In My particle definition
 from __future__ import division
 import numpy as np
 
+def SolidSurface():
+    #Getting the maximum position of the surface.
+    Maxz=-100
+    Minz=10000
+    Maxf=0
+    Nfluid=0
+
+
+    for i in xrange(n):
+        if Data[i,0]==3: #3 is for solid surface, 2 for solutes, 1 for solvents.
+            Maxz=max(Maxz,Data[i,3])
+            Minz=min(Minz,Data[i,3])
+        else:
+            Nfluid+=1
+
+    print "The maximum height of the solid surface is %lf" %Maxz
+    print "The minimum height of the solid surface is %lf" %Minz
+    print "The height of the solid surface is %lf" %(Maxz-Minz)
+
+    #Writing the Zshift
+    f=open("Zshift.dat",'w')
+    f.writelines("%lf \n" %Maxz)
+    f.close
 
 
 
@@ -34,6 +57,7 @@ print Nbins
 #Reading the times to make it easier to read the file by chunks
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
+Times=np.reshape(Times,(x,1))
 
 #Getting the shape of the data array
 File_Name=str(int(Times[0]))+".cxyz"
@@ -55,10 +79,18 @@ Computing the averages and other parameters
 for k in xrange(x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(Times[k]))+".cxyz"
-    print File_Name
     Data=np.genfromtxt(File_Name,skip_header=2)
     n,m=Data.shape
 
+    """
+    Getting the position of the surface
+    """
+    if k==0:
+        if np.max(Data[:,0])<=2:
+            print "There is no solid surface"
+        else:
+            print "Analysing the solid surface"
+            SolidSurface()
 
     for i in xrange(n):
         if Data[i,0]==1:
