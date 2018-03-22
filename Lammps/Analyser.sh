@@ -59,3 +59,10 @@ echo "Analyzing the properties"
 echo "##########################################################################"
 
 python $dir/Property_Analysis/Property_Analysis.py
+
+#Organizing all the output
+mkdir Output
+mv *.dat Output/
+mv header Output/
+mv Analiser.out Output
+rm *.o*
