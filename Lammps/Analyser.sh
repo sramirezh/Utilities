@@ -64,5 +64,5 @@ python $dir/Property_Analysis/Property_Analysis.py
 mkdir Output
 mv *.dat Output/
 mv header Output/
-mv Analiser.out Output
+mv Analyser.out Output
 rm *.o*
