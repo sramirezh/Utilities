@@ -15,9 +15,9 @@ printf "\nGenerated Parameters.dat \n"
 printf "\n##########################################################################\n"
 echo "Analyzing the trajectory File"
 echo "##########################################################################"
-bash $dir/Trajectory_Analysis/1Trajectory_Splitter.sh trajectory.xyz
-python $dir/Trajectory_Analysis/1Trajectory_Analizer.py
-printf "\nGenerated 1Trajectory.xyz and Zshift.dat \n"
+bash $dir/Trajectory_Analysis/Trajectory_Splitter.sh -i trajectory.xyz -s Initial
+python $dir/Trajectory_Analysis/Trajectory_Analizer.py
+printf "\nGenerated 0.xyz and Zshift.dat \n"
 
 printf "\n##########################################################################\n"
 echo "Analyzing the Chunk properties"
