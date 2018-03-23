@@ -65,4 +65,5 @@ mkdir Output
 mv *.dat Output/
 mv header Output/
 mv Analyser.out Output
-rm *.o*
+rm *.o*C
+rm *.cxyz
