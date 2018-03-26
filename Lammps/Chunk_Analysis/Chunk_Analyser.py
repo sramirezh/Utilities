@@ -15,9 +15,20 @@ import numpy as np
 import sys
 
 #Getting the zshift
-f=open("Zshift.dat")
-zshift=np.float(f.readline())
-f.close()
+while True:
+    try:
+        f=open("Zshift.dat")
+        zshift=np.float(f.readline())
+        f.close()
+        break
+    except IOError:  #If the file does not exist
+        print("No Zshift.dat found, assuming Zshift=0")
+        zshift=0
+        break
+        
+
+
+
 """
 Functions
 """
@@ -72,7 +83,7 @@ if pressFlag==0:
         for elem in Stresses:
             print Parameters[elem]
 IsPress[Stresses]=1    
-index=Parameter_Finder(Parameters,"density/mass")[0]
+index=Parameter_Finder(Parameters,"density")[0]
 
 
 
