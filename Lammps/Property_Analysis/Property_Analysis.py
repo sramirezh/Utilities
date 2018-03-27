@@ -9,7 +9,7 @@ Inputs:
 Averages.dat has the parameters as [This is just for the all fluid]:
 Chunk,Coord,Ncout,Vx,Rho,[Pzz,Pxx]
 """
-
+from __future__ import division
 import numpy as np
 from subprocess import Popen,PIPE
 from shlex import split
@@ -97,11 +97,11 @@ def Gamma(Properties,BulkC,IntLow,IntUp):
 
 
 
-def HForce(Ns,Nb,SProperties,FProperties,AProperties):
+def MuForce(Cs,Cf,SProperties,FProperties,AProperties):
     """
-    Hiroaki Force Calculation
+    Force Profile depending on the concentration gradient
 
-    :param Ns: Number of Solute Particles in the Bulk
+    :param Cs: Number of Solute Particles in the Bulk
     :param Nb: Number of Fluid Particles in the Bulk
     :param SProperties: Solute Properties
     :param FProperties: Solvent Properties
@@ -109,35 +109,27 @@ def HForce(Ns,Nb,SProperties,FProperties,AProperties):
     :return:
     The Force distribution only up to IntUp, after that it is assumed that the force is zero, the positions assume the zero in the
     """
-    FsH = -(Nb - Ns) / Nb
-    FfH = -FsH * (Ns / (Nb - Ns))
-    
-    #True forces (Need to be multiplied by the gradient)
-    FsHtrue=-1
-    FfHtrue=-FsHtrue * (Ns / (Nb - Ns))
-    
+    Fs = -1.0
+    Ff = -Fs*Cs/Cf #Imposing equilibrium condition
+
     Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
     n=len(Indexes)
-    HForce = np.zeros((n, 2))
-    HForce[:, 0] = SProperties[Indexes, 1]
+    MuForce = np.zeros((n, 2))
+    MuForce[:, 0] = SProperties[Indexes, 1]
 
     for i in xrange(n):
         if AProperties[i, 4] == 0:
-            HForce[i, 1] = 0
+            MuForce[i, 1] = 0
 
         else:
-            HForce[i, 1] = (FfH * FProperties[i, 4] + FsH * SProperties[i, 4]) / AProperties[i, 4]
+            MuForce[i, 1] = (Ff * FProperties[i, 4] + Fs * SProperties[i, 4]) / AProperties[i, 4]
 
-    np.savetxt("HForce.dat",HForce)
-    Ffactor = 1.0 / FsH
-    print "*********************Running Hiroaki Calculations*********************\n"
-    print "The force on the Solutes is %f, on the Solvents %f" %(FsH,FfH)  
-    print "The (TRUE!!!) force on the Solutes is %f, on the Solvents %f" %(FsHtrue,FfHtrue)
-    print "The Force Factor is  %f" %Ffactor
-    print "Created Hiroaki Force distribution File HForce.dat "
+    np.savetxt("MuForce.dat",MuForce)
+    print "*********************Running Mu Force Calculations*********************\n"
+    print "Created Mu grad Force distribution File MuForce.dat "
 
 
-    return HForce
+    return MuForce
 
 
 
@@ -169,7 +161,7 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
 
     np.savetxt("YForce.dat", YForce)
     print "\n*********************Running Yawei Calculations*********************\n"
-    print "The force on the Solutes is %f, on the Solvents %f" %(FsY,FfY)  
+    print "The force on the Solutes is %f, on the Solvents %f" %(FsY,FfY)
     print "Created Yawei Force distribution File YForce.dat "
 
     return YForce
@@ -188,9 +180,9 @@ def PosConstant(x,y,Tol):
     :return: The index of the position of the last point to be taken into account
     """
 
-    
+
     BinSize = x[1] - x[0]
-    der1=np.gradient(y,BinSize)    
+    der1=np.gradient(y,BinSize)
     IndexMax=np.argmax(y)
     IndexMin=np.argmin(y)
     ExtremeIndex=max(IndexMax,IndexMin)
@@ -250,27 +242,26 @@ print "The average concentration is %f" %(np.average(AProperties[:,4]))
 print "\n Starting the Force Calculations\n"
 
 
-HForce = HForce(Ns,N,SProperties,FProperties,AProperties)
+MuForce = MuForce(Ns,N,SProperties,FProperties,AProperties)
 YForce = YForce(Cs,Cf,SProperties,FProperties,AProperties)
-BinSize = HForce[1, 0] - HForce[0, 0]
+BinSize = MuForce[1, 0] - MuForce[0, 0]
 # ==============================================================================
 # Determining where there is no more variation
 # ==============================================================================
 
 
-    
-Cut_off=PosConstant(HForce[:,0],HForce[:,1],0.001)+1
-    
-Zpos =HForce[:Cut_off+1, 0]+Zshift
-HF = np.transpose(HForce[:Cut_off, 1])
+
+Cut_off=PosConstant(MuForce[:,0],MuForce[:,1],0.001)+1
+
+Zpos =MuForce[:Cut_off+1, 0]+Zshift
+MuF = np.transpose(MuForce[:Cut_off, 1])
 YF = np.transpose(YForce[:Cut_off, 1])
 print "The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos)
 print "Creating the Files to iterate in Lammps"
 np.savetxt("Zpos_iterate.dat", Zpos)
-np.savetxt("HForce_iterate.dat", HF)
+np.savetxt("MuForce_iterate.dat", MuF)
 np.savetxt("YForce_iterate.dat", YF)
 
-plt.close("all")
-plt.plot(HForce[:,0],HForce[:,1])
-plt.plot(HForce[Cut_off,0],HForce[Cut_off,1],'o')
-
+#plt.close("all")
+#plt.plot(MuForce[:,0],MuForce[:,1])
+#plt.plot(MuForce[Cut_off,0],MuForce[Cut_off,1],'o')
