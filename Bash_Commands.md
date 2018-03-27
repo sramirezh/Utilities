@@ -5,7 +5,7 @@ du -sh ~/
 
 pdftk file1.pdf file2.pdf cat output mergedfile.pdf
 
-#To see the processes with a given name
+# To see the processes with a given name
 
 pgrep, pkill - look up or signal processes based on name and other
 
