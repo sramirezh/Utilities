@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(description='This script evaluates the average 
 parser.add_argument('FileName', metavar='InputFile', type=str,
                     help='Input filename')
 
-parser.add_argument('--min', help='Number of timesteps to be discarded', default=0, type=int)
+parser.add_argument('--min', help='Number of timesteps to be discarded', default=1000, type=int)
 
 
 args = parser.parse_args()
@@ -38,7 +38,7 @@ with open(InputFile, 'r') as data_file:
         data_file.readline()
     data_file.seek(last_pound_pos+1) #The one is added to avoid reading a non-existing column in the names as there lines are "# "
     data=pd.read_csv(data_file,sep=" ",header=0)
-    
+
 Names= list(data.columns.values)
 size=len(Names)
 data1=data.as_matrix()
@@ -50,10 +50,3 @@ for i in xrange(size):
 
 np.savetxt('statistics.dat',Averages)
 print "\nCreated a file statistics.dat with the averages"
-
-
-
-
-
-
-
