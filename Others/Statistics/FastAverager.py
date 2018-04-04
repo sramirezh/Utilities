@@ -23,7 +23,11 @@ parser = argparse.ArgumentParser(description='This script evaluates the average 
 parser.add_argument('FileName', metavar='InputFile', type=str,
                     help='Input filename')
 
+parser.add_argument('--min', help='Number of timesteps to be discarded', default=0, type=int)
+
+
 args = parser.parse_args()
+min_limit=args.min
 InputFile=args.FileName
 
 
@@ -38,7 +42,7 @@ with open(InputFile, 'r') as data_file:
 Names= list(data.columns.values)
 size=len(Names)
 data1=data.as_matrix()
-Averages=np.average(data1,axis=0)
+Averages=np.average(data1[min_limit::],axis=0)
 
 print "The averages are:\n"
 for i in xrange(size):
