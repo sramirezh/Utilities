@@ -10,3 +10,8 @@ pdftk file1.pdf file2.pdf cat output mergedfile.pdf
 pgrep, pkill - look up or signal processes based on name and other
 
 for instance pgrep tmux
+
+
+# To rsync only one type of file, in this case only the file called poly.atom in all the directories
+
+rsync -avz  --include="*/" --include="poly.atom" --exclude="*" "$from" "$to" --progress --partial  . ~/Trajectories
