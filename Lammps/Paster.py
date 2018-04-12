@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 script to Paste all AAverages
-
+Args:
+    Run like this for example
+    Paster.py 0.025/Output/AAverages.dat 0.025_1/Output/AAverages.dat 0.025_2/Output/AAverages.dat
 @author: sr802
 """
 
@@ -33,18 +35,16 @@ np.savetxt("Averages_total.dat",data)
 ##Opening the first array
 #data=np.loadtxt("full-mean."+str(int(Times[x-N])))
 #for k in xrange(x-N+1,x): #Runs over the sampled times.
-#               
+#
 #    print("Reading configuration %d of %d" %(k,x-1))
-#    #Reading the Results 
+#    #Reading the Results
 #    name="full-mean."+str(int(Times[k]))
 #    array=np.loadtxt(name)
 #    data[:,2::]=data[:,2::]+array[:,2::]
-#    
+#
 ##Normalizing
 #data[:,2::]=data[:,2::]/N
 #np.savetxt("Averages.dat",data)
 #plt.plot(data[:,1],data[:,3])
 #plt.ylim(-0.005,0.005)
 #plt.xlim(5.0,13.0)
-
-    
