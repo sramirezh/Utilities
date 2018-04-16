@@ -49,7 +49,7 @@ def is_valid_file(parser, arg):
 
 parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer')
 parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
-parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
+parser.add_argument('--split', help='True if trajectory file need to be splitter', default=True, type=bool)
 parser.add_argument('--Nbins', help='Number of bins for the chunk calculations', default=60, type=int)
 
 args = parser.parse_args()
