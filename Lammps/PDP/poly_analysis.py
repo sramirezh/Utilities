@@ -32,6 +32,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 from Lammps.linux import bash_command
 
+
 try:
     import matplotlib.pyplot as plt
 #    from matplotlib.backends.backend_pdf import PdfPages
