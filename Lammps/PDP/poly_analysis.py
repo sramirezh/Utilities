@@ -27,12 +27,14 @@ from shlex import split
 import pandas as pd
 import argparse
 import linecache
+import sys
 import os
-
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+from Lammps.linux import bash_command
 
 try:
     import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_pdf import PdfPages
+#    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
     print err
 
@@ -49,7 +51,7 @@ def is_valid_file(parser, arg):
 
 parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer')
 parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
-parser.add_argument('--split', help='True if trajectory file need to be splitter', default=True, type=bool)
+parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
 parser.add_argument('--Nbins', help='Number of bins for the chunk calculations', default=60, type=int)
 
 args = parser.parse_args()
@@ -63,6 +65,8 @@ if args.split==True:
     InputFile=InputFile
     p1 = Popen(split('bash '+dir_path+'/Trajectory_poly.sh -i '+InputFile),stdout=PIPE)
     out,err=p1.communicate()
+else:
+    print "The Trajectory file was not splitted"
 
 #
 def Box_limits():
@@ -87,6 +91,22 @@ def Box_limits():
     L=limits[:,1]-limits[:,0]
 
     return limits,L
+
+def number_of_monomers():
+    """
+    reads the number of particles
+    Args:
+
+    Returns:
+        The number of monomers
+        
+    """
+    out,err=bash_command('grep -n -m1 "NUMBER OF ATOMS" '+InputFile)
+    line_number=int(out.split(":")[0])
+    number_part=int(linecache.getline(InputFile, line_number+1))
+
+
+    return number_part
 
 cm=lambda x: np.average(x,axis=0)
 
@@ -144,34 +164,41 @@ def radial_distribution(nbins,rmax,pos_sphere):
         rmax: Maximum radious of analysis
         pos_sphere: vector with r,tetha, fhi
     Returns:
-        bin_count: Array with the positions of the centers of the bins and the count number.
+        bin_count: Array with the positions of the centers of the bins, the count number and the density
     """
     delta=rmax/nbins
-    bin_count=np.zeros((nbins,2))
+    bin_count=np.zeros((nbins,3))
     bin_count[:,0]=np.linspace(delta,rmax,num=nbins)-delta/2.
+    vol_old=0
+    radial_distribution.volume=[]
     for i in xrange(nbins):
-        if np.size(pos_sphere)==0:break #To stop counting after the
+        if np.size(pos_sphere)==0:break #To stop counting after there are no more particles
         rmax_bin=delta*(i+1)
         indexes=np.where(pos_sphere[:,0]<=rmax_bin)
-        bin_count[i,1]=np.size(indexes[0])
-        pos_sphere=np.delete(pos_sphere,indexes,axis=0)
+        count=np.size(indexes[0])
+        bin_count[i,1]=count
+        vol_new=4/3*np.pi*rmax_bin**3
+        bin_count[i,2]=count/(vol_new-vol_old)
+        vol_old=vol_new
+        radial_distribution.volume.append(vol_old)
+        pos_sphere=np.delete(pos_sphere,indexes,axis=0) #Deletes the particles taken into account
 
     return bin_count
 
 
 #Reading the initial data
 Box,L=Box_limits()
-Times=pd.read_csv("Times.dat").as_matrix()
+Times=pd.read_csv("Times.dat",header=None).as_matrix()
 x=np.size(Times)
 
 rel_tail=[]
 rel_head=[]
 
 nbins=args.Nbins
-rmax=15
+rmax=number_of_monomers()/2 #Assumes the maximum radius is number_particles/2
 
-av_rd_positive=np.zeros(nbins)
-av_rd_negative=np.zeros(nbins)
+av_rd_positive=np.zeros((nbins,2))
+av_rd_negative=np.zeros((nbins,2))
 
 for k in xrange(x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
@@ -186,49 +213,67 @@ for k in xrange(x): #Runs over the sampled times.
     i_tail=np.where((Data[:,0]==n))[0][0]
     rel_tail.append(pos_relative[i_tail,0])
     rel_head.append(pos_relative[i_head,0])
-
+    
     "Getting the points in front and in the back"
     #First i get the indexes of the points in front and then I delete those indexes to get the points in the back
     pos_sphere=spherical_coordinates(pos_relative)
-    i_front=np.where(np.abs(pos_sphere[:,2])<np.pi/2.)[0]
+    i_front=np.where(np.abs(pos_sphere[:,2])<=np.pi/2.)[0]
     pos_semi_positive=pos_sphere[i_front,:]
     pos_semi_negative=np.delete(pos_sphere,i_front,axis=0)
 
     """Computing the polymeric distribution"""
     rd_positive=radial_distribution(nbins,rmax,pos_semi_positive)
     rd_negative=radial_distribution(nbins,rmax,pos_semi_negative)
-    av_rd_positive+=rd_positive[:,1]
-    av_rd_negative+=rd_negative[:,1]
+    av_rd_positive+=rd_positive[:,1:]
+    av_rd_negative+=rd_negative[:,1:]
     rd_negative[:,0]=rd_negative[:,0]*-1
-
+    
 av_rd_positive=av_rd_positive/x
 av_rd_negative=av_rd_negative/x
+rd_positive[:,1:]=av_rd_positive
+rd_negative[:,1:]=av_rd_negative
 
+#Need to multiply by two the density as I counted only on the semisphere.
+rd_positive[:,2]*=2
+rd_negative[:,2]*=2
 
-#To plot the radial distribution
+""" Radial distribution output"""
+
+np.savetxt('rdist_positive.dat',rd_positive)
+np.savetxt('rdist_negative.dat',rd_negative)
+
 plt.figure()
-plt.plot(rd_positive[:,0],av_rd_positive,'b')
-plt.plot(rd_negative[:,0],av_rd_negative,'r')
+plt.plot(rd_positive[:,0],rd_positive[:,2],'b')
+plt.plot(rd_negative[:,0],rd_negative[:,2],'r')
 plt.grid()
+plt.xlabel("$r-r_{cm}$")
+plt.ylabel("Concentration")
 plt.savefig('radial_distribution.pdf')
 plt.close()
 
-rdist_positive=np.transpose(np.vstack([rd_positive[:,0],av_rd_positive]))
-rdist_negative=np.transpose(np.vstack([rd_negative[:,0],av_rd_negative]))
-np.savetxt('rdist_positive.dat',rdist_positive)
-np.savetxt('rdist_negative.dat',rdist_negative)
 
 
-#To plot the alternation of tail and head in the x axis with respect to
+"""alternation of tail and head in the x axis with respect to"""
 plt.figure()
+
+
+plt.subplot(311)
+plt.plot(Times[:,0],rel_tail)
+plt.grid()
+
+plt.subplot(312)
+plt.plot(Times[:,0],rel_head,'r')
+plt.grid()
+
+plt.subplot(313)
 plt.plot(Times[:,0],rel_tail)
 plt.plot(Times[:,0],rel_head,'r')
 plt.grid()
+plt.xlabel("MEW")
 plt.savefig('tip_behaviour.pdf')
 plt.close()
 
 
 tip_behaviour=np.transpose(np.vstack([Times[:,0],rel_tail,rel_head]))
-np.savetxt('tip_behaviour.dat',tip_behaviour)
-#plt.plot(pos[:,2],pos[:,3],'o')
-#plt.plot(v_cm[0],v_cm[1],'*')
+np.savetxt('tip_behaviour.dat',tip_behaviour,header="time_step tail_position head_position")
+
