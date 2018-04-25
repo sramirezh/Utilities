@@ -27,10 +27,13 @@ from shlex import split
 import pandas as pd
 import argparse
 import linecache
-import sys
 import os
+import sys
+import scipy.fftpack
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 from Lammps.linux import bash_command
+
 
 
 try:
@@ -171,7 +174,6 @@ def radial_distribution(nbins,rmax,pos_sphere):
     bin_count=np.zeros((nbins,3))
     bin_count[:,0]=np.linspace(delta,rmax,num=nbins)-delta/2.
     vol_old=0
-    radial_distribution.volume=[]
     for i in xrange(nbins):
         if np.size(pos_sphere)==0:break #To stop counting after there are no more particles
         rmax_bin=delta*(i+1)
@@ -181,7 +183,6 @@ def radial_distribution(nbins,rmax,pos_sphere):
         vol_new=4/3*np.pi*rmax_bin**3
         bin_count[i,2]=count/(vol_new-vol_old)
         vol_old=vol_new
-        radial_distribution.volume.append(vol_old)
         pos_sphere=np.delete(pos_sphere,indexes,axis=0) #Deletes the particles taken into account
 
     return bin_count
@@ -252,6 +253,20 @@ plt.ylabel("Concentration")
 plt.savefig('radial_distribution.pdf')
 plt.close()
 
+#"""Fourier Transformation"""
+#
+## Number of samplepoints
+#N = x
+## sample spacing
+#T = Times[1]-Times[0]
+#
+#yf_tail = scipy.fftpack.fft(rel_tail)
+#xf_tail = np.linspace(0.0, 1.0/(2.0*T), N/2)
+#
+#yf_head = scipy.fftpack.fft(rel_head)
+#xf_head = np.linspace(0.0, 1.0/(2.0*T), N/2)
+
+
 
 
 """alternation of tail and head in the x axis with respect to"""
@@ -264,17 +279,55 @@ plt.grid()
 
 plt.subplot(312)
 plt.plot(Times[:,0],rel_head,'r')
+plt.ylabel("$x-x_{cm}$")
 plt.grid()
 
 plt.subplot(313)
-plt.plot(Times[:,0],rel_tail)
 plt.plot(Times[:,0],rel_head,'r')
+plt.plot(Times[:,0],rel_tail)
 plt.grid()
-plt.xlabel("MEW")
+
+
+#plt.subplot(223)
+#plt.plot(xf_tail, yf_tail[:N//2])
+#plt.grid()
+#
+#plt.subplot(224)
+#plt.plot(xf_head, yf_head[:N//2])
+#plt.grid()
+
+plt.xlabel("Time")
 plt.savefig('tip_behaviour.pdf')
 plt.close()
 
-
 tip_behaviour=np.transpose(np.vstack([Times[:,0],rel_tail,rel_head]))
 np.savetxt('tip_behaviour.dat',tip_behaviour,header="time_step tail_position head_position")
+
+
+
+
+#"""
+#Testing the radial distribution function
+#"""
+
+#def spherical_integral(Data):
+#    delta=Data[1,0]-Data[0,0]
+#    r_max=Data[:,0]+delta/2
+#    n,m=np.shape(Data)
+#    vol_old=0
+#    part_bin=[]
+#    for i in xrange(n):
+#        vol_new=4./3.*r_max[i]**3*np.pi
+#        part_bin.append((vol_new-vol_old)*Data[i,2])
+#        vol_old=vol_new        
+#    return part_bin
+#
+#
+#distrib_pos=np.loadtxt("rdist_positive.dat")
+#distrib_negative=np.loadtxt("rdist_negative.dat")
+#
+#part_bin=np.array(spherical_integral(distrib_pos))/2
+#print np.sum(part_bin),np.sum(distrib_pos[:,1])
+#part_bin_n=np.array(spherical_integral(distrib_negative))/2
+#print np.sum(part_bin_n),np.sum(distrib_negative[:,1])
 
