@@ -48,7 +48,7 @@ bc=bulk_concentration(Data[:,0],Data[:,2],bulk_min)
 
 xmin=0.0
 xmax=8.0
-Integrand=Data[:,2]/bc-1.0
+Integrand=4*np.pi*(Data[:,2]/bc-1.0)*Data[:,0]**2
 
 SolAbso=Integrate(Data[:,0],Integrand,xmin,xmax)
 
