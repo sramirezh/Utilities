@@ -7,10 +7,8 @@ dir=$(dirname $0) #to get the directory where the script and other source files 
 printf "\n##########################################################################\n"
 echo "Analyzing the log file"
 echo "##########################################################################"
-bash $dir/Log_Analysis/Thermo_dump.sh log.lammps
-python $dir/Log_Analysis/Thermo_Analyser.py
+python $dir/Log_Analysis/Thermo_Analyser.py log.lammps
 
-printf "\nGenerated Parameters.dat \n"
 
 printf "\n##########################################################################\n"
 echo "Analyzing the trajectory File"

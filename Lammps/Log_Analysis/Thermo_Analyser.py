@@ -1,34 +1,78 @@
 """
-This analyzer loads the dump file containing the instantaneous values printed by the thermostyle in LAMMPS
-It is required that the log.lammps file was run before to generate the parameters.dat file
+This script reads the log file and gets the 
 """
 import numpy as np
-import matplotlib.pyplot as plt
+import os
+import sys
+import linecache
+import argparse
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+from Lammps.linux import bash_command
+
+"""
+Initialisation and controling inputs
+"""
+def is_valid_file(parser, arg):
+    if not os.path.exists(arg):
+        parser.error("The file %s does not exist!" % arg)
+    else:
+        return arg
+    
+    
+def read_chunk(i_line,f_line):
+    data=[]
+    for i in range(i_line,f_line):
+        data.append(linecache.getline(file_name, i+1).strip('\n').split())
+    data=np.array(data,dtype='double')
+    return data
+
+parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer')
+parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
+parser.add_argument('--discard', help='Number of initial steps to discard', default=0, type=int)
+args = parser.parse_args()
+file_name=args.FileName
 
 
-#Next two lines are for testing 
-#PATH="/home/sr802/Dropbox/PhD/Cambridge/Academical/3.Simulation/0.Lammps/2.Solid_fluid/2D"
-#TotalPath=PATH+"/parameters.dat"
 
-TotalPath="Parameters.dat"
 
-#Display the header file
-f=open(TotalPath, 'r')
-FirstLine=f.readline().split()
-f.close()
+out,err=bash_command("""grep -n "Per MPI" %s| awk -F":" '{print $1}'"""%file_name )
+initial_line=np.array(out.split(),dtype=int)+1 
 
-Param=np.loadtxt(TotalPath,skiprows=1)
-n,m=np.shape(Param)
-Nsampling=int(n*0.5) #This is the number of interations, it took the system to stabilize (It is guessed)
-#plt.plot(Param[:,6])
 
-#plt.figure(2)
-#plt.plot(Param[:,5])
+out2,err=bash_command("""grep -n "Loop time" %s| awk -F":" '{print $1}'"""%file_name)
+final_line=np.array(out2.split(),dtype=int)-1
 
-#plt.figure(2)
-#plt.plot(Param[:,1])
 
-for i in xrange(m):
-    print "The Average %s is %lf " %(FirstLine[i],np.average(Param[Nsampling::,i]))
+"""Checking if the simulation did not finish"""
+if np.size(initial_line)>np.size(final_line):
+    print "\nThe log file is incomplete!, lets analyse it in anycase \n"
+    incomplete=1
+    out3,err=bash_command("""wc -l %s |awk '{print $1}'"""%file_name)
+    line=int(out3.split()[0])
+    final_line=np.append(final_line,line)
+else: incomplete=0
+    
+header=linecache.getline(file_name, initial_line[0]).strip('\n').split()
+number_parameters=len(header)
+header_string=" ".join(header)
+number_chunks=np.size(initial_line)
+
+
+for i in xrange(number_chunks):
+    if i==0:
+        total=read_chunk(initial_line[i],final_line[i])
+    else:
+        data=read_chunk(initial_line[i],final_line[i])
+        total=np.delete(total,-1,axis=0) #As there are repeated timesteps, I choose to keep the last version of the variables
+        total=np.vstack([total,data])
+
+np.savetxt("Parameters.dat",total,header=header_string)
+print("Generated the file Parameters.dat")
+
+discard=args.discard
+for i in xrange(number_parameters):
+    if header[i]=="Step":continue
+    print "The Average %s is %lf " %(header[i],np.average(total[discard::,i]))
 
 #plt.plot(Param[:,0],Param[:,5])
