@@ -22,14 +22,25 @@ import argparse
 import os
 import sys
 import linecache
-
+import re
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 from Lammps.linux import bash_command
 
+"""
+Function definitions
+"""
 
-
-def SolidSurface():
+def solid_surface(atom_type):
+    """
+    Computes the limits of the solid surface
+    Args:
+        atom_type atom type in the trajectory file of the solid surface.
+    Returns:
+        Characteristics of the solid surface
+        Writes a file Zshift.dat with the maximun height to be used by other codes. 
+    """
+    
     #Getting the maximum position of the surface.
     Maxz=-100
     Minz=10000
@@ -38,8 +49,8 @@ def SolidSurface():
 
     for i in xrange(n):
         if Data[i,0]==3: #3 is for solid surface, 2 for solutes, 1 for solvents.
-            Maxz=max(Maxz,Data[i,3])
-            Minz=min(Minz,Data[i,3])
+            Maxz=max(Maxz,Data[i,atom_type])
+            Minz=min(Minz,Data[i,atom_type])
         else:
             Nfluid+=1
 
@@ -52,42 +63,82 @@ def SolidSurface():
     f.writelines("%lf \n" %Maxz)
     f.close
     
+
+def read_box_limits(log_name):
+    """
+    Reads the box limits from log.lammps
+    Args:
+        None: log_name name of the log file
+    returns:
+        volume
+        limits 
+    
+    """
+    out,err=bash_command("""grep -n "Created orthogonal" %s | awk -F":" '{print $1}' """%log_name)
+    line=int(out.split()[0])
+    limits=linecache.getline(log_name, line)
+    limits=re.findall(r"[-+]?\d*\.?\d+", limits)
+    limits=np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
+    volume=(limits[1,0]-limits[0,0])*(limits[1,1]-limits[0,1])*(limits[1,2]-limits[0,2])
+
+    return volume,limits
+
+
+def check_analysis_box(cv_limits,simulation_limits):
+    """
+    checks if the analysis box is consistent with the simulation box
+    Args:
+        cv_limits control box limits
+        simulation_limits simulation box limits
+    Returns:
+        cv_limit after checking that its valid
+    """
+    vol_args=np.size(cv_limits)
+    #Checking if the input is valid
+    if vol_args!=6 and (not args.Volume)==False: #If the argument number is not 6 or 0
+        sys.exit("There is a mistake with the analysis volume, 6 required")
+    elif (not args.Volume): #If no arguments, sets the control volume as the simulation box.
+        print "\nNo volume given, assumend the entire box"
+        cv_limits=simulation_limits
+    else: #If 6 arguments given, check if the volume is within the simulation box.
+        cv_limits=np.transpose(np.reshape(np.array(cv_limits),(3,2)))
+        for i in range(3):
+            for j in range(2):
+                #if (cv_limits[j,i]<simulation_limits[0,i] or cv_limits[j,i]>simulation_limits[1,i]):
+                if (simulation_limits[0,i]<=cv_limits[j,i] and simulation_limits[1,i]>=cv_limits[j,i]):
+                    continue
+                else:
+                    sys.exit("There is an error with the limit of the analysis box in the %d-th direction"%i)
+                    break  
+    
+    return cv_limits
     
 
+"""
+Argument control
+"""
 parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer')
 #parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
 parser.add_argument('--Volume', help='Insert the limits of the Analysis box, if not the total volume is assumed', nargs='+', type=float)
 parser.add_argument('--bin', help='the bin size for the analysis', default=0.05, type=float)
+parser.add_argument('--log', help='lammps logfile name', default="log.lammps", type=str)
 
 args = parser.parse_args()
 binS=args.bin
-volume=args.Volume
-vol_args=np.size(volume)
-
-"""Reading the box volume"""
-file_name="log.lammps"
-out,err=bash_command("""grep -n "Created orthogonal" %s | awk -F":" '{print $1}' """%file_name)
-line=int(out.split()[0])
-box_volume=linecache.getline(file_name, line).strip('\n').split()
-for i box_volume:
-    print i
-
-"""Control for the analysis volume"""
-if vol_args!=6 and (not args.Volume)==False: print "\nThere is a mistake with the analysis volume, 6 required"
-if (not args.Volume): print "\nNo volume given, assumend the entire box"
+cv_limits=args.Volume
+log_name=args.log
 
 
+"""
+Analysis
+"""
 
+box_volume,box_limits=read_box_limits(log_name)
+cv_limits=check_analysis_box(cv_limits,box_limits)
 
+box_length=np.diff(cv_limits,axis=0)[0]
 
-
-
-
-xmin=-30
-xmax=30
-L=xmax-xmin
-
-Nbins=int(L/0.05)
+number_bins=int(box_length[0]/binS)
 
 #Reading the times to make it easier to read the file by chunks
 Times=np.loadtxt("Times.dat",dtype=int)
@@ -125,7 +176,7 @@ for k in xrange(x): #Runs over the sampled times.
             print "There is no solid surface"
         else:
             print "Analysing the solid surface"
-            SolidSurface()
+            solid_surface(3)
 
     for i in xrange(n):
         if Data[i,0]==1:
