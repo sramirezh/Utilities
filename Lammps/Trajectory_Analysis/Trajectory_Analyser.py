@@ -18,12 +18,21 @@ In My particle definition
 """
 from __future__ import division
 import numpy as np
+import argparse
+import os
+import sys
+import linecache
+
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+from Lammps.linux import bash_command
+
+
 
 def SolidSurface():
     #Getting the maximum position of the surface.
     Maxz=-100
     Minz=10000
-    Maxf=0
     Nfluid=0
 
 
@@ -42,18 +51,44 @@ def SolidSurface():
     f=open("Zshift.dat",'w')
     f.writelines("%lf \n" %Maxz)
     f.close
+    
+    
+
+parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer')
+#parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
+parser.add_argument('--Volume', help='Insert the limits of the Analysis box, if not the total volume is assumed', nargs='+', type=float)
+parser.add_argument('--bin', help='the bin size for the analysis', default=0.05, type=float)
+
+args = parser.parse_args()
+binS=args.bin
+volume=args.Volume
+vol_args=np.size(volume)
+
+"""Reading the box volume"""
+file_name="log.lammps"
+out,err=bash_command("""grep -n "Created orthogonal" %s | awk -F":" '{print $1}' """%file_name)
+line=int(out.split()[0])
+box_volume=linecache.getline(file_name, line).strip('\n').split()
+for i box_volume:
+    print i
+
+"""Control for the analysis volume"""
+if vol_args!=6 and (not args.Volume)==False: print "\nThere is a mistake with the analysis volume, 6 required"
+if (not args.Volume): print "\nNo volume given, assumend the entire box"
 
 
 
-print "Remember to define the Volume and the length in X so the bins are the same as in Lammps"
+
+
+
+
 
 xmin=-30
 xmax=30
 L=xmax-xmin
-binS=0.05
+
 Nbins=int(L/0.05)
 
-print Nbins
 #Reading the times to make it easier to read the file by chunks
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
