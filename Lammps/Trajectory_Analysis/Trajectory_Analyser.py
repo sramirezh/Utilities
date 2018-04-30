@@ -58,8 +58,8 @@ def solid_surface(data,atom_type):
     f=open("Zshift.dat",'w')
     f.writelines("%lf \n" %Maxz)
     f.close
-    
 
+    
 def read_box_limits(log_name):
     """
     Reads the box limits from log.lammps
@@ -228,13 +228,15 @@ for k in xrange(n_tsteps): #Runs over the sampled times.
     
     data=particles_cv(data,cv_limits,box_limits)
     n,m=data.shape
-
+    
     for i in xrange(n):
         if data[i,0]==1:
-            Nf[np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins)]+=1 #The -xmin is to avoid negative indexes
+            errorv=np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins)
+            Nf[np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins-1)]+=1 #The -xmin is to avoid negative indexes
 
         if data[i,0]==2:
-            Ns[np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins)]+=1
+            Ns[np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins-1)]+=1
+        ifailure=i+1
 
 np.array_equal(cv_limits,box_limits)
 
