@@ -71,7 +71,7 @@ def read_box_limits(log_name):
         limits 
     
     """
-    out,err=bash_command("""grep -n "Created orthogonal" %s | awk -F":" '{print $1}' """%log_name)
+    out,err=bash_command("""grep -n "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
     line=int(out.split()[0])
     limits=linecache.getline(log_name, line)
     limits=re.findall(r"[-+]?\d*\.?\d+", limits)
