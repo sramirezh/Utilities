@@ -242,7 +242,7 @@ np.array_equal(cv_limits,box_limits)
 
 
 Chunk_Volume=bin_size*cv_length[1]*cv_length[2]
-num_fluid=int(np.sum(Nf))
+num_fluid=int(np.sum(Nf)/n_tsteps)
 Ns=Ns/n_tsteps/Chunk_Volume
 Nf=Nf/n_tsteps/Chunk_Volume
 
