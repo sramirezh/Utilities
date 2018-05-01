@@ -56,7 +56,7 @@ np.savetxt("Results.dat", Results)
 Av=np.average(Results[:,1::],axis=0)
 error=np.sqrt(np.var(Results[:,1::],axis=0)/x)
 
-np.savetxt("Statistics.dat",np.append(Av,error))
+np.savetxt("Statistics.dat",np.append(Av,error),header="mu1Source mu2Source mu1Sink mu2Sink")
 
 f.write("\nGenerated Results.dat with the time series of the chemical potentials and Statistics.dat with the averages and errors\n")
 f.close()
