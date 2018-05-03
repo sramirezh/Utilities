@@ -29,7 +29,7 @@ import argparse
 import linecache
 import os
 import sys
-import scipy.fftpack
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 from Lammps.linux import bash_command
@@ -187,11 +187,28 @@ def radial_distribution(nbins,rmax,pos_sphere):
 
     return bin_count
 
+def gyration_radious_squared(pos):
+    """
+    Computes the gyration radious, assuming all the particles have the same mass=1
+    Args:
+        Pos, vector with the positions with measured from the cm
+    Returns: The scalar gyration radious squared
+    """
+    gr2=np.sum(np.average(np.square(pos),axis=0))
+    
+    
+    return gr2
+    
+    
+
+
+
+
 
 #Reading the initial data
 Box,L=Box_limits()
-Times=pd.read_csv("Times.dat",header=None).as_matrix()
-x=np.size(Times)
+times=pd.read_csv("Times.dat",header=None).as_matrix()
+x=np.size(times)
 
 rel_tail=[]
 rel_head=[]
@@ -202,9 +219,10 @@ rmax=number_of_monomers()/2 #Assumes the maximum radius is number_particles/2
 av_rd_positive=np.zeros((nbins,2))
 av_rd_negative=np.zeros((nbins,2))
 
+r_gyration_2=[]
 for k in xrange(x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
-    File_Name=str(int(Times[k]))+".cxyz"
+    File_Name=str(int(times[k]))+".cxyz"
     # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
     Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
     n,m=Data.shape
@@ -229,6 +247,21 @@ for k in xrange(x): #Runs over the sampled times.
     av_rd_positive+=rd_positive[:,1:]
     av_rd_negative+=rd_negative[:,1:]
     rd_negative[:,0]=rd_negative[:,0]*-1
+    
+    """Other properties"""
+    r_gyration_2.append(gyration_radious_squared(pos_relative))
+    
+
+
+
+
+"""
+###############################################################################
+Other properties 
+###############################################################################
+"""
+r_gyration=np.sqrt(r_gyration_2)
+    
     
 av_rd_positive=av_rd_positive/x
 av_rd_negative=av_rd_negative/x
@@ -274,17 +307,17 @@ plt.figure()
 
 
 plt.subplot(311)
-plt.plot(Times[:,0],rel_tail)
+plt.plot(times[:,0],rel_tail)
 plt.grid()
 
 plt.subplot(312)
-plt.plot(Times[:,0],rel_head,'r')
+plt.plot(times[:,0],rel_head,'r')
 plt.ylabel("$x-x_{cm}$")
 plt.grid()
 
 plt.subplot(313)
-plt.plot(Times[:,0],rel_head,'r')
-plt.plot(Times[:,0],rel_tail)
+plt.plot(times[:,0],rel_head,'r')
+plt.plot(times[:,0],rel_tail)
 plt.grid()
 
 
@@ -300,7 +333,7 @@ plt.xlabel("Time")
 plt.savefig('tip_behaviour.pdf')
 plt.close()
 
-tip_behaviour=np.transpose(np.vstack([Times[:,0],rel_tail,rel_head]))
+tip_behaviour=np.transpose(np.vstack([times[:,0],rel_tail,rel_head]))
 np.savetxt('tip_behaviour.dat',tip_behaviour,header="time_step tail_position head_position")
 
 
