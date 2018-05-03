@@ -152,7 +152,11 @@ def particles_cv(data,cv_limits,box_limits):
                 data=one_dim_slicer(data,cv_limits[:,i],i+1)
     return data
 
-
+def is_valid_file(parser, arg):
+    if not os.path.exists(arg):
+        parser.error("The file %s does not exist!" % arg)
+    else:
+        return arg
 
 
 """
@@ -161,17 +165,27 @@ Argument control
 ###############################################################################
 """
 
+cwd = os.getcwd() #current working directory
+dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
+
+
 parser = argparse.ArgumentParser(description='This script evaluates the trajectory file')
-#parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
+parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
 parser.add_argument('--Volume', help='Insert the limits of the Analysis box, if not the total volume is assumed', nargs='+', type=float)
 parser.add_argument('--bin', help='the bin size for the analysis', default=0.05, type=float)
 parser.add_argument('--log', help='lammps logfile name', default="log.lammps", type=str)
+parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
 
 args = parser.parse_args()
 bin_size=args.bin
 cv_limits=args.Volume
 log_name=args.log
+InputFile=args.FileName
 
+if args.split==True:
+    bash_command("""%s/Trajectory_Splitter.sh -i %s"""  %(dir_path,InputFile))
+else:
+    print "The Trajectory file was not splitted"
 
 
 

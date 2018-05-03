@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Apr 25 15:13:58 2018
-Computes the solute adsorption in the radial direction
+Computes the solute adsorption in the radial direction for a monomer
 reading the 
 @author: sr802
 """
