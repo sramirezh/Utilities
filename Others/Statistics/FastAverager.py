@@ -45,8 +45,10 @@ data1=data.as_matrix()
 Averages=np.average(data1[min_limit::],axis=0)
 
 print "The averages are:\n"
+file=open("statistics.dat",'w')
 for i in xrange(size):
     print "%s = %lf"%(Names[i],Averages[i])
+    file.write("%s = %lf\n"%(Names[i],Averages[i]))
+file.close()
 
-np.savetxt('statistics.dat',Averages)
 print "\nCreated a file statistics.dat with the averages"
