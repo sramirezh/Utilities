@@ -73,6 +73,36 @@ def parameter_finder(List, String):
     return indexes 
 
 
+def plot_force_individuals(interactions):
+    """
+    Plots the parameters from statistic_summary for each force, for each interaction
+    """
+    
+    directory="plots/individual"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        
+    n_properties=len(interactions[0].properties[0]) #Number of properties
+    
+    for property_index in xrange(n_properties):
+        plt.figure()
+        for ljpair in interactions:
+            n=0
+            re2=[]
+            force_list=[]
+            for force in ljpair.forces:
+                re2.append(ljpair.properties[n][property_index]) #end to end radious squared
+                force_list.append(force)
+                n+=1
+            plt.plot(force_list,re2,label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
+            #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
+        name=interactions[-1].property_names[0][property_index].replace(" ","_")
+        plt.title(name)
+        plt.legend()
+        plt.savefig("plots/individual/%s.pdf"%name)
+        plt.close()
+
+
 
 """
 *******************************************************************************
@@ -126,6 +156,17 @@ class LJInteraction(object):
         """
         function to get the specific property
         """
+        index=parameter_finder(self.property_names[0],name)[0]
+        count=0
+        prop=[]
+        for force in self.forces:
+            prop_f=self.properties[count][index]
+            prop.append(prop_f)
+            count+=1
+        
+        return prop
+            
+        
         
 
 
@@ -145,27 +186,6 @@ class LJInteraction(object):
 #args = parser.parse_args()
 #min_limit=args.min
 #InputFile=args.FileName
-
-
-input_file="Results.dat"
-
-# This is to remove all the headers and just start reading in the columns if there are
-with open(input_file, 'r') as data_file:
-    while(data_file.read(1)=='#'):
-        last_pound_pos = data_file.tell()
-        data_file.readline()
-    data_file.seek(last_pound_pos+1) #The one is added to avoid reading a non-existing column in the names as there lines are "# "
-    data=pd.read_csv(data_file,sep="\t",header=0)
-    
-
-#data=np.genfromtxt(input_file)
-Names= list(data.columns.values)
-size=len(Names)
-data1=data.as_matrix()
-
-
-datasol=pd.read_csv("Statistic_summary.dat",sep="\t",header=0)
-
        
     
 """
@@ -175,111 +195,73 @@ Main program
 """
      
 interactions=build_data()
+#plot_force_individuals(interactions)
 
 
-directory="plots/individual"
-if not os.path.exists(directory):
-    os.makedirs(directory)
 
 
 """
 *******************************************************************************
-Building the averaged data
+Building the averaged data, excluding force equal=0
 *******************************************************************************
 """
 
 
-
-data=[]
-i_concentration=parameter_finder(interactions[0].property_names[0],"concentration")[0]
+ave_data=[]
 for interaction in interactions:    
     name='E_%sS_%s '%(interaction.epsilon,interaction.sigma)
     interaction.compute_mobility()
     
     ave_mobility=np.average(interaction.mobility)
-    ave_concentration_rg=np.average()
-    data_interaction=[name,ave_mobility, ave_concentration_rg ]
+    ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
+    ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration inn the bulk
+    delta_cs=ave_concentration_rg-ave_concentration_bulk
+    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg 
+    mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
     
-
-
-
-
-"""
-*******************************************************************************
-Individual runs plots
-*******************************************************************************
-"""
-
-def plot_force_individuals(interactions):
-    """
-    Plots the parameters from statistic_summary for each force, for each interaction
-    """
-    n_properties=len(interactions[0].properties[0]) #Number of properties
     
-    for property_index in xrange(n_properties):
-        plt.figure()
-        for ljpair in interactions:
-            n=0
-            re2=[]
-            force_list=[]
-            for force in ljpair.forces:
-                re2.append(ljpair.properties[n][property_index]) #end to end radious squared
-                force_list.append(force)
-                n+=1
-            plt.plot(force_list,re2,label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
-            #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
-        name=interactions[-1].property_names[0][property_index].replace(" ","_")
-        plt.title(name)
-        plt.legend()
-        plt.savefig("plots/individual/%s.pdf"%name)
+    data_interaction=[name,ave_mobility, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg ]
+    ave_data.append(data_interaction)
 
+header_data="lj_interaction,ave_mobility, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg"
+ave_data=np.array(ave_data)
+pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility', 'ave_concentration_rg','ave_concentration_bulk','delta_cs','ave_rg','mobility_rg'])    
 
-#
-#for line in file:
-#    if re.search("\AE_*", line):
-#        counter+=1
-#        print line
-#        interactions.append(LJInteraction(re.findall(r"[-+]?\d*\.?\d+", line)))
-#        for line in file:
-#            if re.search("dDP*", line):
-#                print subline
-        
-        
-
-        
-        
-
-    
+pd_data.to_csv("Results.dat",sep=' ',index=False)
 
 
 
 
-
-
-
-#
 #"""
 ################################################################################
 #Starting the plot
 ################################################################################
 #"""
 #
-#plt.close("all")
-#
-#
-#ax=data.plot.scatter(x="Delta_Cs",y="Mobility/rg")
+
+#ax=pd_data.plot.scatter(x="delta_cs",y="mobility_rg")
 #ax.set_xlabel("Delta $C_s$ [$1/\sigma^3$]",fontsize=16)
 #ax.set_ylabel("$\mu/R_g$",fontsize=16)
 #plt.grid()
 #plt.savefig("MobilityRg_Delta_Cs.pdf")
-#
-#
-#
-#ax=data.plot.scatter(x="Delta_Cs",y="Av_Mobility")
-#ax.set_xlabel("Delta $C_s$ [$1/\sigma^3$]",fontsize=16)
-#ax.set_ylabel("$\mu$",fontsize=16)
-#plt.grid()
-#plt.savefig("Mobility_Delta_Cs.pdf")
+
+
+directory="plots/all"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+
+fig,ax=plt.subplots()
+ax.scatter(ave_data[:,4],ave_data[:,1])
+
+for i, txt in enumerate(ave_data[:,0]):
+    ax.annotate(txt, (ave_data[i,4],ave_data[i,1]))
+ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$] Solutes inside and outside",fontsize=16)
+ax.grid()
+ax.set_ylabel("b [t/m]",fontsize=16)
+fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
+
+plt.close()
 
 
 
