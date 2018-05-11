@@ -46,7 +46,7 @@ def build_data():
     while i<len(lines):
         if re.search("\AE_*",lines[i] ): #Finding the LJ parameters
             interactions.append(LJInteraction(re.findall(r"[-+]?\d*\.?\d+", lines[i])))
-            print "Analysing %s"%lines[i]
+            print "\nReading data from  %s"%lines[i]
             i=i+1
             count+=1
         else: 
@@ -84,7 +84,7 @@ def plot_force_individuals(interactions):
     """
     Plots the parameters from statistic_summary for each force, for each interaction
     """
-    
+    print "\nGenerating Plots..."
     directory="plots/individual"
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -92,7 +92,13 @@ def plot_force_individuals(interactions):
     n_properties=len(interactions[0].properties[0]) #Number of properties
     
     for property_index in xrange(n_properties):
+        
+        prop_name=interactions[-1].property_names[0][property_index] #Crude property name
+        
+        if "Time" in prop_name: continue #To avoid plotting the timestep 
+        
         plt.figure()
+        
         for ljpair in interactions:
             n=0
             re2=[]
@@ -101,13 +107,22 @@ def plot_force_individuals(interactions):
                 re2.append(ljpair.properties[n][property_index]) #end to end radious squared
                 force_list.append(force)
                 n+=1
-            plt.plot(force_list,re2,label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
+            plt.plot(force_list,re2,'-o',label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
             #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
-        name=interactions[-1].property_names[0][property_index].replace(" ","_")
+        
+        file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
+        name=re.sub('_',' ',file_name) 
+        
+        print "\nplotting the %s" %name
+        
         plt.title(name)
+        file_name=name.replace(" ","_")
         plt.legend()
-        plt.savefig("plots/individual/%s.pdf"%name)
+        plt.grid()
+        plt.xlabel("Force")
+        plt.savefig("plots/individual/%s.pdf"%file_name)
         plt.close()
+    print "\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory
 
 
 
@@ -186,7 +201,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat and computes relevant quantities and generates plots, It has to be run inside every N_X",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--source',choices=['READ','RUN','GATHER'], default="READ",help='Decides if the if the file Statistics_summary needs to be READ, RUN, GATHERED  ')
+    parser.add_argument('--source',choices=['READ','RUN','GATHER'], default="READ",help='Decides if the if the file Statistics_summary.dat needs to be READ, RUN, GATHERED  ')
 args = parser.parse_args()
 source=args.source
 
@@ -205,7 +220,7 @@ Main program
 *******************************************************************************
 """
 
-print "\n Analizing the results "
+print "\nAnalizing the results"
 interactions=build_data()
 plot_force_individuals(interactions)
 
@@ -276,6 +291,6 @@ plt.close()
 
 pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
 
-
+print "\nGenerated average results Results.dat and plots in '%s'"%directory
 
 
