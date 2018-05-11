@@ -4,7 +4,7 @@
 CurrentPath=$(pwd)
 rm Statistic_summary.dat 
 touch Statistic_summary.dat
-for f in */; 
+for f in E_*/; 
 	do
 	echo "############################################################################" >>$CurrentPath/Statistic_summary.dat
 	echo $f >>$CurrentPath/Statistic_summary.dat
