@@ -2,7 +2,7 @@
 #It has to be run inside every N_X
 
 CurrentPath=$(pwd)
-rm Statistic_summary.dat 2>/dev/nul
+rm Statistic_summary.dat 2>/dev/null
 touch Statistic_summary.dat
 for f in E_*/;
 	do
