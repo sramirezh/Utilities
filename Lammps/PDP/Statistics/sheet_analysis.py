@@ -246,22 +246,22 @@ pd_data.to_csv("Results.dat",sep=' ',index=False)
 #plt.savefig("MobilityRg_Delta_Cs.pdf")
 
 
-directory="plots/all"
-if not os.path.exists(directory):
-    os.makedirs(directory)
-
-
-fig,ax=plt.subplots()
-ax.scatter(ave_data[:,4],ave_data[:,1])
-
-for i, txt in enumerate(ave_data[:,0]):
-    ax.annotate(txt, (ave_data[i,4],ave_data[i,1]))
-ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$] Solutes inside and outside",fontsize=16)
-ax.grid()
-ax.set_ylabel("b [t/m]",fontsize=16)
-fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
-
-plt.close()
+#directory="plots/all"
+#if not os.path.exists(directory):
+#    os.makedirs(directory)
+#
+#
+#fig,ax=plt.subplots()
+#ax.scatter(ave_data[:,4],ave_data[:,1])
+#
+#for i, txt in enumerate(ave_data[:,0]):
+#    ax.annotate(txt, (ave_data[i,4],ave_data[i,1]))
+#ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$] Solutes inside and outside",fontsize=16)
+#ax.grid()
+#ax.set_ylabel("b [t/m]",fontsize=16)
+#fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
+#
+#plt.close()
 
 
 

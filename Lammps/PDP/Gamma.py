@@ -3,7 +3,7 @@
 """
 Created on Wed Apr 25 15:13:58 2018
 Computes the solute adsorption in the radial direction for a monomer
-reading the 
+reading the prof_u
 @author: sr802
 """
 
@@ -22,7 +22,7 @@ def Integrate(x,y,xmin,xmax):
     MinIndex=np.min(np.where(x>=xmin))
     MaxIndex=np.max(np.where(x<=xmax))
     I=np.trapz(y[MinIndex:MaxIndex],x[MinIndex:MaxIndex])
-    
+
     return I
 
 
@@ -32,12 +32,12 @@ def bulk_concentration(Positions,Densities,bulk_min):
         Position vector.
         Density vector, for each position.
         bulk_min, defined by taking a look at the density distribution.
-        
+
     Returns:
         bulk_c the average concentration in the bulk
     """
-            
-    bulk_i=np.where(Positions>=bulk_min)[0][:-1] #The last to avoid taking the last density that explodes 
+
+    bulk_i=np.where(Positions>=bulk_min)[0][:-1] #The last to avoid taking the last density that explodes
     bulk_c=np.average(Densities[bulk_i])
     return bulk_c
 
