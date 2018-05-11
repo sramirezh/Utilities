@@ -191,12 +191,12 @@ args = parser.parse_args()
 source=args.source
 
 if source=="RUN":
-    print "Running the statistics analysis"
+    print "\nRunning the statistics analysis"
     bash_command("""bash %s/compute_statistics.sh"""%dir_path)
 elif source=="GATHER":
-    print "Gathering the statistics analysis results"
-    bash_command("""bash %s/compute_statistics.sh"""%dir_path)
-else: print "Reading the file Statistics_summary.dat "
+    print "\nGathering the statistics analysis results"
+    bash_command("""bash %s/gather_statistics.sh"""%dir_path)
+else: print "\nReading the file Statistics_summary.dat "
 
     
 """
@@ -204,6 +204,8 @@ else: print "Reading the file Statistics_summary.dat "
 Main program
 *******************************************************************************
 """
+
+print "\n Analizing the results "
 interactions=build_data()
 plot_force_individuals(interactions)
 
@@ -237,8 +239,8 @@ header_data="lj_interaction,ave_mobility, ave_concentration_rg, ave_concentratio
 ave_data=np.array(ave_data)
 pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility', 'ave_concentration_rg','ave_concentration_bulk','delta_cs','ave_rg','mobility_rg'])    
 
-pd_data.to_csv("Results.dat",sep=' ',index=False)
 
+pd_data.to_csv("Results.dat",sep=' ',index=False)
 
 """
 ###############################################################################
@@ -272,6 +274,7 @@ fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
 
 
+pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
 
 
 
