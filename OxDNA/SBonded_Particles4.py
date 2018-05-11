@@ -1,6 +1,6 @@
 """
 
-Before running this script, Split.sh has to be executed in order to split both the trajectory and the 
+Before running this script, Split.sh has to be executed in order to split both the trajectory and the
 bond list file from oxDNA
 
 This script is intended first to read the bond output from oxDNA "BoxDNA" and compare it with the imposed
@@ -16,7 +16,7 @@ Becareful with the Step variable. it has to be put by hand
 
 Nomenclature:
 
-Group is the entire structure, either bridge or Tetramer, when we refer to a group, it does include all the 
+Group is the entire structure, either bridge or Tetramer, when we refer to a group, it does include all the
 internal particles, but is coarse grained, as a patchy particle approximation.
 
 Revisions:
@@ -68,35 +68,39 @@ def OptimizeBondList(BoxDNA):
     Reads the pair bond list created based on the HB_list from oxDNA, which writes a bond
     if the interaction between the particles is smaller than HB_Cutoff=0.1.
     If there is a double bond, deletes the one which is weaker i.e longer distance between particles.
-    
-    NewBonds    =   Output containes the sorted Bond list, after deleting the double bonds. 
+
+    NewBonds    =   Output containes the sorted Bond list, after deleting the double bonds.
                     Also showing twice the bonds, the first half is redundant with the second.
-                    
-    V2= does not delete
+
+    V2= does not delete"""
+*******************************************************************************
+CLASS DEFINITION
+*******************************************************************************
+"""
     """
-                    
+
     #Creating an array with all the bonds in the first row there are the particles organized increasing their identification number
     A=np.copy(BoxDNA)
     A=np.append(A,BoxDNA[:,[1,0]],axis=0)
-    NewBonds=A[A[:,0].argsort()]   
-    
+    NewBonds=A[A[:,0].argsort()]
+
     return NewBonds
-    
+
 def BuildStatic(Tetramers):
     """
-    
+
     Outputs:
-    
+
     BondList : is the BSA which is an array where in every entrance has the arm and on every arm,
     has the bridges attached and them with the number of bonds in the switching area.
-    
+
     BPA=contains the number of bridges, per arm per tetramer.
-    
-    
+
+
     Output structure
-    
+
     BondList[Tetramer][ARM#][Bridge ID][Number of Bonds]
-    
+
     BPA [Tetramer][ARM#][bridgesinTheArm]
     """
     BondList=[]
@@ -108,37 +112,37 @@ def BuildStatic(Tetramers):
             BondListPerArm.append(Tetramers[i].getBSAToArm(j))
         BondList.append(BondListPerArm)
     return BondList,BPA
-    
+
 def build_data():
 
-    
+
     #Reading the energies to get the total number of input files
     Times=np.loadtxt("Times.dat",dtype=int)
     x=np.size(Times)
-    
-    
-    
+
+
+
     dbsa=[]
     dbpa=[]
     for k in xrange(x): #Runs over the sampled times.
-    
+
         print("Reading configuration %d of %d" %(k,x-1))
-        #Reading the Results 
+        #Reading the Results
         name_bl=str(int(Times[k]))+".bl"
-          
-        
+
+
         #Opening the configuration and bl files
-        #conf=np.loadtxt(name_conf) #Position of all the particles. 
+        #conf=np.loadtxt(name_conf) #Position of all the particles.
         BoxDNA=np.loadtxt(name_bl,dtype=int) #Bonded Particles from oxDNA
-        
-        
+
+
         Blist=OptimizeBondList(BoxDNA)
-        
-    
+
+
         Blistt=Blist[0:np.min(np.where(Blist[:,0]>Nt*NPt)[0]),:] #List containing in the first row the particle in a tetramer and then the bonded particle
         Blistb=Blist[np.min(np.where(Blist[:,0]>Nt*NPt)[0])::,:]
 
-        
+
         """
         *******************************************************************************
         Initializing the System
@@ -147,25 +151,25 @@ def build_data():
         Tetramers=[]
         for i in xrange(Nt):
             MakeTetramers(i,Blistt,Tetramers)
-        Bridges=[] 
+        Bridges=[]
         for i in xrange(Nb):
             MakeBridges(i,Blistb,Bridges)
-    
-    
+
+
         """
         *******************************************************************************
         Building the BSA(bonding switching area) Dynamical vector
         *******************************************************************************
         """
-        
+
         bsa,bpa=BuildStatic(Tetramers)
-        
+
         bpa=np.array(bpa) #This is the key to analyze the dynamics.
-        
+
         dbsa.append(bsa)
         dbpa.append(bpa)
     return x,dbsa,dbpa
-    
+
 
 def ArrayBinA(A,B):
     """
@@ -175,14 +179,14 @@ def ArrayBinA(A,B):
     output=True
     cont=0
     for element in B:
-        if element in A: 
+        if element in A:
             cont+=1
     if cont!=np.size(B):
         output=False
     return output
-    
-        
-    
+
+
+
 
 """
 *******************************************************************************
@@ -191,60 +195,60 @@ CLASS DEFINITION
 """
 
 class Constituents(object):
-    
+
     def MakeArms(self,NumberOfArms):
         """
         Builds the arms assigning the number to every particle on it
         """
         x=np.split(self.components,NumberOfArms)
-        return x  
-        
+        return x
+
     def getElements(self):
         """
         Return the elements that form the Tetramer or Bridge
         """
         return self.components
-        
+
     def getId(self):
         """
         Gives the identity of the Group in the absolute reference, i.e counting
         from the first tetramer till the final and then continue with the first bridge
         """
         return self.id
-        
+
     def getArm(self,i):
         """
         Give the elements of the desired arm
         """
         return self.MakeArms(self.arms)[i]
-    
-    
 
-    
-    
-        
-class Tetramer(Constituents): 
-     
+
+
+
+
+
+class Tetramer(Constituents):
+
     def __init__(self, Number,Indexes,Blistt):
         self.components=Indexes
-        self.id = Number 
+        self.id = Number
         self.arms=4
         self.Blist=Blistt
-        
+
     def getBonded(self):
         """
-        Returns 
-        
-        BIdentity : is an array of 4 arrays, one for each arm. Each containing the identity of the 
+        Returns
+
+        BIdentity : is an array of 4 arrays, one for each arm. Each containing the identity of the
         bridge(s) that is bonded to the arm.
-        
+
         Bonded: is an array of 4 arrays, one for each arm. Each containing the pairs of bonded particles,
-        in the first column the tetramers particle number and in the second the one from the bridge, in 
+        in the first column the tetramers particle number and in the second the one from the bridge, in
         the third column the tetramer particle in the frame of the arm (i.e 2 is the first patchy particle)
-        
+
         BIdetail : same as BIdentity but with the bridge index at every position of the tetrameric
         arm.
-        
+
         BPA=Give the numbers of bridges bonded per arm, per tetramer
         """
         Bonded=[] #Contain a cluster per arm, every cluster with the particle in the tetramer and the bonded to it, the last column is index in the tetrameric arm frame
@@ -260,85 +264,85 @@ class Tetramer(Constituents):
             for j in xrange(np.size(Constituents)):
                 if j>0 and j%2==0: #Only takes into account patchy particles
                     index=np.where(Blistt[:,0]==Constituents[j])[0]
-                   
+
                     for k in xrange(np.size(index)): #To include the other bonds for the new way of counting
                         if np.size(index)==0 or Blistt[index[k],1]<Nt*NPt:continue #Second condition to avoid counting Tetra-Tetra bonding
                         else:
 #                            if np.size(index)>1:print(k,index[k],np.size(index),self.getId(),Blistt[index[k],1])
                             BondedPerArm.append([Blistt[index[k],0],Blistt[index[k],1],j])
-                            BIdentityPerArm.append((Blistt[index[k],1]-Nt*NPt)/NPb+Nt) 
-                        
+                            BIdentityPerArm.append((Blistt[index[k],1]-Nt*NPt)/NPb+Nt)
+
                         #Aca tambien se puede ver con % SI ES EN BWS
             Bonded.append(np.array(BondedPerArm))
-            BIdentity.append(np.unique(BIdentityPerArm)) #Unique to get only one counter 
+            BIdentity.append(np.unique(BIdentityPerArm)) #Unique to get only one counter
             BIdetail.append(BIdentityPerArm)
             BPA.append(np.size(BIdentity[-1]))
         return BIdentity,Bonded,BIdetail,BPA
-        
+
     def getBondedToArm(self,i):
         """
         Returns an array containing the identity (in absouluite numeration, i.e counting from the tetramers, then bridges)
         of the bridges that are bound to the specific arm.
         """
         return self.getBonded()[0][i] #getting BIdentity
-    
+
     def getBSAToArm(self,i):
         """
         Outputs:
-        
+
         bsa : an array containing in the first row the Number of the bridge(even if they are not bonded to
-        the bonding switching area) and then the Number of bonds in the Switching Area for a given arm i of a tetramer. 
+        the bonding switching area) and then the Number of bonds in the Switching Area for a given arm i of a tetramer.
 
         """
         BSAindexes=[10,12,14,16] #Indexes of the Bonding switching area in the arm frame
         BridgesId=np.array(self.getBonded()[0][i])
         Bridges=np.array(self.getBonded()[1][i])
         Identities=np.array(self.getBonded()[2][i])
-        
-        
-        
+
+
+
         OutputSize=np.size(BridgesId)#Number of bridges attached to the arm
         if OutputSize==0:
             bsa=[]
         else:
             bsa=np.zeros((OutputSize,2))
             bsa[:,0]=BridgesId
-            for index in BSAindexes:       
+            for index in BSAindexes:
                 match=np.where(Bridges[:,2]==index)[0]
                 if np.size(match)==0:continue #If there is no particle bonded to that position in the BSA
-                
-                
+
+
                 #Part of the implementation of the way of counting
                 bsaBridge=Identities[np.where(Bridges[:,2]==index)] #Bridge in the bsa index,
                 NbAtSamePoint=np.size(bsaBridge) #Number of bridges Attached to the same point
-                
-                increase=1./NbAtSamePoint #In general this is 0.5 I dont think there would be more than 2 bridges attached to the same point            
+
+                increase=1./NbAtSamePoint #In general this is 0.5 I dont think there would be more than 2 bridges attached to the same point
                 for k in xrange(NbAtSamePoint):
                     for j in xrange(OutputSize):
                         if bsaBridge[k]==bsa[j,0]:
                             bsa[j,1]+=increase
         return bsa
-            
+
 class Bridge(Constituents):
-    
+
     def __init__(self, Number,Indexes,Blistb):
         self.components=Indexes
         self.id = Number
         self.arms=2
         self.Blist=Blistb #Bonding list to bridges
 
-    
+
 
 
 def MakeTetramers(i,Blistt,Tetramers):
     Tetramers.append(Tetramer(i,np.arange(i*NPt,(i+1)*NPt,1),Blistt))
     return Tetramers
-    
+
 
 def MakeBridges(i,Blistb,Bridges):
     Bridges.append(Bridge(i+Nt,np.arange(i*NPb,(i+1)*NPb,1)+Nt*NPt,Blistb))
     return Bridges
-    
+
 """
 *******************************************************************************
 PROGRAM STARTS HERE
@@ -390,7 +394,7 @@ print("The Time Step is:%f , the bond_list Sampling time is:%d , so the Delta t 
 *******************************************************************************
 Building arrays for Analysis.
 
-Reads all the evolution of the system and gets the necessary data for the 
+Reads all the evolution of the system and gets the necessary data for the
 analysis. After, this has run once it can be commented and just run the program
 with the loaded arrays on the temporary memory in Spyder for example.
 
@@ -445,7 +449,7 @@ Creating some auxiliary structures
 """
 InteractionMap=np.zeros((Nt*4,x))# Contains a row for every tetrameric arm, and a column for every time
 for i in xrange(x):
-    
+
     #Identifiying where is there an interaction of two bridges with a Tetrametic Arm
     indexes=np.where(dbpa[i]>=2)
     for j in xrange(np.size(indexes[0])):
@@ -482,11 +486,11 @@ the i-th element it has:
 Evolutions=[]
 cont=-1
 OldBridges=np.zeros(2)
-ABridges=np.zeros(2) 
+ABridges=np.zeros(2)
 for index in FocusIndex[0]:
     cont2=0
     for t in xrange(x):
-        
+
         #This condition is to restart the counter when there is no interaction of bridges, or when the original bridges change, starting a new evolution.
         #Also starts a counter when from 3 interacting bridges evolve into 2, this generates a loose in the sampled events but is for simplicity.
         if InteractionMap[index,t]==0 or ArrayBinA(ABridges,OldBridges)==False or np.size(OldBridges)>np.size(ABridges):
@@ -494,17 +498,17 @@ for index in FocusIndex[0]:
         if InteractionMap[index,t]==1:
             TetramerId=A[index][0]
             ArmId=A[index][1]
-            
+
             #Generalization for more than 2 bridges interacting in the same arm
             bsa=dbsa[t][TetramerId][ArmId] #Bonds in Switching area for the bridges in the arm
             NbridgesInArm=dbpa[t][TetramerId][ArmId] #Number of bridges in the arm
             ABridges=np.zeros(NbridgesInArm) #Array contain the bridge number
             Nbsa=np.zeros(NbridgesInArm) #Contains the bonds in sa.
-            
+
             for b in xrange(NbridgesInArm): #Runs aver all the bridges
                 ABridges[b]=bsa[b][0]
                 Nbsa[b]=bsa[b][1]
-                
+
                 """At the beginning only two bridges are interacting, we are going to focus on then"""
             if cont2==0: #To state that during the evolutions the bridges also need to be the same
                 OldBridges[0]=bsa[0][0]
@@ -513,16 +517,16 @@ for index in FocusIndex[0]:
                 Bsa2=Nbsa[np.where(ABridges==OldBridges[1])]
                 Evolutions.append([[TetramerId, ArmId,OldBridges[0], OldBridges[1]],[[Bsa1],[Bsa2],[t]]])
                 cont+=1
-                
-            #After here it is not yet generalized   
-           
+
+            #After here it is not yet generalized
+
             if cont2>0 and InteractionMap[index,t-1]==1 and ArrayBinA(ABridges,OldBridges): #Only append evolution
                 Bsa1=Nbsa[np.where(ABridges==OldBridges[0])]
                 Bsa2=Nbsa[np.where(ABridges==OldBridges[1])]
                 Evolutions[cont][1][0].append(Bsa1)
                 Evolutions[cont][1][1].append(Bsa2)
                 Evolutions[cont][1][2].append(t)
-                
+
             cont2+=1
 
 """
@@ -534,13 +538,13 @@ i=0
 Swt=[] #Initializing the arrays.
 FullSwt=[]
 for element in Evolutions:
-    n=np.size(element[1])    
+    n=np.size(element[1])
     if np.max(element[1][0])==4 and np.max(element[1][1])==4:
         print("We got some switchings in evolutions[%d], starting at Time %d,lasting %d sampled steps, with elements: , "%(i,element[1][2][0],np.size(element[1][2])),element[0])
         """Getting the switching times"""
         bsa2=np.array(element[1][0])
         bsa3=np.array(element[1][1])
-        a=np.where(bsa2==4)[0]          
+        a=np.where(bsa2==4)[0]
         b=np.where(bsa3==4)[0]
         A=np.zeros((np.size(a)+np.size(b),2),dtype=int)
         A[0:np.size(a),0]=a
@@ -548,7 +552,7 @@ for element in Evolutions:
         A[np.size(a)::,0]=b
         A[np.size(a)::,1]=2 #This value when strand 3 is bonded
         B=A[A[:,0].argsort()]  #to sort A with respect to the first column
-        """The switching occurs between j when there were 4 bonds in one strand and j+1 when there are 4 bonds 
+        """The switching occurs between j when there were 4 bonds in one strand and j+1 when there are 4 bonds
         in the other
         """
         Swc=0; #Counts the number of switchings
@@ -556,20 +560,20 @@ for element in Evolutions:
             if B[j+1,1]-B[j,1]!=0:
                 Swc+=1
                 Swt.append(B[j+1,0]-B[j,0]) #switching time in MD steps
-                
+
         """Finding the full switchings"""
         if np.max(element[1][2])<x-1 and np.min(element[1][2])>0 and B[0,1]!=B[-1,1]:
             print("EUREKA!!!! This Interaction generates a complete switching")
             FullSwt.append(np.max(element[1][2])-np.min(element[1][2]))
     i+=1
 Swt=np.array(Swt)
-        
+
 ##Deleting Switching times equal to zero
 deleterows=np.where(Swt==0)[0]
 Swt=np.delete(Swt,deleterows,axis=0)
-Swt_t=Swt*Deltat #In reduced time 
-        
-    
+Swt_t=Swt*Deltat #In reduced time
+
+
 
 Swt_av=np.average(Swt)
 Swt_av_t=np.average(Swt_t)
@@ -580,7 +584,7 @@ np.savetxt("Swtimes_reduced4.dat", Swt_t)
 
 if np.size(FullSwt)!=0:
     FullSwt=np.array(FullSwt)
-    FullSwt_t=FullSwt*Deltat #In reduced time 
+    FullSwt_t=FullSwt*Deltat #In reduced time
     FullSwt_av=np.average(FullSwt)
     FullSwt_av_t=np.average(FullSwt_t)
     Full_error=np.sqrt(np.var(FullSwt)/np.size(FullSwt))
@@ -601,18 +605,18 @@ print("Elapsed Time %f minutes" %elapsed_time)
 #Histo[:,0]=np.linspace(np.min(Swt),np.max(Swt),np.max(Swt)+1)
 #for i in xrange(np.size(Swt)):
 #    Histo[Swt[i],1]+=1
-#Histo[0,1]=0 #Deleted the counts here because they are anomalies where the bsa is double bonded. 
+#Histo[0,1]=0 #Deleted the counts here because they are anomalies where the bsa is double bonded.
 #
 ##Remove the points with zero counts, for the sake of the plot and the conf which have "triple bond"
 #deleterows=np.where(Histo[:,1]==0)[0]
 #Histo=np.delete(Histo,deleterows,axis=0)
 #
 ##Normalize the Histogram
-#Histo[:,0]=Deltat*Histo[:,0] #To get the real time 
+#Histo[:,0]=Deltat*Histo[:,0] #To get the real time
 #Area=np.trapz(Histo[:,1],Histo[:,0])
 #Histo[:,1]=Histo[:,1]/Area
 #
-#plt.plot(Histo[:,0],Histo[:,1])  
+#plt.plot(Histo[:,0],Histo[:,1])
 #plt.savefig('Histo2.png')
 #np.savetxt("Histogram2",Histo)
 
@@ -631,7 +635,7 @@ Tet=31
 Arm=2
 Bris=dbsa[115][Tet][Tarm][:,0]-Nt
 *******************************************************************************
-"""    
+"""
 
 
 #Ntet=4*(TPtarm*2-1) #Particles in a tetramer including bonds
@@ -649,4 +653,3 @@ Bris=dbsa[115][Tet][Tarm][:,0]-Nt
 #Delete=np.delete(Delete,B1)
 #Delete=np.delete(Delete,TArm)
 #np.savetxt("Visibility",Delete, fmt="%d")
-    
