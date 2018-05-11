@@ -1,7 +1,9 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-This scripts reads the polymerDp spreadsheet
+This script gets the results created by dp_poly and the averages of vdata.dat 
+and computes relevant quantities and generates plots, It has to be run inside every N_X
+
 Args:
     Input filen name
 Returns:
@@ -11,10 +13,15 @@ Returns:
 """
 
 import os
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+import argparse
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
+from Lammps.linux import bash_command
 
 
 """
@@ -165,37 +172,40 @@ class LJInteraction(object):
             count+=1
         
         return prop
-            
-        
-        
 
 
+"""
+###############################################################################
+Argument Parser
+###############################################################################
+"""
 
+cwd = os.getcwd() #current working directory
+dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
-#import argparse
-#
-#
-#
-#parser = argparse.ArgumentParser(description='This script evaluates the average of a quantity')
-#parser.add_argument('FileName', metavar='InputFile', type=str,
-#                    help='Input filename')
-#
-#parser.add_argument('--min', help='Number of timesteps to be discarded', default=1000, type=int)
-#
-#
-#args = parser.parse_args()
-#min_limit=args.min
-#InputFile=args.FileName
-       
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat and computes relevant quantities and generates plots, It has to be run inside every N_X",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--source',choices=['READ','RUN','GATHER'], default="READ",help='Decides if the if the file Statistics_summary needs to be READ, RUN, GATHERED  ')
+args = parser.parse_args()
+source=args.source
+
+if source=="RUN":
+    print "Running the statistics analysis"
+    bash_command("""bash %s/compute_statistics.sh"""%dir_path)
+elif source=="GATHER":
+    print "Gathering the statistics analysis results"
+    bash_command("""bash %s/compute_statistics.sh"""%dir_path)
+else: print "Reading the file Statistics_summary.dat "
+
     
 """
 *******************************************************************************
 Main program
 *******************************************************************************
 """
-     
 interactions=build_data()
-#plot_force_individuals(interactions)
+plot_force_individuals(interactions)
 
 
 
@@ -230,14 +240,12 @@ pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility', 'ave_con
 pd_data.to_csv("Results.dat",sep=' ',index=False)
 
 
+"""
+###############################################################################
+Starting the plot
+###############################################################################
+"""
 
-
-#"""
-################################################################################
-#Starting the plot
-################################################################################
-#"""
-#
 
 #ax=pd_data.plot.scatter(x="delta_cs",y="mobility_rg")
 #ax.set_xlabel("Delta $C_s$ [$1/\sigma^3$]",fontsize=16)
@@ -246,22 +254,22 @@ pd_data.to_csv("Results.dat",sep=' ',index=False)
 #plt.savefig("MobilityRg_Delta_Cs.pdf")
 
 
-#directory="plots/all"
-#if not os.path.exists(directory):
-#    os.makedirs(directory)
-#
-#
-#fig,ax=plt.subplots()
-#ax.scatter(ave_data[:,4],ave_data[:,1])
-#
-#for i, txt in enumerate(ave_data[:,0]):
-#    ax.annotate(txt, (ave_data[i,4],ave_data[i,1]))
-#ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$] Solutes inside and outside",fontsize=16)
-#ax.grid()
-#ax.set_ylabel("b [t/m]",fontsize=16)
-#fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
-#
-#plt.close()
+directory="plots/all"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+
+fig,ax=plt.subplots()
+ax.scatter(ave_data[:,4],ave_data[:,1])
+
+for i, txt in enumerate(ave_data[:,0]):
+    ax.annotate(txt, (ave_data[i,4],ave_data[i,1]))
+ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$] Solutes inside and outside",fontsize=16)
+ax.grid()
+ax.set_ylabel("b [t/m]",fontsize=16)
+fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
+
+plt.close()
 
 
 
