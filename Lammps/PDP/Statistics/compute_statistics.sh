@@ -2,9 +2,9 @@
 #It has to be run inside every N_X
 
 CurrentPath=$(pwd)
-rm Statistic_summary.dat 
+rm Statistic_summary.dat 2>/dev/nul
 touch Statistic_summary.dat
-for f in E_*/; 
+for f in E_*/;
 	do
 	echo "############################################################################" >>$CurrentPath/Statistic_summary.dat
 	echo $f >>$CurrentPath/Statistic_summary.dat
@@ -16,15 +16,10 @@ for f in E_*/;
 		cd $force
 		/nodescratch/frenkelscratch/sr802/DiffusioP/programs/dp_poly -s 100000 -n 10000000
 		cat average_info.dat >>$CurrentPath/Statistic_summary.dat
-		python ~/Utilities/Others/Statistics/FastAverager.py vdata.dat 
+		python ~/Utilities/Others/Statistics/FastAverager.py vdata.dat
 		cat statistics.dat >>$CurrentPath/Statistic_summary.dat
-		cd ..		
+		cd ..
 	done
 	cd $CurrentPath
 
 done
-	
-
-
-
-
