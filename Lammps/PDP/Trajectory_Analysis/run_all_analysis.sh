@@ -7,7 +7,7 @@ echo This path is set as the starting directory
 echo $CurrentPath
 for dir in ${_LISPDIRS}; do
     echo -e "$dir"
-    cd ${dir} 
+    cd ${dir}
     python $SCRIPTPATH/poly_analysis.py poly.atom --split True
 	rm *.cxyz 2>/dev/null
     cd $CurrentPath
