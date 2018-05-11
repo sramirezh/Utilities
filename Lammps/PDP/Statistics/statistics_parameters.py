@@ -125,6 +125,11 @@ def plot_force_individuals(interactions):
     print "\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory
 
 
+def is_valid_file(parser,arg):
+    if not os.path.exists(arg):
+        parser.error("The file %s does not exist!, see source options" % arg)
+
+
 
 """
 *******************************************************************************
@@ -189,6 +194,8 @@ class LJInteraction(object):
         return prop
 
 
+
+
 """
 ###############################################################################
 Argument Parser
@@ -211,7 +218,16 @@ if source=="RUN":
 elif source=="GATHER":
     print "\nGathering the statistics analysis results"
     bash_command("""bash %s/gather_statistics.sh"""%dir_path)
-else: print "\nReading the file Statistics_summary.dat "
+else: 
+    is_valid_file(parser,"Statistic_summary.dat")
+    
+    
+    
+
+
+
+
+
 
     
 """
