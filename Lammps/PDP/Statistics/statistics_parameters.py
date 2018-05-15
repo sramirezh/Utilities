@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-This script gets the results created by dp_poly and the averages of vdata.dat 
+This script gets the results created by dp_poly and the averages of vdata.dat
 and computes relevant quantities and generates plots, It has to be run inside every N_X
 
 Args:
@@ -16,13 +16,18 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import re
 import argparse
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 from Lammps.linux import bash_command
 
+
+try:
+    import matplotlib.pyplot as plt
+#    from matplotlib.backends.backend_pdf import PdfPages
+except ImportError as err:
+    print err
 
 """
 *******************************************************************************
@@ -38,18 +43,18 @@ def build_data():
     interactions=[]
     with open("Statistic_summary.dat", 'r') as f:
       lines = f.readlines()
-    
+
     i=0
     nproperties=11 #The number of properties per force in the input file (TO IMPROVE)
     count=0
-    
+
     while i<len(lines):
         if re.search("\AE_*",lines[i] ): #Finding the LJ parameters
             interactions.append(LJInteraction(re.findall(r"[-+]?\d*\.?\d+", lines[i])))
             print "\nReading data from  %s"%lines[i]
             i=i+1
             count+=1
-        else: 
+        else:
             if re.search("\AdDP*",lines[i] ):
                 interactions[-1].addforce(lines[i])
                 i+=1
@@ -58,9 +63,9 @@ def build_data():
                     properties.append(lines[i])
                     i+=1
                 interactions[-1].addproperties(properties)
-                    
+
             i+=1
-        
+
     return interactions
 
 
@@ -71,13 +76,13 @@ def parameter_finder(List, String):
     cont=0
     indexes=[]
     for s in List:
-        if String in s: 
-            indexes.append(cont) 
+        if String in s:
+            indexes.append(cont)
         cont+=1
     length=len(indexes)
     if length>1: print "There were several ocurrences"
     if length==0: print "No ocurrences found"
-    return indexes 
+    return indexes
 
 
 def plot_force_individuals(interactions):
@@ -88,17 +93,17 @@ def plot_force_individuals(interactions):
     directory="plots/individual"
     if not os.path.exists(directory):
         os.makedirs(directory)
-        
+
     n_properties=len(interactions[0].properties[0]) #Number of properties
-    
+
     for property_index in xrange(n_properties):
         
         prop_name=interactions[-1].property_names[0][property_index] #Crude property name
-        
-        if "Time" in prop_name: continue #To avoid plotting the timestep 
-        
+
+        if "Time" in prop_name: continue #To avoid plotting the timestep
+
         plt.figure()
-        
+
         for ljpair in interactions:
             n=0
             re2=[]
@@ -109,12 +114,12 @@ def plot_force_individuals(interactions):
                 n+=1
             plt.plot(force_list,re2,'-o',label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
             #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
-        
+
         file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
-        name=re.sub('_',' ',file_name) 
-        
+        name=re.sub('_',' ',file_name)
+
         print "\nplotting the %s" %name
-        
+
         plt.title(name)
         file_name=name.replace(" ","_")
         plt.legend()
@@ -140,7 +145,7 @@ class LJInteraction(object):
     """
     Every pair of LJ interactions has its own
     """
-    
+
     def __init__(self,lj_parameters):
         self.epsilon=float(lj_parameters[0])
         self.sigma=float(lj_parameters[1])
@@ -151,7 +156,7 @@ class LJInteraction(object):
     def addforce(self,new_force):
         force=float(new_force.strip('\n/dDP'))/1000
         self.forces.append(force)
-        
+
     def addproperties(self,properties):
         values=[]
         names=[]
@@ -162,8 +167,8 @@ class LJInteraction(object):
             names.append(name)
         self.properties.append(values)
         self.property_names.append(names)
-            
-        
+
+
     def compute_mobility(self):
         self.mobility=[]
         self.mob_rg=[] #Mobility over Rg
@@ -178,7 +183,7 @@ class LJInteraction(object):
                 self.mobility.append(mobility)
                 self.mob_rg.append(mobility/rg)
             count+=1
-            
+
     def get_property(self,name):
         """
         function to get the specific property
@@ -190,7 +195,7 @@ class LJInteraction(object):
             prop_f=self.properties[count][index]
             prop.append(prop_f)
             count+=1
-        
+
         return prop
 
 
@@ -218,18 +223,18 @@ if source=="RUN":
 elif source=="GATHER":
     print "\nGathering the statistics analysis results"
     bash_command("""bash %s/gather_statistics.sh"""%dir_path)
-else: 
+else:
     is_valid_file(parser,"Statistic_summary.dat")
-    
-    
-    
 
 
 
 
 
 
-    
+
+
+
+
 """
 *******************************************************************************
 Main program
@@ -251,24 +256,24 @@ Building the averaged data, excluding force equal=0
 
 
 ave_data=[]
-for interaction in interactions:    
+for interaction in interactions:
     name='E_%sS_%s '%(interaction.epsilon,interaction.sigma)
     interaction.compute_mobility()
-    
+
     ave_mobility=np.average(interaction.mobility)
     ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
     ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration inn the bulk
     delta_cs=ave_concentration_rg-ave_concentration_bulk
-    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg 
+    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
     mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
-    
-    
+
+
     data_interaction=[name,ave_mobility, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg ]
     ave_data.append(data_interaction)
 
 header_data="lj_interaction,ave_mobility, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg"
 ave_data=np.array(ave_data)
-pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility', 'ave_concentration_rg','ave_concentration_bulk','delta_cs','ave_rg','mobility_rg'])    
+pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility', 'ave_concentration_rg','ave_concentration_bulk','delta_cs','ave_rg','mobility_rg'])
 
 
 pd_data.to_csv("Results.dat",sep=' ',index=False)
@@ -308,5 +313,3 @@ plt.close()
 pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
 
 print "\nGenerated average results Results.dat and plots in '%s'"%directory
-
-
