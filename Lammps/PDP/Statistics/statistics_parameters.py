@@ -24,6 +24,8 @@ from Lammps.linux import bash_command
 
 
 try:
+    import matplotlib
+    matplotlib.use('agg')
     import matplotlib.pyplot as plt
 #    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
@@ -97,7 +99,7 @@ def plot_force_individuals(interactions):
     n_properties=len(interactions[0].properties[0]) #Number of properties
 
     for property_index in xrange(n_properties):
-        
+
         prop_name=interactions[-1].property_names[0][property_index] #Crude property name
 
         if "Time" in prop_name: continue #To avoid plotting the timestep
