@@ -9,6 +9,7 @@ for f in E_*/;
 	echo "############################################################################" >>$CurrentPath/Statistic_summary.dat
 	echo $f >>$CurrentPath/Statistic_summary.dat
 	cd $f
+	echo $f
 	for force in dD*/;
 		do
 		echo " " >>$CurrentPath/Statistic_summary.dat
