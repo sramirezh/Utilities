@@ -14,4 +14,4 @@ for instance pgrep tmux
 
 # To rsync only one type of file, in this case only the file called poly.atom in all the directories
 
-rsync -avz  --include="*/" --include="poly.atom" --exclude="*" "$from" "$to" --progress --partial  . ~/Trajectories
+rsync -avz -e ssh --include="*.pdf" --include="*/" --exclude="*" --progress --partial . nimbus:Foldername
