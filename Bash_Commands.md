@@ -17,7 +17,7 @@ for instance pgrep tmux
 rsync -avz -e ssh --include="*.pdf" --include="*/" --exclude="*" --progress --partial . nimbus:Foldername
 
 
-#To find all the files *.pdf in folder and then execute grep to find something else
+# To find all the files *.pdf in folder and then execute grep to find something else
 
 find .  -name '*.pdf'  -path './E_*' -exec grep 'SENTENCE TO FIND' {} /dev/null \;
 
