@@ -15,3 +15,12 @@ for instance pgrep tmux
 # To rsync only one type of file, in this case only the file called poly.atom in all the directories
 
 rsync -avz -e ssh --include="*.pdf" --include="*/" --exclude="*" --progress --partial . nimbus:Foldername
+
+
+#To find all the files *.pdf in folder and then execute grep to find something else
+
+find .  -name '*.pdf'  -path './E_*' -exec grep 'SENTENCE TO FIND' {} /dev/null \;
+
+also
+
+find .  -name '*.pdf'  ! -path './E_*'  , The use of ! is to avoid that path
