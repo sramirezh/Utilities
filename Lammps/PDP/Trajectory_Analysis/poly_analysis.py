@@ -37,8 +37,9 @@ from Lammps.linux import bash_command
 
 
 try:
+    import matplotlib
+    matplotlib.use('agg')
     import matplotlib.pyplot as plt
-#    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
     print err
 
@@ -103,7 +104,7 @@ def number_of_monomers():
 
     Returns:
         The number of monomers
-        
+
     """
     out,err=bash_command('grep -n -m1 "NUMBER OF ATOMS" '+InputFile)
     line_number=int(out.split(":")[0])
@@ -195,11 +196,11 @@ def gyration_radious_squared(pos):
     Returns: The scalar gyration radious squared
     """
     gr2=np.sum(np.average(np.square(pos),axis=0))
-    
-    
+
+
     return gr2
-    
-    
+
+
 
 
 
@@ -233,7 +234,7 @@ for k in xrange(x): #Runs over the sampled times.
     i_tail=np.where((Data[:,0]==n))[0][0]
     rel_tail.append(pos_relative[i_tail,0])
     rel_head.append(pos_relative[i_head,0])
-    
+
     "Getting the points in front and in the back"
     #First i get the indexes of the points in front and then I delete those indexes to get the points in the back
     pos_sphere=spherical_coordinates(pos_relative)
@@ -247,22 +248,22 @@ for k in xrange(x): #Runs over the sampled times.
     av_rd_positive+=rd_positive[:,1:]
     av_rd_negative+=rd_negative[:,1:]
     rd_negative[:,0]=rd_negative[:,0]*-1
-    
+
     """Other properties"""
     r_gyration_2.append(gyration_radious_squared(pos_relative))
-    
+
 
 
 
 
 """
 ###############################################################################
-Other properties 
+Other properties
 ###############################################################################
 """
 r_gyration=np.sqrt(r_gyration_2)
-    
-    
+
+
 av_rd_positive=av_rd_positive/x
 av_rd_negative=av_rd_negative/x
 rd_positive[:,1:]=av_rd_positive
@@ -352,7 +353,7 @@ np.savetxt('tip_behaviour.dat',tip_behaviour,header="time_step tail_position hea
 #    for i in xrange(n):
 #        vol_new=4./3.*r_max[i]**3*np.pi
 #        part_bin.append((vol_new-vol_old)*Data[i,2])
-#        vol_old=vol_new        
+#        vol_old=vol_new
 #    return part_bin
 #
 #
@@ -363,4 +364,3 @@ np.savetxt('tip_behaviour.dat',tip_behaviour,header="time_step tail_position hea
 #print np.sum(part_bin),np.sum(distrib_pos[:,1])
 #part_bin_n=np.array(spherical_integral(distrib_negative))/2
 #print np.sum(part_bin_n),np.sum(distrib_negative[:,1])
-
