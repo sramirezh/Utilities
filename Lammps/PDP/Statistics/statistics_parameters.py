@@ -259,7 +259,7 @@ Building the averaged data, excluding force equal=0
 
 ave_data=[]
 for interaction in interactions:
-    name='E_%sS_%s '%(interaction.epsilon,interaction.sigma)
+    name='E_%s_S_%s '%(interaction.epsilon,interaction.sigma)
     interaction.compute_mobility()
 
     ave_mobility=np.average(interaction.mobility)
