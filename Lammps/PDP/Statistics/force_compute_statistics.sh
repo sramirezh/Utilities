@@ -1,10 +1,11 @@
 #Runs dp_poly and FastAvearger.py for every force
 #It has to be run inside E*
+# The inputs are the fodlers of the interactions you want to analyse
 Interactions=$@
 CurrentPath=$(pwd)
 for interaction in $Interactions;
 	do
-	
+
 	echo $interaction
 	cd $interaction
 	for force in dD*/;
