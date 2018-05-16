@@ -1,5 +1,9 @@
+#This script moves all the radial and tip behavior plots and classifies them by interactions and
+#forces
+
 #Due to the depths analysed, this has to be run in the main project folder, i.e where
 #The files N_1  N_30  N_90 are.
+
 #_LISPDIRS=`find . -maxdepth 3 -mindepth 3 -type d | sort`
 Files_tip=`find .  -name "tip_behaviour.pdf"  -path "*/E_*"`
 Files_radial=`find .  -name "radial_distribution.pdf"  -path "*/E_*"`
