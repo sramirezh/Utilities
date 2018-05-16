@@ -12,8 +12,8 @@ CurrentPath=$(pwd)
 
 dir_force=plot_force
 dir_interaction=plot_interaction
-mkdir -p $dir_force 
-mkdir -p $dir_interaction 
+mkdir -p $dir_force
+mkdir -p $dir_interaction
 echo This path is set as the starting directory
 echo $CurrentPath
 
@@ -25,8 +25,8 @@ for file in ${Files_tip}; do
 	Force=$(echo $file | awk -F  "/" '{print $4}')
 	force_tag=$(echo "${Number}_${Interaction}")
 	interaction_tag=$(echo "${Number}_${Force}")
-	mkdir -p $CurrentPath/$dir_force/$Force/tip 
-	mkdir -p $CurrentPath/$dir_interaction/$Interaction/tip 
+	mkdir -p $CurrentPath/$dir_force/$Force/tip
+	mkdir -p $CurrentPath/$dir_interaction/$Interaction/tip
 	cp $file $CurrentPath/$dir_force/$Force/tip/${force_tag}.pdf
 	cp $file $CurrentPath/$dir_interaction/$Interaction/tip/${interaction_tag}.pdf
 
@@ -40,7 +40,7 @@ for file in ${Files_radial}; do
 	force_tag=$(echo "${Number}_${Interaction}")
 	interaction_tag=$(echo "${Number}_${Force}")
 	mkdir -p $CurrentPath/$dir_force/$Force/rd
-	mkdir -p $CurrentPath/$dir_interaction/$Interaction/rd 
+	mkdir -p $CurrentPath/$dir_interaction/$Interaction/rd
 	cp $file $CurrentPath/$dir_force/$Force/rd/${force_tag}.pdf
 	cp $file $CurrentPath/$dir_interaction/$Interaction/rd/${interaction_tag}.pdf
 
