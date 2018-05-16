@@ -31,7 +31,7 @@ import os
 import sys
 
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 from Lammps.linux import bash_command
 
 
