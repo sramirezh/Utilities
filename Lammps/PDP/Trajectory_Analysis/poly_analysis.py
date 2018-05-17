@@ -54,7 +54,7 @@ def is_valid_file(parser, arg):
         return arg
 
 
-parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer')
+parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
 parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
 parser.add_argument('--Nbins', help='Number of bins for the chunk calculations', default=60, type=int)
@@ -68,8 +68,8 @@ InputFile=args.FileName
 #Uncomment to split the trajectory again
 if args.split==True:
     InputFile=InputFile
-    p1 = Popen(split('bash '+dir_path+'/Trajectory_poly.sh -i '+InputFile),stdout=PIPE)
-    out,err=p1.communicate()
+    print "\nSplitting the trajectory file"
+    out,err=bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,InputFile))
 else:
     print "The Trajectory file was not splitted"
 
@@ -83,9 +83,7 @@ def Box_limits():
         limits, an array with the box limits in every dimension.
         L, box size per dimension
     """
-    command=str('grep -n -m1 "BOUNDS" '+InputFile)
-    p2=Popen(split(command),stdout=PIPE)
-    out2,err2=p2.communicate()
+    out2,err2=bash_command("""grep -n -m1 "BOUNDS" %s"""%InputFile)
     LineNumber=int(out2.split(":")[0])
 
     #a=file.readlines()[LineNumber,LineNumber+3]
@@ -200,27 +198,25 @@ def gyration_radious_squared(pos):
 
     return gr2
 
-
-
-
-
-
-
 #Reading the initial data
 Box,L=Box_limits()
 times=pd.read_csv("Times.dat",header=None).as_matrix()
 x=np.size(times)
 
-rel_tail=[]
-rel_head=[]
+
+cm_disp=pd.read_csv("pos.dat",skiprows=1,sep=" ").as_matrix()[:,:-1] #Reads the cm positions file
 
 nbins=args.Nbins
 rmax=number_of_monomers()/2 #Assumes the maximum radius is number_particles/2
 
+
+
+rel_tail=[]
+rel_head=[]
 av_rd_positive=np.zeros((nbins,2))
 av_rd_negative=np.zeros((nbins,2))
-
 r_gyration_2=[]
+
 for k in xrange(x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(times[k]))+".cxyz"
@@ -250,7 +246,7 @@ for k in xrange(x): #Runs over the sampled times.
     rd_negative[:,0]=rd_negative[:,0]*-1
 
     """Other properties"""
-    r_gyration_2.append(gyration_radious_squared(pos_relative))
+    #r_gyration_2.append(gyration_radious_squared(pos_relative))
 
 
 
@@ -261,9 +257,23 @@ for k in xrange(x): #Runs over the sampled times.
 Other properties
 ###############################################################################
 """
-r_gyration=np.sqrt(r_gyration_2)
+#r_gyration=np.sqrt(r_gyration_2)
 
 
+
+
+
+
+"""
+###############################################################################
+Plots
+###############################################################################
+"""
+
+directory="plots"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+    
 av_rd_positive=av_rd_positive/x
 av_rd_negative=av_rd_negative/x
 rd_positive[:,1:]=av_rd_positive
@@ -273,10 +283,27 @@ rd_negative[:,1:]=av_rd_negative
 rd_positive[:,2]*=2
 rd_negative[:,2]*=2
 
-""" Radial distribution output"""
 
-np.savetxt('rdist_positive.dat',rd_positive)
-np.savetxt('rdist_negative.dat',rd_negative)
+
+"""
+Cm displacement in x
+"""
+
+plt.figure()
+plt.plot(cm_disp[:,0],cm_disp[:,1]-cm_disp[0,1])
+plt.grid()
+plt.ylabel("$x_{cm}$")
+plt.xlabel("Timestep")
+plt.savefig('plots/xcm.pdf')
+plt.close()
+
+
+"""
+Radial distribution output
+"""
+
+np.savetxt('plots/rdist_positive.dat',rd_positive)
+np.savetxt('plots/rdist_negative.dat',rd_negative)
 
 plt.figure()
 plt.plot(rd_positive[:,0],rd_positive[:,2],'b')
@@ -284,26 +311,13 @@ plt.plot(rd_negative[:,0],rd_negative[:,2],'r')
 plt.grid()
 plt.xlabel("$r-r_{cm}$")
 plt.ylabel("Concentration")
-plt.savefig('radial_distribution.pdf')
+plt.savefig('plots/radial_distribution.pdf')
 plt.close()
 
-#"""Fourier Transformation"""
-#
-## Number of samplepoints
-#N = x
-## sample spacing
-#T = Times[1]-Times[0]
-#
-#yf_tail = scipy.fftpack.fft(rel_tail)
-#xf_tail = np.linspace(0.0, 1.0/(2.0*T), N/2)
-#
-#yf_head = scipy.fftpack.fft(rel_head)
-#xf_head = np.linspace(0.0, 1.0/(2.0*T), N/2)
 
-
-
-
-"""alternation of tail and head in the x axis with respect to"""
+"""
+alternation of tail and head in the x axis with respect to
+"""
 plt.figure()
 
 
@@ -321,21 +335,11 @@ plt.plot(times[:,0],rel_head,'r')
 plt.plot(times[:,0],rel_tail)
 plt.grid()
 
-
-#plt.subplot(223)
-#plt.plot(xf_tail, yf_tail[:N//2])
-#plt.grid()
-#
-#plt.subplot(224)
-#plt.plot(xf_head, yf_head[:N//2])
-#plt.grid()
-
 plt.xlabel("Time")
-plt.savefig('tip_behaviour.pdf')
+plt.savefig('plots/tip_behaviour.pdf')
 plt.close()
 
 tip_behaviour=np.transpose(np.vstack([times[:,0],rel_tail,rel_head]))
-np.savetxt('tip_behaviour.dat',tip_behaviour,header="time_step tail_position head_position")
 
 
 
