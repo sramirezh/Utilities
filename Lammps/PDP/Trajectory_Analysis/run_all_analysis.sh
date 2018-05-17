@@ -7,7 +7,7 @@ echo $CurrentPath
 for file in $List_files; do
 	echo $file
 	cd "$(dirname "$file")"
-	python $SCRIPTPATH/poly_analysis.py poly.atom --split True
+	python $SCRIPTPATH/poly_analysis.py poly.atom --split True --Binsize 0.375
 	rm *.cxyz 2>/dev/null
 
 	cd $CurrentPath

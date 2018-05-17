@@ -57,7 +57,7 @@ def is_valid_file(parser, arg):
 parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
 parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
-parser.add_argument('--Nbins', help='Number of bins for the chunk calculations', default=60, type=int)
+parser.add_argument('--Binsize', help='BinSize in Sigma units', default=0.5, type=float)
 
 args = parser.parse_args()
 InputFile=args.FileName
@@ -171,7 +171,7 @@ def radial_distribution(nbins,rmax,pos_sphere):
     """
     delta=rmax/nbins
     bin_count=np.zeros((nbins,3))
-    bin_count[:,0]=np.linspace(delta,rmax,num=nbins)-delta/2.
+    bin_count[:,0]=np.linspace(0,rmax-delta,num=nbins) #-delta/2. to put the center at the beginning of the bin.
     vol_old=0
     for i in xrange(nbins):
         if np.size(pos_sphere)==0:break #To stop counting after there are no more particles
@@ -206,8 +206,10 @@ x=np.size(times)
 
 cm_disp=pd.read_csv("pos.dat",skiprows=1,sep=" ").as_matrix()[:,:-1] #Reads the cm positions file
 
-nbins=args.Nbins
-rmax=number_of_monomers()/2 #Assumes the maximum radius is number_particles/2
+bin_size=args.Binsize
+rmax=number_of_monomers()/4 #Assumes the maximum radius is number_particles/2
+
+nbins=int(np.ceil(rmax/bin_size))
 
 
 
@@ -215,7 +217,7 @@ rel_tail=[]
 rel_head=[]
 av_rd_positive=np.zeros((nbins,2))
 av_rd_negative=np.zeros((nbins,2))
-r_gyration_2=[]
+#r_gyration_2=[]
 
 for k in xrange(x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
@@ -250,7 +252,18 @@ for k in xrange(x): #Runs over the sampled times.
 
 
 
+av_rd_positive=av_rd_positive/x
+av_rd_negative=av_rd_negative/x
+rd_positive[:,1:]=av_rd_positive
+rd_negative[:,1:]=av_rd_negative
 
+#Need to multiply by two the density as I counted only on the semisphere.
+rd_positive[:,2]*=2
+rd_negative[:,2]*=2
+ 
+#To add altogether
+
+rd=np.concatenate((rd_negative[::-1,:],rd_positive),axis=0)
 
 """
 ###############################################################################
@@ -258,10 +271,6 @@ Other properties
 ###############################################################################
 """
 #r_gyration=np.sqrt(r_gyration_2)
-
-
-
-
 
 
 """
@@ -274,17 +283,6 @@ directory="plots"
 if not os.path.exists(directory):
     os.makedirs(directory)
     
-av_rd_positive=av_rd_positive/x
-av_rd_negative=av_rd_negative/x
-rd_positive[:,1:]=av_rd_positive
-rd_negative[:,1:]=av_rd_negative
-
-#Need to multiply by two the density as I counted only on the semisphere.
-rd_positive[:,2]*=2
-rd_negative[:,2]*=2
-
-
-
 """
 Cm displacement in x
 """
@@ -304,13 +302,13 @@ Radial distribution output
 
 np.savetxt('plots/rdist_positive.dat',rd_positive)
 np.savetxt('plots/rdist_negative.dat',rd_negative)
+np.savetxt('plots/rdist_total.dat',rd)
 
 plt.figure()
-plt.plot(rd_positive[:,0],rd_positive[:,2],'b')
-plt.plot(rd_negative[:,0],rd_negative[:,2],'r')
+plt.plot(rd[:,0],rd[:,2])
 plt.grid()
-plt.xlabel("$r-r_{cm}$")
-plt.ylabel("Concentration")
+plt.xlabel("$r-r_{cm}[$")
+plt.ylabel("$c_p/\sigma^{3}$")
 plt.savefig('plots/radial_distribution.pdf')
 plt.close()
 
