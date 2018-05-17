@@ -314,7 +314,7 @@ plt.close()
 
 
 """
-alternation of tail and head in the x axis with respect to
+alternation of tail and head in the x axis with respect to the center of mass
 """
 plt.figure()
 
