@@ -27,7 +27,7 @@ echo "Organizing the tip files"
 for file in ${Files_tip}; do
 
   path_file="$(dirname "$file")"
-	sim_type=$(echo $file | awk -F  "/" '{print $(NF-5)}') 
+	sim_type=$(echo $file | awk -F  "/" '{print $(NF-5)}')
  	Number=$(echo $file | awk -F  "/" '{print $(NF-4)}')
 	Interaction=$(echo $file | awk -F  "/" '{print $(NF-3)}')
 	Force=$(echo $file | awk -F  "/" '{print $(NF-2)}')
@@ -46,7 +46,7 @@ echo "Organizing the radial files"
 for file in ${Files_radial}; do
 
   	path_file="$(dirname "$file")"
- 	sim_type=$(echo $file | awk -F  "/" '{print $(NF-5)}') 
+ 	sim_type=$(echo $file | awk -F  "/" '{print $(NF-5)}')
 	Number=$(echo $file | awk -F  "/" '{print $(NF-4)}')
 	Interaction=$(echo $file | awk -F  "/" '{print $(NF-3)}')
 	Force=$(echo $file | awk -F  "/" '{print $(NF-2)}')
@@ -66,7 +66,7 @@ echo "Organizing the cm files"
 for file in ${Files_cm}; do
 
   	path_file="$(dirname "$file")"
- 	sim_type=$(echo $file | awk -F  "/" '{print $(NF-5)}') 
+ 	sim_type=$(echo $file | awk -F  "/" '{print $(NF-5)}')
 	Number=$(echo $file | awk -F  "/" '{print $(NF-4)}')
 	Interaction=$(echo $file | awk -F  "/" '{print $(NF-3)}')
 	Force=$(echo $file | awk -F  "/" '{print $(NF-2)}')
