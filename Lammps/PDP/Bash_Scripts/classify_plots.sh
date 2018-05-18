@@ -12,6 +12,8 @@ CurrentPath=$(pwd)
 
 dir_force=plot_force
 dir_interaction=plot_interaction
+rm $dir_force 2>/dev/null
+rm $dir_interaction 2>/dev/null
 mkdir -p $dir_force
 mkdir -p $dir_interaction
 echo This path is set as the starting directory
@@ -20,9 +22,12 @@ echo $CurrentPath
 #Organizing the tip files
 echo "Organizing the tip files"
 for file in ${Files_tip}; do
- 	Number=$(echo $file | awk -F  "/" '{print $2}')
-	Interaction=$(echo $file | awk -F  "/" '{print $3}')
-	Force=$(echo $file | awk -F  "/" '{print $4}')
+
+  path_file="$(dirname "$file")"
+ 	Number=$(echo $file | awk -F  "/" '{print $(NF-3)}')
+	Interaction=$(echo $file | awk -F  "/" '{print $(NF-2)}')
+	Force=$(echo $file | awk -F  "/" '{print $(NF-1)}')
+  echo $Force
 	force_tag=$(echo "${Number}_${Interaction}")
 	interaction_tag=$(echo "${Number}_${Force}")
 	mkdir -p $CurrentPath/$dir_force/$Force/tip
@@ -34,9 +39,12 @@ done
 #Organizing the radial distribution files
 echo "Organizing the radial files"
 for file in ${Files_radial}; do
- 	Number=$(echo $file | awk -F  "/" '{print $2}')
-	Interaction=$(echo $file | awk -F  "/" '{print $3}')
-	Force=$(echo $file | awk -F  "/" '{print $4}')
+
+  path_file="$(dirname "$file")"
+  Number=$(echo $file | awk -F  "/" '{print $(NF-3)}')
+	Interaction=$(echo $file | awk -F  "/" '{print $(NF-2)}')
+	Force=$(echo $file | awk -F  "/" '{print $(NF-1)}')
+  echo $Force
 	force_tag=$(echo "${Number}_${Interaction}")
 	interaction_tag=$(echo "${Number}_${Force}")
 	mkdir -p $CurrentPath/$dir_force/$Force/rd
