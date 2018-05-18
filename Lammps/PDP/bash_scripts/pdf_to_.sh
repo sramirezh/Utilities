@@ -6,6 +6,9 @@ do
 path_file="$(dirname "$file")"
 name=$(echo $file | awk -F  "/" '{print $(NF)}') 
 name_noextension=`echo ${name%.*}`
-echo $name_noextension 
-convert $file  $path_file/$name_noextension.jpg
+ 
+echo $file  
+final_file=`echo $path_file/$name_noextension.$extension`
+
+convert $file $final_file
 done
