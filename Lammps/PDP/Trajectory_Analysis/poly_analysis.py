@@ -45,6 +45,13 @@ cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
 
+"""
+*******************************************************************************
+Functions
+*******************************************************************************
+"""
+
+
 def is_valid_file(parser, arg):
     if not os.path.exists(arg):
         parser.error("The file %s does not exist!" % arg)
@@ -55,7 +62,8 @@ def is_valid_file(parser, arg):
 parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
 parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
-parser.add_argument('--Binsize', help='BinSize in Sigma units', default=0.5, type=float)
+parser.add_argument('--Nbins', help='Number of bins in one direction, i,e positive', default=10, type=float)
+parser.add_argument('--Nmin', help='Number of timesteps to be discarded', default=300, type=int)
 
 args = parser.parse_args()
 InputFile=args.FileName
@@ -167,13 +175,13 @@ def radial_distribution(nbins,rmax,pos_sphere):
     Returns:
         bin_count: Array with the positions of the centers of the bins, the count number and the density
     """
-    delta=rmax/nbins
     bin_count=np.zeros((nbins,3))
-    bin_count[:,0]=np.linspace(0,rmax-delta,num=nbins) #-delta/2. to put the center at the beginning of the bin.
+    bin_ends=-rmax*np.cos(np.linspace(np.pi/2,np.pi,num=nbins+1))
     vol_old=0
     for i in xrange(nbins):
-        if np.size(pos_sphere)==0:break #To stop counting after there are no more particles
-        rmax_bin=delta*(i+1)
+        bin_count[i,0]=0.5*(bin_ends[i+1]+bin_ends[i]) #Count position in the middle of the bin
+        if np.size(pos_sphere)==0:continue #To stop counting after there are no more particles
+        rmax_bin=bin_ends[i+1]
         indexes=np.where(pos_sphere[:,0]<=rmax_bin)
         count=np.size(indexes[0])
         bin_count[i,1]=count
@@ -196,17 +204,24 @@ def gyration_radious_squared(pos):
 
     return gr2
 
+
+
+
+
+"""
+*******************************************************************************
+Main program
+*******************************************************************************
+"""
+
 #Reading the initial data
 Box,L=Box_limits()
 times=pd.read_csv("Times.dat",header=None).as_matrix()
 x=np.size(times)
 
-bin_size=args.Binsize
-rmax=number_of_monomers()/4 #Assumes the maximum radius is number_particles/2
-
-nbins=int(np.ceil(rmax/bin_size))
-
-
+nbins=args.Nbins
+rmax=number_of_monomers()**(3/5) #Assumes the maximum radius is number_particles/2
+imin=args.Nmin
 
 rel_tail=[]
 rel_head=[]
@@ -214,7 +229,9 @@ av_rd_positive=np.zeros((nbins,2))
 av_rd_negative=np.zeros((nbins,2))
 #r_gyration_2=[]
 cm_disp=[] #Cm displacement
-for k in xrange(x): #Runs over the sampled times.
+
+counter=0
+for k in xrange(imin,x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(times[k]))+".cxyz"
     # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
@@ -243,13 +260,18 @@ for k in xrange(x): #Runs over the sampled times.
     av_rd_negative+=rd_negative[:,1:]
     rd_negative[:,0]=rd_negative[:,0]*-1
 
+
     """Other properties"""
     #r_gyration_2.append(gyration_radious_squared(pos_relative))
+    counter+=1
+
+#time translation due to discarded trajectories
+times=times[imin::,0]-times[imin,0]
 
 cm_disp=np.array(cm_disp)
 
-av_rd_positive=av_rd_positive/x
-av_rd_negative=av_rd_negative/x
+av_rd_positive=av_rd_positive/counter
+av_rd_negative=av_rd_negative/counter
 rd_positive[:,1:]=av_rd_positive
 rd_negative[:,1:]=av_rd_negative
 
@@ -316,24 +338,24 @@ plt.figure()
 
 
 plt.subplot(311)
-plt.plot(times[:,0],rel_tail)
+plt.plot(times,rel_tail)
 plt.grid()
 
 plt.subplot(312)
-plt.plot(times[:,0],rel_head,'r')
+plt.plot(times,rel_head,'r')
 plt.ylabel("$x-x_{cm}$")
 plt.grid()
 
 plt.subplot(313)
-plt.plot(times[:,0],rel_head,'r')
-plt.plot(times[:,0],rel_tail)
+plt.plot(times,rel_head,'r')
+plt.plot(times,rel_tail)
 plt.grid()
 
 plt.xlabel("Time")
 plt.savefig('plots/tip_behaviour.pdf')
 plt.close()
 
-tip_behaviour=np.transpose(np.vstack([times[:,0],rel_tail,rel_head]))
+tip_behaviour=np.transpose(np.vstack([times,rel_tail,rel_head]))
 
 
 
