@@ -264,7 +264,7 @@ for interaction in interactions:
 
     ave_mobility=np.average(interaction.mobility)
     ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
-    ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration inn the bulk
+    ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration in the bulk
     delta_cs=ave_concentration_rg-ave_concentration_bulk
     ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
     mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg

@@ -22,8 +22,6 @@ Returns:
 """
 from __future__ import division
 import numpy as np
-from subprocess import Popen,PIPE
-from shlex import split
 import pandas as pd
 import argparse
 import linecache
@@ -203,9 +201,6 @@ Box,L=Box_limits()
 times=pd.read_csv("Times.dat",header=None).as_matrix()
 x=np.size(times)
 
-
-cm_disp=pd.read_csv("pos.dat",skiprows=1,sep=" ").as_matrix()[:,:-1] #Reads the cm positions file
-
 bin_size=args.Binsize
 rmax=number_of_monomers()/4 #Assumes the maximum radius is number_particles/2
 
@@ -218,7 +213,7 @@ rel_head=[]
 av_rd_positive=np.zeros((nbins,2))
 av_rd_negative=np.zeros((nbins,2))
 #r_gyration_2=[]
-
+cm_disp=[] #Cm displacement
 for k in xrange(x): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(times[k]))+".cxyz"
@@ -226,6 +221,7 @@ for k in xrange(x): #Runs over the sampled times.
     Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
     n,m=Data.shape
     pos=real_position(Data) #Real positions of all the atoms
+    cm_disp.append(np.hstack([times[k],cm(pos)]))
     pos_relative=relative_position(pos) #
     #Evaluating the positions of the head and the tail respect to v_cm
     i_head=np.where((Data[:,0]==1))[0][0]
@@ -250,7 +246,7 @@ for k in xrange(x): #Runs over the sampled times.
     """Other properties"""
     #r_gyration_2.append(gyration_radious_squared(pos_relative))
 
-
+cm_disp=np.array(cm_disp)
 
 av_rd_positive=av_rd_positive/x
 av_rd_negative=av_rd_negative/x
@@ -305,7 +301,7 @@ np.savetxt('plots/rdist_negative.dat',rd_negative)
 np.savetxt('plots/rdist_total.dat',rd)
 
 plt.figure()
-plt.plot(rd[:,0],rd[:,2])
+plt.plot(rd[:,0],rd[:,2],'*')
 plt.grid()
 plt.xlabel("$r-r_{cm}[$")
 plt.ylabel("$c_p/\sigma^{3}$")
