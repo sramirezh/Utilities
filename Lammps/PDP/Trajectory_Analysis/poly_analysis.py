@@ -238,7 +238,7 @@ for k in xrange(imin,x): #Runs over the sampled times.
     Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
     n,m=Data.shape
     pos=real_position(Data) #Real positions of all the atoms
-    cm_disp.append(np.hstack([times[k],cm(pos)]))
+    cm_disp.append(np.hstack([times[k]-times[imin,0],cm(pos)]))
     pos_relative=relative_position(pos) #
     #Evaluating the positions of the head and the tail respect to v_cm
     i_head=np.where((Data[:,0]==1))[0][0]
@@ -323,7 +323,7 @@ np.savetxt('plots/rdist_negative.dat',rd_negative)
 np.savetxt('plots/rdist_total.dat',rd)
 
 plt.figure()
-plt.plot(rd[:,0],rd[:,2],'*')
+plt.plot(rd[:,0],rd[:,2],'-o')
 plt.grid()
 plt.xlabel("$r-r_{cm}[$")
 plt.ylabel("$c_p/\sigma^{3}$")
