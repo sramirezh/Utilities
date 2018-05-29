@@ -278,7 +278,7 @@ rd_negative[:,1:]=av_rd_negative
 #Need to multiply by two the density as I counted only on the semisphere.
 rd_positive[:,2]*=2
 rd_negative[:,2]*=2
- 
+
 #To add altogether
 
 rd=np.concatenate((rd_negative[::-1,:],rd_positive),axis=0)
@@ -300,7 +300,7 @@ Plots
 directory="plots"
 if not os.path.exists(directory):
     os.makedirs(directory)
-    
+
 """
 Cm displacement in x
 """
