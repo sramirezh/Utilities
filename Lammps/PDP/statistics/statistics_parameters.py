@@ -302,13 +302,20 @@ if not os.path.exists(directory):
 fig,ax=plt.subplots()
 ax.scatter(ave_data[:,4],ave_data[:,1])
 
-for i, txt in enumerate(ave_data[:,0]):
-    ax.annotate(txt, (ave_data[i,4],ave_data[i,1]))
-ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$] Solutes inside and outside",fontsize=16)
-ax.grid()
+for i in xrange(len(interactions)):
+    txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
+    ax.annotate(txt, (float(ave_data[i,4])-0.006,float(ave_data[i,1])+0.002))
+ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$]",fontsize=16)
+#ax.grid()
 ax.set_ylabel("b [t/m]",fontsize=16)
-fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 
+ax.tick_params(labelsize=14)
+
+ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
+plt.tight_layout()
+
+fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
 
 
