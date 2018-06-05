@@ -287,27 +287,21 @@ Starting the plot
 """
 
 
-#ax=pd_data.plot.scatter(x="delta_cs",y="mobility_rg")
-#ax.set_xlabel("Delta $C_s$ [$1/\sigma^3$]",fontsize=16)
-#ax.set_ylabel("$\mu/R_g$",fontsize=16)
-#plt.grid()
-#plt.savefig("MobilityRg_Delta_Cs.pdf")
-
-
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
 
+###Mobility vs Delta Cs
 fig,ax=plt.subplots()
 ax.scatter(ave_data[:,4],ave_data[:,1])
 
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
     ax.annotate(txt, (float(ave_data[i,4])-0.006,float(ave_data[i,1])+0.002))
-ax.set_xlabel("$\Delta c_s$ [$1/\sigma^3$]",fontsize=16)
+ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=16)
 #ax.grid()
-ax.set_ylabel("b [t/m]",fontsize=16)
+ax.set_ylabel(r'$b [\tau/m]$',fontsize=16)
 
 ax.tick_params(labelsize=14)
 
@@ -317,6 +311,30 @@ plt.tight_layout()
 
 fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
+
+
+###Mobility/Rg vs Delta Cs
+
+fig,ax=plt.subplots()
+ax.scatter(ave_data[:,4],ave_data[:,-1])
+
+for i in xrange(len(interactions)):
+    txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
+    ax.annotate(txt, (float(ave_data[i,4])-0.006,float(ave_data[i,-1])+0.002))
+ax.set_xlabel(r'$\Delta c_s [1/\sigma^3]$',fontsize=16)
+#ax.grid()
+ax.set_ylabel(r'$ b/R_g [\tau/\sigma]$',fontsize=16)
+
+ax.tick_params(labelsize=14)
+
+ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
+plt.tight_layout()
+
+fig.savefig("plots/all/Mobility_rg_Delta_Cs.pdf")
+plt.close()
+
+
 
 
 pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
