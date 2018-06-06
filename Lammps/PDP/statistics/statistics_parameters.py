@@ -291,19 +291,27 @@ directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
-
-###Mobility vs Delta Cs
+"""
+Mobility vs Delta Cs
+"""
 fig,ax=plt.subplots()
+
+
 ax.scatter(ave_data[:,4],ave_data[:,1])
+x=np.array(ave_data[:,4]).astype(np.float)
+y=np.array(ave_data[:,1]).astype(np.float)
+
 
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (float(ave_data[i,4])-0.006,float(ave_data[i,1])+0.002))
+    ax.annotate(txt, (x[i]-0.006,y[i]+0.002))
 ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=16)
 #ax.grid()
 ax.set_ylabel(r'$b [\tau/m]$',fontsize=16)
 
 ax.tick_params(labelsize=14)
+
+ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
 
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
@@ -312,20 +320,28 @@ plt.tight_layout()
 fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
 
-
-###Mobility/Rg vs Delta Cs
+"""
+Mobility/Rg vs Delta Cs
+"""
 
 fig,ax=plt.subplots()
 ax.scatter(ave_data[:,4],ave_data[:,-1])
 
+
+x=np.array(ave_data[:,4]).astype(np.float)
+y=np.array(ave_data[:,-1]).astype(np.float)
+
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (float(ave_data[i,4])-0.006,float(ave_data[i,-1])+0.002))
+    ax.annotate(txt, (x[i]-0.006,y[i]+0.002))
 ax.set_xlabel(r'$\Delta c_s [1/\sigma^3]$',fontsize=16)
 #ax.grid()
-ax.set_ylabel(r'$ b/R_g [\tau/\sigma]$',fontsize=16)
+ax.set_ylabel(r'$ b/R_g [\tau/m\sigma]$',fontsize=16)
 
 ax.tick_params(labelsize=14)
+
+#Using np.unique(x) instead of x handles the case where x isn't sorted or has duplicate values.
+ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
 
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
