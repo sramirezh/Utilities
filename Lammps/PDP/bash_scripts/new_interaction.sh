@@ -20,17 +20,14 @@ rm output
 
 #Modifying all the qsub
 files=`find . -name "*.qsub"`
-for file in $files; 
-	do 
+for file in $files;
+	do
 	echo 'Modifying' $file
 	absolute_path="$( cd "$(dirname "$file")" ; pwd -P )"
-	
+
 	Number=$(echo $absolute_path | awk -F  "/" '{print $(NF-3)}')
 	Interaction=$(echo $absolute_path | awk -F  "/" '{print $(NF-1)}')
 	Sim_type=$(echo $absolute_path | awk -F  "/" '{print $(NF)}')
 	name=$(echo "#PBS -N ${Number}_${Epsilon}_${Sigma}_${Sim_type}")
 	sed -i "s/#PBS -N.*/${name}/g" $file
 done
-
-
-
