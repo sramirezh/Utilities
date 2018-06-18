@@ -311,7 +311,7 @@ ax.set_ylabel(r'$b [\tau/m]$',fontsize=16)
 
 ax.tick_params(labelsize=14)
 
-ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
+#ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
 
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
@@ -341,7 +341,7 @@ ax.set_ylabel(r'$ b/R_g [\tau/m\sigma]$',fontsize=16)
 ax.tick_params(labelsize=14)
 
 #Using np.unique(x) instead of x handles the case where x isn't sorted or has duplicate values.
-ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
+#ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
 
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
