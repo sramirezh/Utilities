@@ -181,7 +181,7 @@ class LJInteraction(object):
             if force!=0:
                 velocity=self.properties[count][index_vx]
                 rg=self.properties[count][index_rg]
-                mobility=velocity/force
+                mobility=-velocity/force
                 self.mobility.append(mobility)
                 self.mob_rg.append(mobility/rg)
             count+=1
