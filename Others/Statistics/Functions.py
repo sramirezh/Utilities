@@ -27,6 +27,15 @@ def statistics(M):
     return np.append( Av,[Error,var])
     
 def Autocorrelation (A,av):
+    """
+    Computes an autocorrelation analysis
+    Args:
+        A matrix with the data in columns of a matrix A[n,m]
+        av, the average of the data, av[m]
+    Returns:
+        C Correlation of the data 
+        corrTime Correlation time of the data.
+    """
     n,m=np.shape(A)
     C=np.zeros((n,m)) #Autocorrelation
     corrTime=np.zeros(m)
