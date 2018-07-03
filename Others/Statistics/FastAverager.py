@@ -74,8 +74,6 @@ with open(InputFile, 'r') as data_file:
     data_file.seek(last_pound_pos+1) #The one is added to avoid reading a non-existing column in the names as there lines are "# "
     data=pd.read_csv(data_file,sep=" ",header=0)
     
- #sed '3d' file
-
 
 names= list(data.columns.values)
 data1=data.as_matrix()[min_limit::]
