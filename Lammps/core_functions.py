@@ -3,6 +3,7 @@ from subprocess import Popen,PIPE
 from shlex import split
 import argparse
 import os
+import pandas as pd
 
 def bash_command(cmd):
     """
@@ -56,3 +57,37 @@ def parameter_finder(List, String):
     if length==0: print "No ocurrences found"
 
     return indexes
+
+def read_data_file(input_file):
+    """
+    Reads a data file either with a header or not.
+    It assumes that the header is commented with "#" and that the it last line contains the name of the variables
+    Args:
+        input_file file name
+
+    Returns: A panda data frame, the column names can be obtained by data.columns.values and the numeric parameters with  data.values
+    """
+    header_lines=0
+    last_pound_pos=-1
+    with open(input_file, 'r') as data_file:
+        while(data_file.read(1)=='#'):
+            last_pound_pos = data_file.tell()
+            header=data_file.readline()
+            header_lines+=1
+
+        #Read the next lines
+        data_1=data_file.readline().split()
+        data_2=data_file.readline().split()
+        data_file.seek(last_pound_pos+1) #Goes back to the last line of the header
+
+        if header_lines==0:
+            data=pd.read_csv(data_file,sep=" ",header=None).dropna(axis=1,how='all')
+
+        else:
+            if len(data_1)!=len(data_2): #If there is a line containing the number of particles,
+                data_file.readline()
+            data_file.readline()
+            data=pd.read_csv(data_file,sep=" ",header=None).dropna(axis=1,how='all')
+            data.columns=header.split()
+
+    return data
