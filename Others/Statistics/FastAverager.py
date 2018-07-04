@@ -60,22 +60,14 @@ parser.add_argument('--min', help='Number of timesteps to be discarded', default
 
 args = parser.parse_args()
 min_limit=args.min
-InputFile=args.FileName
+input_file=args.FileName
 
 
-
-
-# This is to remove all the headers and just start reading in the columns if there are
-with open(InputFile, 'r') as data_file:
-    while(data_file.read(1)=='#'):
-        last_pound_pos = data_file.tell()
-        data_file.readline()
-    data_file.seek(last_pound_pos+1) #The one is added to avoid reading a non-existing column in the names as there lines are "# "
-    data=pd.read_csv(data_file,sep=" ",header=0)
+data=cf.read_data_file(input_file)
     
 
 names= list(data.columns.values)
-data1=data.as_matrix()[min_limit::]
+data1=data.values[min_limit::]
 
 
 #Excluding some data that does not need to be analysed
@@ -93,7 +85,8 @@ Correlation,time=Autocorrelation(data_to_analyse, averages)
 error=np.sqrt(Correlation[0,:]*2*time/(n+1))
 
 
-print "The averages are:\n"
+print "The Results are:\n"
+print "Property    Average     Error"
 file=open("statistics.dat",'w')
 for i in xrange(size):
     print "%s = %lf %lf"%(names_to_analyse[i],averages[i],error[i])
