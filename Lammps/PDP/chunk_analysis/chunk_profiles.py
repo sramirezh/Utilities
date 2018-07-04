@@ -82,7 +82,7 @@ def plot_property(property_name):
         #y=np.array(ave_data[:,1]).astype(np.float)
 
     ax.legend()
-    ax.set_xlabel(r'Z',fontsize=16)
+    ax.set_xlabel(r'z',fontsize=16)
     #ax.grid()
     ax.set_ylabel(r'Vx',fontsize=16)
 
@@ -138,7 +138,7 @@ Main
 
 parser = argparse.ArgumentParser(description='This script analyses the velocity profiles of the polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
-parser.add_argument('-properties', metavar='properties',help='Properties to plot',nargs='+',type=str)
+parser.add_argument('-properties', metavar='properties',help='Properties to plot', default="Vx",nargs='+',type=str)
 args = parser.parse_args()
 files=args.file_name
 properties=args.properties

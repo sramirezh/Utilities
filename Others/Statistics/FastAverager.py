@@ -16,7 +16,6 @@ Returns:
 import pandas as pd
 import numpy as np
 import argparse
-from scipy import stats
 import os
 import sys
 from Functions import Autocorrelation 
