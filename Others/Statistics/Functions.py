@@ -1,11 +1,13 @@
 import numpy as np
+
+
 #Blocking
 def blocking(A):
     """
     A is the initial matrix with an even row number, do it not only for the closest integer.
     """
     n,m=np.shape(A)
-    B=np.zeros((0.5*n,m))
+    B=np.zeros((int(0.5*n),m))
     for i in xrange(int(0.5*n)):
         B[i]=0.5*(A[2*i-1,:]+A[2*i,:])           
     return B
@@ -26,7 +28,7 @@ def statistics(M):
         Error[0,i]=np.sqrt(var[0,i]/n) #Pag 9 Error of independent sampling
     return np.append( Av,[Error,var])
     
-def Autocorrelation (A,av):
+def autocorrelation_error (A,av):
     """
     Computes an autocorrelation analysis
     Args:
@@ -55,6 +57,31 @@ def Autocorrelation (A,av):
             i+=1
     corrTime=0.5+corrTime
     return C, corrTime
+
+def blocking_error(data):
+    n,m=np.shape(data)
+    MaxIter=int(np.round(np.log(n)/np.log(2)))
+    Results=np.zeros((MaxIter,3*m))
+    Error=np.zeros((MaxIter,m)) 
+    final_error=np.zeros(m)
+    for j in xrange(m):
+        i=0
+        diff=1
+        data1=data
+        while diff>0 and i<MaxIter:    ###Always ascending results that's why it is required diff>0
+            Results[i,:]=statistics(data1)
+            data1=blocking(data1)
+            Error[i,j]=np.sqrt((2.0**i/n)*Results[i,2*m+j])
+            if i>0:
+                diff=Error[i,j]-Error[i-1,j]
+            i+=1
+            
+    for i in xrange(m):
+        final_error[i]=Error[np.max(np.nonzero(Error[:,i]))-1,i]
+        
+    return final_error
+
+    
     
 
         

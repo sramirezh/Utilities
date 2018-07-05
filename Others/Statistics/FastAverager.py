@@ -15,7 +15,8 @@ import numpy as np
 import argparse
 import os
 import sys
-from Functions import Autocorrelation 
+from Functions import autocorrelation_error, blocking_error 
+from scipy import stats
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -69,25 +70,44 @@ data1=data.values[min_limit::]
 
 #Excluding some data that does not need to be analysed
 exclude=["time", "Chunk", "Coord1"]
-i_delete=exclude_parameters(names, exclude)
-data_to_analyse=np.delete(data1,i_delete,axis=1)
-names_to_analyse=np.delete(names,i_delete)
+if isinstance(names[0],basestring)==True:
+    i_delete=exclude_parameters(names, exclude)
+    data_to_analyse=np.delete(data1,i_delete,axis=1)
+    names_to_analyse=np.delete(names,i_delete)
+else: #If the data does not have header
+    data_to_analyse=data1
+    names_to_analyse=names
+    
+
 size=len(names_to_analyse)
 averages=np.average(data_to_analyse,axis=0)
 
 
-#Autocorrelation analysis
-n,m=np.shape(data_to_analyse)
-Correlation,time=Autocorrelation(data_to_analyse, averages)
-error=np.sqrt(Correlation[0,:]*2*time/(n+1))
+"""
+*******************************************************************************
+Error Analysis
+*******************************************************************************
+"""
 
+#Autocorrelation Analysis
+
+n,m=np.shape(data_to_analyse)
+Correlation,time=autocorrelation_error(data_to_analyse, averages)
+error_c=np.sqrt(Correlation[0,:]*2*time/(n+1))
+
+
+#Simple error
+error_s=stats.sem(data_to_analyse)
+
+#Blocking analysis
+error_b=blocking_error(data_to_analyse)
 
 print "The Results are:\n"
-print "Property    Average     Error"
+print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple"
 file=open("statistics.dat",'w')
 for i in xrange(size):
-    print "%s = %lf %lf"%(names_to_analyse[i],averages[i],error[i])
-    file.write("%s = %lf %lf\n"%(names_to_analyse[i],averages[i],error[i]))
+    print "%s = %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i])
+    file.write("%s = %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i]))
 file.close()
 
 print "\nCreated a file statistics.dat with the averages"
