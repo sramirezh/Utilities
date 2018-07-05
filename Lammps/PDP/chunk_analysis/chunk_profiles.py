@@ -10,7 +10,6 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import argparse
-import linecache
 import os
 import sys
 
@@ -60,15 +59,19 @@ def get_type(name):
 
     return dict[identifier]
 
-def get_columns(file_name):
-    column_names=linecache.getline(file_name,3).split()
-    column_names.remove("#")
-
-    return column_names
 
 
-
-def plot_property(property_name):
+def plot_property(profiles, property_name):
+    """
+    Plot a property from several data profiles vs the normalized z coordinate
+    Args:
+        profiles are a defined by the class profile.
+        property_name is a name that should be in the data for all the profiles.
+        
+    Returns:
+        fig,ax to be handled and later customized.
+    
+    """
 
     fig,ax=plt.subplots()
 
@@ -77,25 +80,12 @@ def plot_property(property_name):
         index=cf.parameter_finder(prof.column_names, property_name)
 
         name="%s_%s"%(prof.box,prof.name)
-        ax.plot(prof.data[:,1],prof.data[:,index], label=name)
-        #x=np.array(ave_data[:,4]).astype(np.float)
-        #y=np.array(ave_data[:,1]).astype(np.float)
+        ax.plot(prof.data[:,1]/np.max(prof.data[:,1]),prof.data[:,index], label=name)
+    
+    return fig,ax
+    
+    
 
-    ax.legend()
-    ax.set_xlabel(r'z',fontsize=16)
-    #ax.grid()
-    ax.set_ylabel(r'Vx',fontsize=16)
-
-    ax.tick_params(labelsize=14)
-
-    #ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
-
-    #ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-    #ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
-    plt.tight_layout()
-    plot_name="%s.pdf"%property_name
-    fig.savefig(plot_name)
-    plt.close()
 
 
 
@@ -114,8 +104,9 @@ class profile(object):
     def __init__(self,file_name):
         self.path=os.path.abspath(file_name).split("/")
         self.name, self.box = get_name(file_name)
-        self.data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=4,header=None).as_matrix()[:,2:]
-        self.column_names=get_columns(file_name)
+        data=cf.read_data_file(file_name)
+        self.data=data.values
+        self.column_names=list(data.columns.values)
 
 
     def get_property(self,name):
@@ -134,8 +125,6 @@ class profile(object):
 Main
 *******************************************************************************
 """
-
-
 parser = argparse.ArgumentParser(description='This script analyses the velocity profiles of the polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
 parser.add_argument('-properties', metavar='properties',help='Properties to plot', default="Vx",nargs='+',type=str)
@@ -145,10 +134,30 @@ properties=args.properties
 
 #Initializing the class
 profiles=build_data(files)
+Dict={'density':'$rho$','vx':'$V_x$'}
 
-
+ymax_arr=[]
 for parameter in properties:
-    plot_property(parameter)
+    
+    fig,ax=plot_property(profiles,parameter)
+    ax.set_xlabel(r'$z/l_z$',fontsize=18)
+    
+    ylabel=Dict.get(parameter)
+    if ylabel==None:
+        ylabel=parameter
+        
+    ax.set_ylabel(r'%s'%ylabel,fontsize=18)
+    
+    ax.legend(loc=1)
+    ax.tick_params(labelsize=18)
+    
+    ymin,ymax=plt.ylim()
+    ax.set_ylim(ymin,ymax*1.2)  #To add 20% more in the y direction to fit the legend
+    ax.set_xlim(0,1)
+    plot_name="%s.pdf"%parameter
+    plt.tight_layout()
+    fig.savefig(plot_name)
+    plt.close()
 
 
 
