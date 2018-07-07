@@ -33,7 +33,7 @@ if __name__ == "__main__":
     path_name=args.path_name
 
 
-def get_name(file_name ):
+def get_name(file_name,path_name ):
     path=os.path.abspath(file_name).split("/")
     name_no_extension=path[-1].split(".")[-2]
     name='%s_%s'%(name_no_extension,path[-path_name])
