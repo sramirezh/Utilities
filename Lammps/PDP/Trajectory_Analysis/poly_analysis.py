@@ -304,9 +304,12 @@ if not os.path.exists(directory):
 """
 Cm displacement in x
 """
+for i in range(3):
+    cm_disp[:,i]=cm_disp[:,i]-cm_disp[0,i]
 
+np.savetxt("plots/cm_disp.dat",cm_disp, header=" Time x y z")
 plt.figure()
-plt.plot(cm_disp[:,0],cm_disp[:,1]-cm_disp[0,1])
+plt.plot(cm_disp[:,0],cm_disp[:,1])
 plt.grid()
 plt.ylabel(r'$x_{cm}[\sigma]$',fontsize=16)
 plt.xlabel("Timestep",fontsize=16)
