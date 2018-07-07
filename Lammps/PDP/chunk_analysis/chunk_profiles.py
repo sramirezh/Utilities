@@ -67,10 +67,10 @@ def plot_property(profiles, property_name):
     Args:
         profiles are a defined by the class profile.
         property_name is a name that should be in the data for all the profiles.
-        
+
     Returns:
         fig,ax to be handled and later customized.
-    
+
     """
 
     fig,ax=plt.subplots()
@@ -81,10 +81,10 @@ def plot_property(profiles, property_name):
 
         name="%s_%s"%(prof.box,prof.name)
         ax.plot(prof.data[:,1]/np.max(prof.data[:,1]),prof.data[:,index], label=name)
-    
+
     return fig,ax
-    
-    
+
+
 
 
 
@@ -136,21 +136,28 @@ properties=args.properties
 profiles=build_data(files)
 Dict={'density':'$rho$','vx':'$V_x$'}
 
+
+"""
+*******************************************************************************
+Plot
+*******************************************************************************
+"""
+
 ymax_arr=[]
 for parameter in properties:
-    
+
     fig,ax=plot_property(profiles,parameter)
     ax.set_xlabel(r'$z/l_z$',fontsize=18)
-    
+
     ylabel=Dict.get(parameter)
     if ylabel==None:
         ylabel=parameter
-        
+
     ax.set_ylabel(r'%s'%ylabel,fontsize=18)
-    
+
     ax.legend(loc=1)
     ax.tick_params(labelsize=18)
-    
+
     ymin,ymax=plt.ylim()
     ax.set_ylim(ymin,ymax*1.2)  #To add 20% more in the y direction to fit the legend
     ax.set_xlim(0,1)
@@ -158,14 +165,3 @@ for parameter in properties:
     plt.tight_layout()
     fig.savefig(plot_name)
     plt.close()
-
-
-
-
-
-
-"""
-*******************************************************************************
-Plot
-*******************************************************************************
-"""
