@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Jul  7 13:47:44 2018
-General plotter for several files
+General plotter for several files, it helps to analyse results fast
 @author: simon
 """
 import sys
@@ -73,7 +73,9 @@ ax,fig=general_plotter(files,columns)
 ymin,ymax=plt.ylim()
 ax.set_ylim(ymin,ymax*1.2)  #To add 20% more in the y direction to fit the legend
 plt.tight_layout()
+ax.grid()
 fig.savefig(args.plot_name)
+
 plt.close()
 
 
