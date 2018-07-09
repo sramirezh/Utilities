@@ -21,26 +21,21 @@ try:
 except ImportError as err:
     print err
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='This script plots several files',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
-    parser.add_argument('-columns', metavar='columns',help='Properties to plot',nargs=2,default=[0,1],type=int)
-    parser.add_argument('-path_name',metavar='path_name',help='depth in tree to define name',default=3,type=int )
-    parser.add_argument('-plot_name',metavar='plot_name',help='Name of the pdf file generated', default='plotter.pdf',type=str)
-    args = parser.parse_args()
-    files=args.file_name
-    columns=args.columns
-    path_name=args.path_name
 
+"""
+###############################################################################
+Function definition
+###############################################################################
+"""
 
-def get_name(file_name,path_name ):
+def get_name(file_name,path_name):
     path=os.path.abspath(file_name).split("/")
-    name_no_extension=path[-1].split(".")[-2]
+    name_no_extension=os.path.splitext(file_name)[0]
     name='%s_%s'%(name_no_extension,path[-path_name])
     return name
 
 
-def general_plotter(files,columns,path_name=3):
+def general_plotter(data,columns=[0,1],marker="-o"):
     """
     Plot a property from several files
     Args:
@@ -53,29 +48,74 @@ def general_plotter(files,columns,path_name=3):
         fig,ax to be handled and later customized.
     
     """
-    
     x_index=columns[0]
     y_index=columns[1]
     
     fig,ax=plt.subplots()
     
-    for fil in files:
-        data=cf.read_data_file(fil).values
-        name=get_name(fil)
+    for dat in data:
+
         
-        ax.plot(data[:,x_index],data[:,y_index],label=name)
+        ax.plot(dat[:,x_index],dat[:,y_index],marker=marker)
     
     ax.legend()
+
     
     return ax,fig
 
-ax,fig=general_plotter(files,columns)  
-ymin,ymax=plt.ylim()
-ax.set_ylim(ymin,ymax*1.2)  #To add 20% more in the y direction to fit the legend
-plt.tight_layout()
-ax.grid()
-fig.savefig(args.plot_name)
+def pre_processing(files,path_name):
+    """
+    Added this to have an intermediate step before plotting
+    Returns:
+        data The data contained in the files 
+        names a reference name, that contains the file name withou extension and a reference folder 2 levels above (see -path_name)
+        
+    """
+    data=[]
+    names=[]
+    for fil in files:
+        data.append(cf.read_data_file(fil).values)
+        names.append(get_name(fil,path_name))
+    
+    return data,names
 
-plt.close()
+"""
+###############################################################################
+Main
+###############################################################################
+"""
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='This script plots several files',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
+    parser.add_argument('-columns', metavar='columns',help='Properties to plot',nargs=2,default=[0,1],type=int)
+    parser.add_argument('-path_name',metavar='path_name',help='depth in tree to define name',default=3,type=int )
+    parser.add_argument('-plot_name',metavar='plot_name',help='Name of the pdf file generated', default='plotter.pdf',type=str)
+    args = parser.parse_args()
+    files=args.file_name
+    columns=args.columns
+    path_name=args.path_name
+    
+    """
+    This is the general structure of anything in a file
+    """
+    data,names=pre_processing(files,path_name)
+        
+    """
+    Process the data here before plotting
+    """
+    
+    ax,fig=general_plotter(data,columns)
+    plt.legend(names)
+    ymin,ymax=plt.ylim()
+    ax.set_ylim(ymin,ymax*1.2)  #To add 20% more in the y direction to fit the legend
+    plt.tight_layout()
+    ax.grid()
+    fig.savefig(args.plot_name)
+    
+    plt.close()
+
+
+
 
 
