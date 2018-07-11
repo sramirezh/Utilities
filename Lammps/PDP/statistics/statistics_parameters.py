@@ -91,6 +91,12 @@ def plot_force_individuals(interactions):
     """
     Plots the parameters from statistic_summary for each force, for each interaction
     """
+    axis_font=20
+    tick_font=18
+    legend_font=17
+    #This Dict is going to be compared with the variable file_name
+    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$v_x$'}
+
     print "\nGenerating Plots..."
     directory="plots/individual"
     if not os.path.exists(directory):
@@ -104,7 +110,7 @@ def plot_force_individuals(interactions):
 
         if "Time" in prop_name: continue #To avoid plotting the timestep
 
-        plt.figure()
+        fig,ax=plt.subplots()
 
         for ljpair in interactions:
             n=0
@@ -122,11 +128,33 @@ def plot_force_individuals(interactions):
 
         print "\nplotting the %s" %name
 
-        plt.title(name)
         file_name=name.replace(" ","_")
-        plt.legend()
-        plt.grid()
-        plt.xlabel("Force")
+        plt.legend(fontsize=legend_font,loc=1,labelspacing=0.2,ncol=1)
+        plt.grid(False)
+        ax.set_xlabel("$F$",fontsize=axis_font)
+        ylabel=file_name
+        
+        ax.tick_params(labelsize=tick_font)
+        
+        try:
+            ylabel=dic_yaxis[file_name]
+        except:
+            ylabel=file_name
+            
+        ax.set_ylabel(ylabel,fontsize=axis_font)
+        
+        xmin,xmax=plt.xlim()
+        ax.set_xlim(0,xmax)
+        
+        ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+        ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
+
+        ymin,ymax=plt.ylim()
+        ax.set_ylim(ymin,ymax*2)  #To add 20% more in the y direction to fit the legend
+        plt.rcParams["mathtext.fontset"] = "cm"
+        plt.rcParams["text.usetex"] =True
+        plt.tight_layout()
+        
         plt.savefig("plots/individual/%s.pdf"%file_name)
         plt.close()
     print "\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory

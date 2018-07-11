@@ -32,7 +32,7 @@ args = parser.parse_args()
 files=args.file_name
 columns=args.columns
 path_name=args.path_name
-    
+
 
 
 
@@ -64,7 +64,7 @@ ax.plot(x,y,'--')
 
 handles, labels = ax.get_legend_handles_labels() #This is to check the references
 new_names=['$\epsilon=0.5, \sigma=0.8$','$\epsilon=1.0, \sigma=1,5$','$\epsilon=1.5, \sigma=1.5$','$R_g \sim N^{3/5}$']
-plt.legend(new_names,fontsize=17,loc=1)
+plt.legend(new_names,fontsize=17,s)
 
 """Axis"""
 ax.tick_params(labelsize=18)
