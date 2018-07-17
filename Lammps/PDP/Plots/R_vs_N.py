@@ -47,7 +47,6 @@ data=np.log(data)
 
 x=data[0][:,0]
 y=3/5*x
-
 deltay=data[0][0,1]-y[0]
 y=y+deltay
 """
@@ -56,6 +55,10 @@ Plotting
 ###############################################################################
 """
 
+axis_font=24
+tick_font=20
+legend_font=18
+
 ax,fig=general_plotter(data,columns)
 
 ax.plot(x,y,'--')
@@ -63,13 +66,13 @@ ax.plot(x,y,'--')
 """Legend"""
 
 handles, labels = ax.get_legend_handles_labels() #This is to check the references
-new_names=['$\epsilon=0.5, \sigma=0.8$','$\epsilon=1.0, \sigma=1,5$','$\epsilon=1.5, \sigma=1.5$','$R_g \sim N^{3/5}$']
-plt.legend(new_names,fontsize=17,s)
+new_names=['$\epsilon=0.5, \sigma=0.8$','$\epsilon=1.0, \sigma=1.5$','$\epsilon=1.5, \sigma=1.5$','$R_g \sim N^{3/5}$']
+plt.legend(new_names,fontsize=legend_font)
 
 """Axis"""
-ax.tick_params(labelsize=18)
-ax.set_ylabel(r'$\log(R_g)$',fontsize=20)
-ax.set_xlabel(r'$\log(N)$',fontsize=20)
+ax.tick_params(labelsize=tick_font)
+ax.set_ylabel(r'$\log(R_g)$',fontsize=axis_font)
+ax.set_xlabel(r'$\log(N)$',fontsize=axis_font)
 ymin,ymax=plt.ylim()
 ax.set_ylim(ymin,ymax*1.25)  #To add 20% more in the y direction to fit the legend
 #ax.set_xlim(0,1)

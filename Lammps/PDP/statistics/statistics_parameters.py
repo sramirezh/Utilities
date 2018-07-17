@@ -173,8 +173,8 @@ def plot_force_individuals(interactions):
         """General"""
         
         plt.grid(False)
-        plt.rcParams["mathtext.fontset"] = "cm"
-        plt.rcParams["text.usetex"] =True      
+#        plt.rcParams["mathtext.fontset"] = "cm"
+#        plt.rcParams["text.usetex"] =True      
         plt.tight_layout()
         plt.savefig("plots/individual/%s.pdf"%file_name)
         plt.close()
@@ -334,68 +334,102 @@ pd_data.to_csv("Results.dat",sep=' ',index=False)
 Starting the plot
 ###############################################################################
 """
+axis_font=24
+tick_font=20
+legend_font=18
+annotate_size=12
+xoffset=0.1
+yoffset=0.1
 
 
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
-
-"""
+"""    
+###############################################################################
 Mobility vs Delta Cs
+###############################################################################
 """
 fig,ax=plt.subplots()
 
-
-ax.scatter(ave_data[:,4],ave_data[:,1])
-x=np.array(ave_data[:,4]).astype(np.float)
-y=np.array(ave_data[:,1]).astype(np.float)
+ave_data=np.array(ave_data[:,1::],dtype=float) #Avoiding the first column which contains the interactions.
+ax.scatter(ave_data[:,-3],ave_data[:,0])
+x=np.array(ave_data[:,-3])
+y=np.array(ave_data[:,0])
 
 
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (x[i]-0.006,y[i]+0.002))
-ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=16)
-#ax.grid()
-ax.set_ylabel(r'$b [\tau/m]$',fontsize=16)
+    ax.annotate(txt, (x[i],y[i]),horizontalalignment='center',verticalalignment='upper',fontsize=annotate_size)
+    
+"""Axis"""
+ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
+ax.grid(False)
+ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$',fontsize=axis_font)
+ax.tick_params(labelsize=tick_font)
 
-ax.tick_params(labelsize=14)
+ymin,ymax=plt.ylim()
+deltay=ymax-ymin
 
-#ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
+xmin,xmax=plt.xlim()
+deltax=xmax-xmin
 
-ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
+ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
+
+
+"""Lines"""
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
+
+"""General"""
+
 plt.tight_layout()
-
 fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
 
+
+
+
 """
+###############################################################################
 Mobility/Rg vs Delta Cs
+###############################################################################
 """
 
 fig,ax=plt.subplots()
-ax.scatter(ave_data[:,4],ave_data[:,-1])
+ax.scatter(ave_data[:,-3],ave_data[:,-1])
 
 
-x=np.array(ave_data[:,4]).astype(np.float)
-y=np.array(ave_data[:,-1]).astype(np.float)
+x=np.array(ave_data[:,-3])
+y=np.array(ave_data[:,-1])
 
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (x[i]-0.006,y[i]+0.002))
-ax.set_xlabel(r'$\Delta c_s [1/\sigma^3]$',fontsize=16)
-#ax.grid()
-ax.set_ylabel(r'$ b/R_g [\tau/m\sigma]$',fontsize=16)
+    ax.annotate(txt, (x[i],y[i]),horizontalalignment='center',verticalalignment='upper',fontsize=annotate_size)
+    
+"""Axis"""
+ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
+ax.grid(False)
+ax.set_ylabel(r'$\Gamma_{ps}/R_g [\tau/m\sigma]$',fontsize=axis_font)
+ax.tick_params(labelsize=tick_font)
 
-ax.tick_params(labelsize=14)
+ymin,ymax=plt.ylim()
+deltay=ymax-ymin
 
-#Using np.unique(x) instead of x handles the case where x isn't sorted or has duplicate values.
-#ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
+xmin,xmax=plt.xlim()
+deltax=xmax-xmin
 
-ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
+ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
+
+
+"""Lines"""
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
+
+"""General"""
 plt.tight_layout()
-
 fig.savefig("plots/all/Mobility_rg_Delta_Cs.pdf")
 plt.close()
 
