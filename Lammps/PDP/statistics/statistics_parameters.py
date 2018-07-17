@@ -87,23 +87,35 @@ def parameter_finder(List, String):
     return indexes
 
 
+def ncols(nparameters, row_per_column):
+    """
+    Returns the ideal number of columns for the desired number of rows per column
+    """
+    ncols=nparameters/row_per_column
+    
+    return ncols
+    
+
 def plot_force_individuals(interactions):
     """
     Plots the parameters from statistic_summary for each force, for each interaction
     """
-    axis_font=20
-    tick_font=18
-    legend_font=17
+    #General plot parameters
+    axis_font=24
+    tick_font=20
+    legend_font=18
+    
     #This Dict is going to be compared with the variable file_name
-    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$v_x$'}
+    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$v_x$','rg_ave':r'$R_g [\sigma]$'}
 
     print "\nGenerating Plots..."
     directory="plots/individual"
+    
     if not os.path.exists(directory):
         os.makedirs(directory)
 
     n_properties=len(interactions[0].properties[0]) #Number of properties
-
+    n_interactions=len(interactions)
     for property_index in xrange(n_properties):
 
         prop_name=interactions[-1].property_names[0][property_index] #Crude property name
@@ -129,32 +141,41 @@ def plot_force_individuals(interactions):
         print "\nplotting the %s" %name
 
         file_name=name.replace(" ","_")
-        plt.legend(fontsize=legend_font,loc=1,labelspacing=0.2,ncol=1)
-        plt.grid(False)
-        ax.set_xlabel("$F$",fontsize=axis_font)
-        ylabel=file_name
         
-        ax.tick_params(labelsize=tick_font)
+        """Legend"""
+        plt.legend(fontsize=legend_font,loc=1,labelspacing=0.05,ncol=ncols(n_interactions,4),borderpad=0.1,mode="expand",scatteryoffsets=[0.5])
         
+        
+        
+        """Axis"""
         try:
             ylabel=dic_yaxis[file_name]
+            ax.set_ylabel(ylabel,fontsize=axis_font)
         except:
             ylabel=file_name
             
-        ax.set_ylabel(ylabel,fontsize=axis_font)
+        ax.set_xlabel("$F$",fontsize=axis_font)
+        ax.tick_params(labelsize=tick_font)
+        ylabel=file_name
         
         xmin,xmax=plt.xlim()
-        ax.set_xlim(0,xmax)
-        
-        ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-        ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
-
         ymin,ymax=plt.ylim()
-        ax.set_ylim(ymin,ymax*2)  #To add 20% more in the y direction to fit the legend
-        plt.rcParams["mathtext.fontset"] = "cm"
-        plt.rcParams["text.usetex"] =True
-        plt.tight_layout()
         
+        ax.set_xlim(0,xmax)
+        ax.set_ylim(ymin,(ymax-ymin)*0.2)  #To add 20% more in the y direction to fit the legend
+        
+
+        
+        """Lines"""
+        if ymin*ymax<0:
+            ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+        
+        """General"""
+        
+        plt.grid(False)
+        plt.rcParams["mathtext.fontset"] = "cm"
+        plt.rcParams["text.usetex"] =True      
+        plt.tight_layout()
         plt.savefig("plots/individual/%s.pdf"%file_name)
         plt.close()
     print "\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory
