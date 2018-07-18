@@ -104,6 +104,8 @@ def plot_force_individuals(interactions):
     axis_font=24
     tick_font=20
     legend_font=18
+    xoffset=0.1
+    yoffset=0.1
     
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$v_x$','rg_ave':r'$R_g [\sigma]$'}
@@ -146,7 +148,8 @@ def plot_force_individuals(interactions):
         plt.legend(fontsize=legend_font,loc=1,labelspacing=0.05,ncol=ncols(n_interactions,4),borderpad=0.1,mode="expand",scatteryoffsets=[0.5])
         
         
-        
+        from matplotlib.font_manager import FontProperties
+
         """Axis"""
         try:
             ylabel=dic_yaxis[file_name]
@@ -158,11 +161,14 @@ def plot_force_individuals(interactions):
         ax.tick_params(labelsize=tick_font)
         ylabel=file_name
         
-        xmin,xmax=plt.xlim()
         ymin,ymax=plt.ylim()
+        deltay=ymax-ymin
         
-        ax.set_xlim(0,xmax)
-        ax.set_ylim(ymin,(ymax-ymin)*0.2)  #To add 20% more in the y direction to fit the legend
+        xmin,xmax=plt.xlim()
+        deltax=xmax-xmin
+        
+        ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*0.45)
+        ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
         
 
         
