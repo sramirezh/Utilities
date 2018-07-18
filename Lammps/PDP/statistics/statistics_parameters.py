@@ -148,7 +148,6 @@ def plot_force_individuals(interactions):
         plt.legend(fontsize=legend_font,loc=1,labelspacing=0.05,ncol=ncols(n_interactions,4),borderpad=0.1,mode="expand",scatteryoffsets=[0.5])
         
         
-        from matplotlib.font_manager import FontProperties
 
         """Axis"""
         try:
