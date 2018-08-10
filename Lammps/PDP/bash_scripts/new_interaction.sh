@@ -25,7 +25,7 @@ for file in $files;
 	echo 'Modifying' $file
 	absolute_path="$( cd "$(dirname "$file")" ; pwd -P )"
 
-	Number=$(echo $absolute_path | awk -F  "/" '{print $(NF-3)}')
+	Number=$(echo $absolute_path | awk -F  "/" '{print $(NF-2)}')
 	Interaction=$(echo $absolute_path | awk -F  "/" '{print $(NF-1)}')
 	Sim_type=$(echo $absolute_path | awk -F  "/" '{print $(NF)}')
 	name=$(echo "#PBS -N ${Number}_${Epsilon}_${Sigma}_${Sim_type}")
