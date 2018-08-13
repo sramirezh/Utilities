@@ -14,7 +14,7 @@ from subprocess import Popen,PIPE
 
 f=open("out.qstat","w+")
 p=Popen(['qstat', '-x'],stdout=f)
-p.wait() 
+p.wait()
 f.close()
 data="out.qstat"
 
@@ -25,7 +25,7 @@ values = []
 for p in tree.iter() :
     names.append(tree.getpath(p).replace("/",".")[1:])
     values.append(p.text)
-    
+
 #df = pd.DataFrame({'key' : lstKey, 'value' : lstValue})
 #df.sort_values('key')
 
@@ -39,7 +39,7 @@ values=values[1::]
 #    if 'Job[' in string: #To not include this patter
 #        continue
 #    parameter_names.append(string)
-#    
+#
 #parameter_names=list(set(parameter_names)) #Deleting the repeated occurrences
 
 """
@@ -51,7 +51,7 @@ for i,val in enumerate(values,start=0):
         continue
     if 'sr802@dexter.cm' in val:
         job_numbers.append(re.findall(r"[-+]?\d*\.?\d+", names[i])[0])
-        
+
 """
 #Building the table
 """
@@ -77,15 +77,3 @@ for job in job_numbers:
 
 df=pd.DataFrame(jobs,columns=print_names)
 print(df)
-    
-
-
-
-
-
-
-
-
-    
-
-

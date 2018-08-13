@@ -35,48 +35,48 @@ def get_name(file_name,path_name):
     return name
 
 
-def general_plotter(data,columns=[0,1],marker="-o"):
+def general_plotter(data,columns=[0,1],marker="o"):
     """
     Plot a property from several files
     Args:
         files the files that contain the data
         columns an array [x.y] containing the positions you want to plot
-        path_name automatically gives a name for the legends of the plot taken from the path, so this is the index of the 
-        name counting from the back that follows the name of the file. 
-    
+        path_name automatically gives a name for the legends of the plot taken from the path, so this is the index of the
+        name counting from the back that follows the name of the file.
+
     Returns:
         fig,ax to be handled and later customized.
-    
+
     """
     x_index=columns[0]
     y_index=columns[1]
-    
+
     fig,ax=plt.subplots()
-    
+
     for dat in data:
 
-        
+
         ax.plot(dat[:,x_index],dat[:,y_index],marker=marker)
-    
+
     ax.legend()
 
-    
+
     return ax,fig
 
 def pre_processing(files,path_name):
     """
     Added this to have an intermediate step before plotting
     Returns:
-        data The data contained in the files 
+        data The data contained in the files
         names a reference name, that contains the file name withou extension and a reference folder 2 levels above (see -path_name)
-        
+
     """
     data=[]
     names=[]
     for fil in files:
         data.append(cf.read_data_file(fil).values)
         names.append(get_name(fil,path_name))
-    
+
     return data,names
 
 """
@@ -95,16 +95,16 @@ if __name__ == "__main__":
     files=args.file_name
     columns=args.columns
     path_name=args.path_name
-    
+
     """
     This is the general structure of anything in a file
     """
     data,names=pre_processing(files,path_name)
-        
+
     """
     Process the data here before plotting
     """
-    
+
     ax,fig=general_plotter(data,columns)
     plt.legend(names)
     ymin,ymax=plt.ylim()
@@ -112,10 +112,5 @@ if __name__ == "__main__":
     plt.tight_layout()
     ax.grid()
     fig.savefig(args.plot_name)
-    
+
     plt.close()
-
-
-
-
-
