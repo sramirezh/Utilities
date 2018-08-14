@@ -35,7 +35,7 @@ def get_name(file_name,path_name):
     return name
 
 
-def general_plotter(data,columns=[0,1],marker="_"):
+def general_plotter(data,columns=[0,1],marker="."):
     """
     Plot a property from several files
     Args:
