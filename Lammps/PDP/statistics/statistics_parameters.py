@@ -20,7 +20,7 @@ import re
 import argparse
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
-from Lammps.linux import bash_command
+import Lammps.core_functions as cf
 
 
 try:
@@ -92,9 +92,9 @@ def ncols(nparameters, row_per_column):
     Returns the ideal number of columns for the desired number of rows per column
     """
     ncols=nparameters/row_per_column
-    
+
     return ncols
-    
+
 
 def plot_force_individuals(interactions):
     """
@@ -106,13 +106,13 @@ def plot_force_individuals(interactions):
     legend_font=18
     xoffset=0.1
     yoffset=0.1
-    
+
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$v_x$','rg_ave':r'$R_g [\sigma]$'}
 
     print "\nGenerating Plots..."
     directory="plots/individual"
-    
+
     if not os.path.exists(directory):
         os.makedirs(directory)
 
@@ -143,11 +143,11 @@ def plot_force_individuals(interactions):
         print "\nplotting the %s" %name
 
         file_name=name.replace(" ","_")
-        
+
         """Legend"""
         plt.legend(fontsize=legend_font,loc=1,labelspacing=0.05,ncol=ncols(n_interactions,4),borderpad=0.1,mode="expand",scatteryoffsets=[0.5])
-        
-        
+
+
 
         """Axis"""
         try:
@@ -155,31 +155,31 @@ def plot_force_individuals(interactions):
             ax.set_ylabel(ylabel,fontsize=axis_font)
         except:
             ylabel=file_name
-            
+
         ax.set_xlabel("$F$",fontsize=axis_font)
         ax.tick_params(labelsize=tick_font)
         ylabel=file_name
-        
+
         ymin,ymax=plt.ylim()
         deltay=ymax-ymin
-        
+
         xmin,xmax=plt.xlim()
         deltax=xmax-xmin
-        
+
         ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*0.45)
         ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-        
 
-        
+
+
         """Lines"""
         if ymin*ymax<0:
             ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-        
+
         """General"""
-        
+
         plt.grid(False)
 #        plt.rcParams["mathtext.fontset"] = "cm"
-#        plt.rcParams["text.usetex"] =True      
+#        plt.rcParams["text.usetex"] =True
         plt.tight_layout()
         plt.savefig("plots/individual/%s.pdf"%file_name)
         plt.close()
@@ -275,10 +275,10 @@ source=args.source
 
 if source=="RUN":
     print "\nRunning the statistics analysis"
-    bash_command("""bash %s/compute_statistics.sh"""%dir_path)
+    cf.bash_command("""bash %s/compute_statistics.sh"""%dir_path)
 elif source=="GATHER":
     print "\nGathering the statistics analysis results"
-    bash_command("""bash %s/gather_statistics.sh"""%dir_path)
+    cf.bash_command("""bash %s/gather_statistics.sh"""%dir_path)
 else:
     is_valid_file(parser,"Statistic_summary.dat")
 
@@ -350,7 +350,7 @@ yoffset=0.1
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
-"""    
+"""
 ###############################################################################
 Mobility vs Delta Cs
 ###############################################################################
@@ -366,7 +366,7 @@ y=np.array(ave_data[:,0])
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
     ax.annotate(txt, (x[i],y[i]),horizontalalignment='center',verticalalignment='upper',fontsize=annotate_size)
-    
+
 """Axis"""
 ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
 ax.grid(False)
@@ -412,7 +412,7 @@ y=np.array(ave_data[:,-1])
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
     ax.annotate(txt, (x[i],y[i]),horizontalalignment='center',verticalalignment='upper',fontsize=annotate_size)
-    
+
 """Axis"""
 ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
 ax.grid(False)

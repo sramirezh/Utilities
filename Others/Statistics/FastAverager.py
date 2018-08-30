@@ -105,9 +105,10 @@ error_b=blocking_error(data_to_analyse)
 print "The Results are:\n"
 print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple"
 file=open("statistics.dat",'w')
+file.write("#print Property    Average    Error_autocorrelation    Error_blocking    Error_simple\n")
 for i in xrange(size):
     print "%s = %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i])
-    file.write("%s = %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i]))
+    file.write("%s = %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i]))
 file.close()
 
 print "\nCreated a file statistics.dat with the averages"
