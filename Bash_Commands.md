@@ -24,3 +24,8 @@ find .  -name '*.pdf'  -path './E_*' -exec grep 'SENTENCE TO FIND' {} /dev/null 
 also
 
 find .  -name '*.pdf'  ! -path './E_*'  , The use of ! is to avoid that path
+
+# To mount files from a remote server on my computer
+
+mkdir dexter_scratch
+sshfs dexter:/frenkelscratch/sr802 dexter_scratch
