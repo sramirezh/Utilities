@@ -30,13 +30,13 @@ try:
 #    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
     print err
-    
-    
+
+
 try:
     from uncertainties import ufloat
 except ImportError as err2:
     print err2
-    
+
 
 """
 *******************************************************************************
@@ -50,8 +50,8 @@ def number_properties(lines):
     Args:
         lines are the list of lines in the file.
     Returns:
-        nproperties are the number of properties analysed 
-    
+        nproperties are the number of properties analysed
+
     """
     indexes=cf.parameter_finder(lines, "dDP")
     nproperties=indexes[1]-indexes[0]-2
@@ -65,10 +65,10 @@ def build_data():
     interactions=[]
     with open("Statistic_summary.dat", 'r') as f:
       lines = f.readlines()
-      
+
     i=0
     nproperties=10 #The number of properties per force in the input file (TO IMPROVE)
-    #Getting the number of properties 
+    #Getting the number of properties
     count=0
 
     while i<len(lines):
@@ -138,13 +138,13 @@ def plot_force_individuals(interactions):
 
     n_properties=len(interactions[0].properties[0]) #Number of properties
     n_interactions=len(interactions)
-    
+
     has_error=np.ones((n_properties), dtype=bool)
-    
+
     for property_index in xrange(n_properties):
         if len(interactions[0].properties[0][property_index])==1:
             has_error[property_index]=False
-            
+
         prop_name=interactions[-1].property_names[0][property_index] #Crude property name
 
         if "Time" in prop_name: continue #To avoid plotting the timestep
@@ -154,11 +154,11 @@ def plot_force_individuals(interactions):
         for ljpair in interactions:
             n=0
             yvalue=[]
-            yerror=[] 
+            yerror=[]
             force_list=[]
             for force in ljpair.forces:
-                yvalue.append(ljpair.properties[n][property_index][0]) 
-                
+                yvalue.append(ljpair.properties[n][property_index][0])
+
                 if has_error[property_index]==True:
                     yerror.append(ljpair.properties[n][property_index][1]) #Taking the autocorrelation error
                 else:
@@ -200,8 +200,8 @@ def plot_force_individuals(interactions):
 
         ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*0.45)
         ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-        ax.spines["top"].set_visible(True)  
-        ax.spines["right"].set_visible(True)  
+        ax.spines["top"].set_visible(True)
+        ax.spines["right"].set_visible(True)
 
 
         """Lines"""
@@ -307,10 +307,10 @@ if __name__ == "__main__":
 args = parser.parse_args()
 source=args.source
 
-if source=="RUN":
+if source=="run":
     print "\nRunning the statistics analysis"
     cf.bash_command("""bash %s/compute_statistics.sh"""%dir_path)
-elif source=="GATHER":
+elif source=="gather":
     print "\nGathering the statistics analysis results"
     cf.bash_command("""bash %s/gather_statistics.sh"""%dir_path)
 else:
@@ -352,7 +352,7 @@ for interaction in interactions:
 
     mobilities=np.array((interaction.mobility))
     ave_mobility=sum(mobilities)/len(mobilities)
-    
+
     ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
     ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration in the bulk
     delta_cs=ave_concentration_rg-ave_concentration_bulk
