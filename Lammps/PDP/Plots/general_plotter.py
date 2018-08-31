@@ -39,7 +39,7 @@ def general_plotter(data,columns=[0,1],marker="."):
     """
     Plot a property from several files
     Args:
-        files the files that contain the data
+        data that wants to be plotted 
         columns an array [x.y] containing the positions you want to plot
         path_name automatically gives a name for the legends of the plot taken from the path, so this is the index of the
         name counting from the back that follows the name of the file.

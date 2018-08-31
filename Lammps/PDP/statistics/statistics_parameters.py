@@ -25,17 +25,37 @@ import Lammps.core_functions as cf
 
 try:
     import matplotlib
-    matplotlib.use('agg')
+    matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 #    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
     print err
+    
+    
+try:
+    from uncertainties import ufloat
+except ImportError as err2:
+    print err2
+    
 
 """
 *******************************************************************************
 Functions
 *******************************************************************************
 """
+
+def number_properties(lines):
+    """
+    Gets the number of properties based on the pattern in Statistics_summary.dat
+    Args:
+        lines are the list of lines in the file.
+    Returns:
+        nproperties are the number of properties analysed 
+    
+    """
+    indexes=cf.parameter_finder(lines, "dDP")
+    nproperties=indexes[1]-indexes[0]-2
+    return nproperties
 
 def build_data():
     """
@@ -45,9 +65,10 @@ def build_data():
     interactions=[]
     with open("Statistic_summary.dat", 'r') as f:
       lines = f.readlines()
-
+      
     i=0
-    nproperties=11 #The number of properties per force in the input file (TO IMPROVE)
+    nproperties=10 #The number of properties per force in the input file (TO IMPROVE)
+    #Getting the number of properties 
     count=0
 
     while i<len(lines):
@@ -65,7 +86,6 @@ def build_data():
                     properties.append(lines[i])
                     i+=1
                 interactions[-1].addproperties(properties)
-
             i+=1
 
     return interactions
@@ -118,8 +138,13 @@ def plot_force_individuals(interactions):
 
     n_properties=len(interactions[0].properties[0]) #Number of properties
     n_interactions=len(interactions)
+    
+    has_error=np.ones((n_properties), dtype=bool)
+    
     for property_index in xrange(n_properties):
-
+        if len(interactions[0].properties[0][property_index])==1:
+            has_error[property_index]=False
+            
         prop_name=interactions[-1].property_names[0][property_index] #Crude property name
 
         if "Time" in prop_name: continue #To avoid plotting the timestep
@@ -128,13 +153,20 @@ def plot_force_individuals(interactions):
 
         for ljpair in interactions:
             n=0
-            re2=[]
+            yvalue=[]
+            yerror=[] 
             force_list=[]
             for force in ljpair.forces:
-                re2.append(ljpair.properties[n][property_index]) #end to end radious squared
+                yvalue.append(ljpair.properties[n][property_index][0]) 
+                
+                if has_error[property_index]==True:
+                    yerror.append(ljpair.properties[n][property_index][1]) #Taking the autocorrelation error
+                else:
+                    yerror=None
                 force_list.append(force)
                 n+=1
-            plt.plot(force_list,re2,'-o',label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
+
+            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,marker='o',label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
             #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
 
         file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
@@ -145,7 +177,7 @@ def plot_force_individuals(interactions):
         file_name=name.replace(" ","_")
 
         """Legend"""
-        plt.legend(fontsize=legend_font,loc=1,labelspacing=0.05,ncol=ncols(n_interactions,4),borderpad=0.1,mode="expand",scatteryoffsets=[0.5])
+        plt.legend(fontsize=legend_font,loc=1,labelspacing=0.5,ncol=ncols(n_interactions,4),borderpad=0.1,scatteryoffsets=[0.5])
 
 
 
@@ -157,7 +189,7 @@ def plot_force_individuals(interactions):
             ylabel=file_name
 
         ax.set_xlabel("$F$",fontsize=axis_font)
-        ax.tick_params(labelsize=tick_font)
+        ax.tick_params(labelsize=tick_font,direction='in')
         ylabel=file_name
 
         ymin,ymax=plt.ylim()
@@ -168,7 +200,8 @@ def plot_force_individuals(interactions):
 
         ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*0.45)
         ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-
+        ax.spines["top"].set_visible(True)  
+        ax.spines["right"].set_visible(True)  
 
 
         """Lines"""
@@ -178,8 +211,8 @@ def plot_force_individuals(interactions):
         """General"""
 
         plt.grid(False)
-#        plt.rcParams["mathtext.fontset"] = "cm"
-#        plt.rcParams["text.usetex"] =True
+        plt.rcParams["mathtext.fontset"] = "cm"
+        plt.rcParams["text.usetex"] =True
         plt.tight_layout()
         plt.savefig("plots/individual/%s.pdf"%file_name)
         plt.close()
@@ -219,7 +252,8 @@ class LJInteraction(object):
         for element in properties:
             name,value=element.strip("\n").split("=")
             name=name.replace(" ","_")
-            values.append(float(value))
+            if len(value)>1:value=value.split()
+            values.append(np.double(value))
             names.append(name)
         self.properties.append(values)
         self.property_names.append(names)
@@ -233,7 +267,7 @@ class LJInteraction(object):
         index_rg=parameter_finder(self.property_names[count],"rg_ave")[0]
         for force in self.forces:
             if force!=0:
-                velocity=self.properties[count][index_vx]
+                velocity=ufloat(self.properties[count][index_vx][0],self.properties[count][index_vx][1])
                 rg=self.properties[count][index_rg]
                 mobility=-velocity/force
                 self.mobility.append(mobility)
@@ -269,7 +303,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat and computes relevant quantities and generates plots, It has to be run inside every N_X",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--source',choices=['READ','RUN','GATHER'], default="READ",help='Decides if the if the file Statistics_summary.dat needs to be READ, RUN, GATHERED  ')
+    parser.add_argument('-s','--source',choices=['read','run','gather'], default="read",help='Decides if the if the file Statistics_summary.dat needs to be read, run, gather  ')
 args = parser.parse_args()
 source=args.source
 
@@ -316,7 +350,9 @@ for interaction in interactions:
     name='E_%s_S_%s '%(interaction.epsilon,interaction.sigma)
     interaction.compute_mobility()
 
-    ave_mobility=np.average(interaction.mobility)
+    mobilities=np.array((interaction.mobility))
+    ave_mobility=sum(mobilities)/len(mobilities)
+    
     ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
     ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration in the bulk
     delta_cs=ave_concentration_rg-ave_concentration_bulk
@@ -324,12 +360,11 @@ for interaction in interactions:
     mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
 
 
-    data_interaction=[name,ave_mobility, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg ]
+    data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg.n, mobility_rg.s ]
     ave_data.append(data_interaction)
 
-header_data="lj_interaction,ave_mobility, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg"
 ave_data=np.array(ave_data)
-pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility', 'ave_concentration_rg','ave_concentration_bulk','delta_cs','ave_rg','mobility_rg'])
+pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility','mobility_error', 'ave_concentration_rg','ave_concentration_bulk','delta_cs','ave_rg','mobility_rg','mobility_rg_error'])
 
 
 pd_data.to_csv("Results.dat",sep=' ',index=False)
@@ -343,9 +378,9 @@ axis_font=24
 tick_font=20
 legend_font=18
 annotate_size=12
-xoffset=0.1
+xoffset=0.16
 yoffset=0.1
-
+error_cap=4
 
 directory="plots/all"
 if not os.path.exists(directory):
@@ -358,20 +393,20 @@ Mobility vs Delta Cs
 fig,ax=plt.subplots()
 
 ave_data=np.array(ave_data[:,1::],dtype=float) #Avoiding the first column which contains the interactions.
-ax.scatter(ave_data[:,-3],ave_data[:,0])
-x=np.array(ave_data[:,-3])
+ax.errorbar(ave_data[:,-4],ave_data[:,0],yerr=ave_data[:,1],fmt='o',capsize=error_cap)
+x=np.array(ave_data[:,-4])
 y=np.array(ave_data[:,0])
 
 
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (x[i],y[i]),horizontalalignment='center',verticalalignment='upper',fontsize=annotate_size)
+    ax.annotate(txt, (x[i]+0.002,y[i]),horizontalalignment='left',verticalalignment='center',fontsize=annotate_size)
 
 """Axis"""
 ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
 ax.grid(False)
 ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font)
+ax.tick_params(labelsize=tick_font,direction='in')
 
 ymin,ymax=plt.ylim()
 deltay=ymax-ymin
@@ -388,7 +423,8 @@ ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
 
 """General"""
-
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams["text.usetex"] =True
 plt.tight_layout()
 fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
@@ -403,21 +439,21 @@ Mobility/Rg vs Delta Cs
 """
 
 fig,ax=plt.subplots()
-ax.scatter(ave_data[:,-3],ave_data[:,-1])
+ax.errorbar(ave_data[:,-4],ave_data[:,-2],yerr=ave_data[:,-1], fmt='o', capsize=error_cap)
 
 
-x=np.array(ave_data[:,-3])
-y=np.array(ave_data[:,-1])
+x=np.array(ave_data[:,-4])
+y=np.array(ave_data[:,-2])
 
 for i in xrange(len(interactions)):
     txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (x[i],y[i]),horizontalalignment='center',verticalalignment='upper',fontsize=annotate_size)
+    ax.annotate(txt, (x[i]+0.002,y[i]),horizontalalignment='left',verticalalignment='center',fontsize=annotate_size)
 
 """Axis"""
 ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
 ax.grid(False)
 ax.set_ylabel(r'$\Gamma_{ps}/R_g [\tau/m\sigma]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font)
+ax.tick_params(labelsize=tick_font, direction='in')
 
 ymin,ymax=plt.ylim()
 deltay=ymax-ymin
@@ -434,6 +470,8 @@ ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
 
 """General"""
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams["text.usetex"] =True
 plt.tight_layout()
 fig.savefig("plots/all/Mobility_rg_Delta_Cs.pdf")
 plt.close()
