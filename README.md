@@ -1,3 +1,5 @@
-Install uncertainties conda install -c conda-forge uncertainties
+An additional python package is required:
+
+conda install -c conda-forge uncertainties
 # Utilities
 Bash, C and python useful scripts.
