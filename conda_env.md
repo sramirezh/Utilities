@@ -9,3 +9,7 @@ source activate simon
 # To see the available environments
 
 conda info --envs
+
+# To install in a given package
+
+conda install -c omnia pymbar --name simon
