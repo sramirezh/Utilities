@@ -235,7 +235,7 @@ def compute_statistics_param(dpolymin):
     """
     Gets the parameters for the dpolymin that should be used to call the compute_statistics.sh
     """
-    tfile,err=cf.bash_command("""find . -name "*.lmp" -print -quit""")#Assuming all the input files have the same parameters. 
+    tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -print -quit""")#Assuming all the input files have the same parameters. 
     print tfile
     out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
     d=int(extract_digits(out)[0]) #sampling Interval
