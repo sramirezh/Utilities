@@ -18,6 +18,7 @@ import pandas as pd
 import numpy as np
 import re
 import argparse
+import fnmatch
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -224,23 +225,6 @@ def is_valid_file(parser,arg):
         parser.error("The file %s does not exist!, see source options" % arg)
 
 
-def find_file_recursively(fname):
-    """
-    This function finds all the files with the given pattern inside the cwd,
-    similar to glob.glob but for python2 or to find in bash
-    Args:
-        The string pattern
-    Returns:
-        An array of the absolute path of the ocurrences
-    """
-    cwd = os.getcwd() #current working directory
-    matches = []
-    for root, dirnames, filenames in os.walk(cwd):
-        for filename in fnmatch.filter(filenames, fname):
-            matches.append(os.path.join(root, filename))
-
-    return matches
-
 def extract_digits(string):
     """
     Returns an array of all the digits in a string
@@ -251,20 +235,20 @@ def compute_statistics_param(dpolymin):
     """
     Gets the parameters for the dpolymin that should be used to call the compute_statistics.sh
     """
-    tfile=find_file_recursively('*.lmp')[0] #Assuming all the input files have the same parameters.
+    tfile,err=cf.bash_command("""find . -name "*.lmp" -print -quit""")#Assuming all the input files have the same parameters. 
+    print tfile
+    out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
+    d=int(extract_digits(out)[0]) #sampling Interval
 
-    out,err=bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
-    d=int(extract_digits(out)) #sampling Interval
+    out2,err=cf.bash_command("""grep -m 1 "myStepsEach equal"  %s"""%tfile)
+    n1=int(extract_digits(out2)[0])
+    out3,err=cf.bash_command("""grep -m 1 "myLoop loop"  %s"""%tfile)
+    n2=int(extract_digits(out3)[0])
 
-    out2,err=bash_command("""grep -m 1 "myStepsEach equal"  %s"""%tfile)
-    n1=re.findall(r"[-+]?\d*\.?\d+",out2) #Dump interval
-    out3,err=bash_command("""grep -m 1 "myLoop loop"  %s"""%tfile)
-    n2=re.findall(r"[-+]?\d*\.?\d+",out3) #Dump interval
-
-    n=int(n1[0])*int(n2[0])    #total number of steps
+    n=n1*n2    #total number of steps
 
     s=d*dpolymin
-    returns [s,d,n]
+    return [s,d,n]
 
 
 """
@@ -358,7 +342,8 @@ if source=="run":
     print "Interval dp_poly=%d"%dppoly_params[1]
     print "Final dp_poly step=%d"%dppoly_params[2]
     print "vdata discarded steps =%d"%args.vdatamin
-    cf.bash_command("""bash %s/compute_statistics.sh %d %d %d %d"""%(dir_path,dppoly_params[0],dppoly_params[2],dppoly_params[3],args.vdatamin))
+    print " "	
+    cf.bash_command("""bash %s/compute_statistics.sh %d %d %d %d"""%(dir_path,dppoly_params[0],dppoly_params[1],dppoly_params[2],args.vdatamin))
 
 elif source=="gather":
     print "\nGathering the statistics analysis results"
