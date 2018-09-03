@@ -224,6 +224,47 @@ def is_valid_file(parser,arg):
         parser.error("The file %s does not exist!, see source options" % arg)
 
 
+def find_file_recursively(fname):
+    """
+    This function finds all the files with the given pattern inside the cwd,
+    similar to glob.glob but for python2 or to find in bash
+    Args:
+        The string pattern
+    Returns:
+        An array of the absolute path of the ocurrences
+    """
+    cwd = os.getcwd() #current working directory
+    matches = []
+    for root, dirnames, filenames in os.walk(cwd):
+        for filename in fnmatch.filter(filenames, fname):
+            matches.append(os.path.join(root, filename))
+
+    return matches
+
+def extract_digits(string):
+    """
+    Returns an array of all the digits in a string
+    """
+    return re.findall(r"[-+]?\d*\.?\d+",string)
+
+def compute_statistics_param(dpolymin):
+    """
+    Gets the parameters for the dpolymin that should be used to call the compute_statistics.sh
+    """
+    tfile=find_file_recursively('*.lmp')[0] #Assuming all the input files have the same parameters.
+
+    out,err=bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
+    d=int(extract_digits(out)) #sampling Interval
+
+    out2,err=bash_command("""grep -m 1 "myStepsEach equal" input.lmp""")
+    n1=re.findall(r"[-+]?\d*\.?\d+",out2) #Dump interval
+    out3,err=bash_command("""grep -m 1 "myLoop loop" input.lmp""")
+    n2=re.findall(r"[-+]?\d*\.?\d+",out3) #Dump interval
+
+
+
+
+
 
 """
 *******************************************************************************
@@ -304,11 +345,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat and computes relevant quantities and generates plots, It has to be run inside every N_X",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s','--source',choices=['read','run','gather'], default="read",help='Decides if the if the file Statistics_summary.dat needs to be read, run, gather  ')
+    parser.add_argument('--vdatamin', help='Number of samples to be discarded in vdata.dat', default=1000, type=int)
+    parser.add_argument('--dpolymin', help='Number of samples to be discarded in DPpoly', default=100, type=int)
 args = parser.parse_args()
 source=args.source
 
 if source=="run":
     print "\nRunning the statistics analysis"
+
     cf.bash_command("""bash %s/compute_statistics.sh"""%dir_path)
 elif source=="gather":
     print "\nGathering the statistics analysis results"

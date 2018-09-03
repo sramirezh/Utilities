@@ -15,7 +15,7 @@ import numpy as np
 import argparse
 import os
 import sys
-from Functions import autocorrelation_error, blocking_error 
+from Functions import autocorrelation_error, blocking_error
 from scipy import stats
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
@@ -36,10 +36,10 @@ def exclude_parameters(names, p_to_exclude):
     """
     i_exclude=list(map(lambda x: cf.parameter_finder(names,x),exclude))
     i_exclude=np.concatenate(np.array(i_exclude))
-    
+
     return np.int(i_exclude)
-    
-    
+
+
 
 """
 *******************************************************************************
@@ -53,7 +53,7 @@ parser = argparse.ArgumentParser(description='This script evaluates the average 
 parser.add_argument('FileName', metavar='InputFile', type=str,
                     help='Input filename')
 
-parser.add_argument('--min', help='Number of timesteps to be discarded', default=1000, type=int)
+parser.add_argument('--min', help='Number of samples to be discarded', default=1000, type=int)
 
 
 args = parser.parse_args()
@@ -62,7 +62,7 @@ input_file=args.FileName
 
 
 data=cf.read_data_file(input_file)
-    
+
 
 names= list(data.columns.values)
 data1=data.values[min_limit::]
@@ -77,7 +77,7 @@ if isinstance(names[0],basestring)==True:
 else: #If the data does not have header
     data_to_analyse=data1
     names_to_analyse=names
-    
+
 
 size=len(names_to_analyse)
 averages=np.average(data_to_analyse,axis=0)
