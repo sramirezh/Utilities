@@ -22,7 +22,7 @@ for f in E_*/;
 		/nodescratch/frenkelscratch/sr802/DiffusioP/programs/dp_poly -s $s -d $d -n $n
 		cat average_info.dat >>$CurrentPath/Statistic_summary.dat
 		python ~/Utilities/Others/Statistics/FastAverager.py vdata.dat --min $min
-		cat statistics.dat >>$CurrentPath/Statistic_summary.dat
+		tail -n +2 statistics.dat >>$CurrentPath/Statistic_summary.dat
 		cd ..
 	done
 	cd $CurrentPath

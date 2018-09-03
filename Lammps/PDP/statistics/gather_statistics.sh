@@ -15,7 +15,7 @@ for f in E_*/;
 		echo $force >>$CurrentPath/Statistic_summary.dat
 		cd $force
 		cat average_info.dat >>$CurrentPath/Statistic_summary.dat
-		cat statistics.dat >>$CurrentPath/Statistic_summary.dat
+		tail -n +2 statistics.dat >>$CurrentPath/Statistic_summary.dat
 		cd ..
 	done
 	cd $CurrentPath
