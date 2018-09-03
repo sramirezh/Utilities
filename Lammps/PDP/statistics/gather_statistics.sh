@@ -14,10 +14,8 @@ for f in E_*/;
 		echo " " >>$CurrentPath/Statistic_summary.dat
 		echo $force >>$CurrentPath/Statistic_summary.dat
 		cd $force
-		#/nodescratch/frenkelscratch/sr802/DiffusioP/programs/dp_poly -s 100000 -n 10000000
 		cat average_info.dat >>$CurrentPath/Statistic_summary.dat
 		cat statistics.dat >>$CurrentPath/Statistic_summary.dat
-		#python ~/Utilities/Others/Statistics/FastAverager.py vdata.dat
 		cd ..
 	done
 	cd $CurrentPath

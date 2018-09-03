@@ -256,14 +256,16 @@ def compute_statistics_param(dpolymin):
     out,err=bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
     d=int(extract_digits(out)) #sampling Interval
 
-    out2,err=bash_command("""grep -m 1 "myStepsEach equal" input.lmp""")
+    out2,err=bash_command("""grep -m 1 "myStepsEach equal"  %s"""%tfile)
     n1=re.findall(r"[-+]?\d*\.?\d+",out2) #Dump interval
-    out3,err=bash_command("""grep -m 1 "myLoop loop" input.lmp""")
+    out3,err=bash_command("""grep -m 1 "myLoop loop"  %s"""%tfile)
     n2=re.findall(r"[-+]?\d*\.?\d+",out3) #Dump interval
 
+    n=int(n1[0])*int(n2[0])    #total number of steps
 
+    s=d*dpolymin
 
-
+    returns s,d,n
 
 
 """
@@ -351,9 +353,14 @@ args = parser.parse_args()
 source=args.source
 
 if source=="run":
-    print "\nRunning the statistics analysis"
+    print "\nRunning the statistics analysis, using the following parameters"
+    dppoly_params=compute_statistics_param(args.dpolymin)
+    print "Initial dp_poly step=%d"%dppoly_params[0]
+    print "Interval dp_poly=%d"%dppoly_params[1]
+    print "Final dp_poly step=%d"%dppoly_params[2]
+    print "vdata discarded steps =%d"%args.vdatamin
+    cf.bash_command("""bash %s/compute_statistics.sh %d %d %d %d"""%(dir_path,dppoly_params[0],dppoly_params[2],dppoly_params[3],args.vdatamin))
 
-    cf.bash_command("""bash %s/compute_statistics.sh"""%dir_path)
 elif source=="gather":
     print "\nGathering the statistics analysis results"
     cf.bash_command("""bash %s/gather_statistics.sh"""%dir_path)

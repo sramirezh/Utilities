@@ -3,6 +3,7 @@
 s=$1 #Initial step
 d=$2 #Interval
 n=$3 #FinalTimestep
+min=$4 #Samples to be discarded from vdata.dat
 
 CurrentPath=$(pwd)
 rm Statistic_summary.dat 2>/dev/null
@@ -20,7 +21,7 @@ for f in E_*/;
 		cd $force
 		/nodescratch/frenkelscratch/sr802/DiffusioP/programs/dp_poly -s $s -d $d -n $n
 		cat average_info.dat >>$CurrentPath/Statistic_summary.dat
-		python ~/Utilities/Others/Statistics/FastAverager.py vdata.dat
+		python ~/Utilities/Others/Statistics/FastAverager.py vdata.dat --min $min
 		cat statistics.dat >>$CurrentPath/Statistic_summary.dat
 		cd ..
 	done
