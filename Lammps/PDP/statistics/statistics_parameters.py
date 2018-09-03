@@ -264,8 +264,7 @@ def compute_statistics_param(dpolymin):
     n=int(n1[0])*int(n2[0])    #total number of steps
 
     s=d*dpolymin
-
-    returns s,d,n
+    returns [s,d,n]
 
 
 """
@@ -364,6 +363,7 @@ if source=="run":
 elif source=="gather":
     print "\nGathering the statistics analysis results"
     cf.bash_command("""bash %s/gather_statistics.sh"""%dir_path)
+
 else:
     is_valid_file(parser,"Statistic_summary.dat")
 
