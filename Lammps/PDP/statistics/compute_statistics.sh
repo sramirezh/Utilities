@@ -19,6 +19,7 @@ for f in E_*/;
 		echo " " >>$CurrentPath/Statistic_summary.dat
 		echo $force >>$CurrentPath/Statistic_summary.dat
 		cd $force
+		n=`ls -tr -1 conf/ |tail -1| tr -dc '0-9'` #Overwriting by getting the last sampled configuration:w 
 		/nodescratch/frenkelscratch/sr802/DiffusioP/programs/dp_poly -s $s -d $d -n $n
 		cat average_info.dat >>$CurrentPath/Statistic_summary.dat
 		python ~/Utilities/Others/Statistics/FastAverager.py vdata.dat --min $min
