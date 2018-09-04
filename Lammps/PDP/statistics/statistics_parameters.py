@@ -235,7 +235,7 @@ def compute_statistics_param(dpolymin):
     """
     Gets the parameters for the dpolymin that should be used to call the compute_statistics.sh
     """
-    tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -print -quit""")#Assuming all the input files have the same parameters. 
+    tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -print -quit""")#Assuming all the input files have the same parameters.
     print tfile
     out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
     d=int(extract_digits(out)[0]) #sampling Interval
@@ -342,7 +342,7 @@ if source=="run":
     print "Interval dp_poly=%d"%dppoly_params[1]
     print "Final dp_poly step=%d"%dppoly_params[2]
     print "vdata discarded steps =%d"%args.vdatamin
-    print " "	
+    print " "
     cf.bash_command("""bash %s/compute_statistics.sh %d %d %d %d"""%(dir_path,dppoly_params[0],dppoly_params[1],dppoly_params[2],args.vdatamin))
 
 elif source=="gather":
