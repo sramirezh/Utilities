@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 import re
 import argparse
-import fnmatch
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -276,9 +276,14 @@ class LJInteraction(object):
         values=[]
         names=[]
         for element in properties:
+            print element
             name,value=element.strip("\n").split("=")
             name=name.replace(" ","_")
-            if len(value)>1:value=value.split()
+            if 'NaN' in value:
+                value=float('nan')
+            elif len(value)>1:
+                value=value.split()
+            
             values.append(np.double(value))
             names.append(name)
         self.properties.append(values)
