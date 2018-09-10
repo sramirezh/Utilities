@@ -143,7 +143,6 @@ def plot_force_individuals(interactions):
     has_error=np.ones((n_properties), dtype=bool)
 
     for property_index in xrange(n_properties):
-        print interactions[0].properties[0][property_index]
         if np.size(interactions[0].properties[0][property_index])==1:
             has_error[property_index]=False
 
@@ -155,19 +154,18 @@ def plot_force_individuals(interactions):
 
         for ljpair in interactions:
             n=0
-            yvalue=[]
-            yerror=[]
+            yvalue=np.empty(0)
+            yerror=np.empty(0)
             force_list=[]
             for force in ljpair.forces:
-                yvalue.append(ljpair.properties[n][property_index][0])
-
                 if has_error[property_index]==True:
-                    yerror.append(ljpair.properties[n][property_index][1]) #Taking the autocorrelation error
+                    yvalue=np.append(ljpair.properties[n][property_index][0],yvalue)
+                    yerror=np.append(ljpair.properties[n][property_index][1],yerror) #Taking the autocorrelation error
                 else:
                     yerror=None
+                    yvalue=np.append(ljpair.properties[n][property_index],yvalue)
                 force_list.append(force)
                 n+=1
-
             plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,marker='o',label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
             #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
 
@@ -302,7 +300,10 @@ class LJInteraction(object):
                 rg=self.properties[count][index_rg]
                 mobility=-velocity/force
                 self.mobility.append(mobility)
-                self.mob_rg.append(mobility/rg)
+                if rg==0:
+                    self.mob_rg.append(10**8) #To avoid division by 0
+                else:
+                    self.mob_rg.append(mobility/rg)
             count+=1
 
     def get_property(self,name):
@@ -398,6 +399,7 @@ for interaction in interactions:
     ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration in the bulk
     delta_cs=ave_concentration_rg-ave_concentration_bulk
     ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
+    ave_rg=ave_rg+10**-10 #Avoid dividing by zero
     mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
 
 
