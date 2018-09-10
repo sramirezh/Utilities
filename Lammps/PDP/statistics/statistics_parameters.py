@@ -143,7 +143,8 @@ def plot_force_individuals(interactions):
     has_error=np.ones((n_properties), dtype=bool)
 
     for property_index in xrange(n_properties):
-        if len(interactions[0].properties[0][property_index])==1:
+        print interactions[0].properties[0][property_index]
+        if np.size(interactions[0].properties[0][property_index])==1:
             has_error[property_index]=False
 
         prop_name=interactions[-1].property_names[0][property_index] #Crude property name
@@ -276,7 +277,6 @@ class LJInteraction(object):
         values=[]
         names=[]
         for element in properties:
-            print element
             name,value=element.strip("\n").split("=")
             name=name.replace(" ","_")
             if 'NaN' in value:
@@ -473,49 +473,49 @@ plt.close()
 
 
 
-"""
-###############################################################################
-Mobility/Rg vs Delta Cs
-###############################################################################
-"""
-
-fig,ax=plt.subplots()
-ax.errorbar(ave_data[:,-4],ave_data[:,-2],yerr=ave_data[:,-1], fmt='o', capsize=error_cap)
-
-
-x=np.array(ave_data[:,-4])
-y=np.array(ave_data[:,-2])
-
-for i in xrange(len(interactions)):
-    txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (x[i]+0.002,y[i]),horizontalalignment='left',verticalalignment='center',fontsize=annotate_size)
-
-"""Axis"""
-ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
-ax.grid(False)
-ax.set_ylabel(r'$\Gamma_{ps}/R_g [\tau/m\sigma]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font, direction='in')
-
-ymin,ymax=plt.ylim()
-deltay=ymax-ymin
-
-xmin,xmax=plt.xlim()
-deltax=xmax-xmin
-
-ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
-ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-
-
-"""Lines"""
-ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
-
-"""General"""
-plt.rcParams["mathtext.fontset"] = "cm"
-plt.rcParams["text.usetex"] =True
-plt.tight_layout()
-fig.savefig("plots/all/Mobility_rg_Delta_Cs.pdf")
-plt.close()
+#"""
+################################################################################
+#Mobility/Rg vs Delta Cs
+################################################################################
+#"""
+#
+#fig,ax=plt.subplots()
+#ax.errorbar(ave_data[:,-4],ave_data[:,-2],yerr=ave_data[:,-1], fmt='o', capsize=error_cap)
+#
+#
+#x=np.array(ave_data[:,-4])
+#y=np.array(ave_data[:,-2])
+#
+#for i in xrange(len(interactions)):
+#    txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
+#    ax.annotate(txt, (x[i]+0.002,y[i]),horizontalalignment='left',verticalalignment='center',fontsize=annotate_size)
+#
+#"""Axis"""
+#ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
+#ax.grid(False)
+#ax.set_ylabel(r'$\Gamma_{ps}/R_g [\tau/m\sigma]$',fontsize=axis_font)
+#ax.tick_params(labelsize=tick_font, direction='in')
+#
+#ymin,ymax=plt.ylim()
+#deltay=ymax-ymin
+#
+#xmin,xmax=plt.xlim()
+#deltax=xmax-xmin
+#
+#ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+#ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
+#
+#
+#"""Lines"""
+#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+#ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
+#
+#"""General"""
+#plt.rcParams["mathtext.fontset"] = "cm"
+#plt.rcParams["text.usetex"] =True
+#plt.tight_layout()
+#fig.savefig("plots/all/Mobility_rg_Delta_Cs.pdf")
+#plt.close()
 
 
 
