@@ -102,6 +102,7 @@ error_s=stats.sem(data_to_analyse)
 #Blocking analysis
 error_b=blocking_error(data_to_analyse)
 
+
 print "The Results are:\n"
 print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple"
 file=open("statistics.dat",'w')

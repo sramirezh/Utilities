@@ -59,6 +59,9 @@ def autocorrelation_error (A,av):
     return C, corrTime
 
 def blocking_error(data):
+    """
+    Returns a zero error and average for a column that has zero in all entries
+    """
     n,m=np.shape(data)
     MaxIter=int(np.round(np.log(n)/np.log(2)))
     Results=np.zeros((MaxIter,3*m))
@@ -77,7 +80,10 @@ def blocking_error(data):
             i+=1
             
     for i in xrange(m):
-        final_error[i]=Error[np.max(np.nonzero(Error[:,i]))-1,i]
+        if np.size(np.nonzero(Error[:,i]))==0:  #This arises when the 
+            final_error[i]=0
+        else:
+            final_error[i]=Error[np.max(np.nonzero(Error[:,i]))-1,i]
         
     return final_error
 
