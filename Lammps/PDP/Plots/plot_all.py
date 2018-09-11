@@ -13,15 +13,18 @@ import numpy as np
 
 all_data=[] #Every position keeps the data for one number of particles
 data_pd=[]
+#data0=pd.read_csv("N_1_Results.dat",sep=" ").as_matrix()
 data=pd.read_csv("N_30_Results.dat",sep=" ").as_matrix()
 data1=pd.read_csv("N_60_Results.dat",sep=" ").as_matrix()
 data2=pd.read_csv("N_90_Results.dat",sep=" ").as_matrix()
 data3=pd.read_csv("N_120_Results.dat",sep=" ").as_matrix()
+#all_data.append(np.array(data0[:,1:],dtype=float))
 all_data.append(np.array(data[:,1:],dtype=float))
 all_data.append(np.array(data1[:,1:],dtype=float))
 all_data.append(np.array(data2[:,1:],dtype=float))
 all_data.append(np.array(data3[:,1:],dtype=float))
 
+#data_pd.append(data0)
 data_pd.append(data)
 data_pd.append(data1)
 data_pd.append(data2)
@@ -31,6 +34,7 @@ data_pd.append(data3)
 
 
 
+#names=[0,30,60,90,120]
 names=[30,60,90,120]
 """
 ###############################################################################
