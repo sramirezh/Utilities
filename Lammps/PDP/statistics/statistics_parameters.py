@@ -121,15 +121,17 @@ def plot_force_individuals(interactions):
     """
     Plots the parameters from statistic_summary for each force, for each interaction
     """
+    colors=['r','b','k','g','r','b','k','g','r','b','k','g']
     #General plot parameters
     axis_font=24
     tick_font=20
     legend_font=18
     xoffset=0.1
     yoffset=0.1
+    error_cap=4
 
     #This Dict is going to be compared with the variable file_name
-    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$v_x$','rg_ave':r'$R_g [\sigma]$'}
+    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$V_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$'}
 
     print "\nGenerating Plots..."
     directory="plots/individual"
@@ -138,7 +140,6 @@ def plot_force_individuals(interactions):
         os.makedirs(directory)
 
     n_properties=len(interactions[0].properties[0]) #Number of properties
-    n_interactions=len(interactions)
 
     has_error=np.ones((n_properties), dtype=bool)
 
@@ -147,37 +148,49 @@ def plot_force_individuals(interactions):
             has_error[property_index]=False
 
         prop_name=interactions[-1].property_names[0][property_index] #Crude property name
-
         if "Time" in prop_name: continue #To avoid plotting the timestep
+        file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
+        name=re.sub('_',' ',file_name)
+        print "\nplotting the %s" %name
+         
+        
 
         fig,ax=plt.subplots()
-
+        i_interaction=0
         for ljpair in interactions:
             n=0
             yvalue=np.empty(0)
             yerror=np.empty(0)
             force_list=[]
             for force in ljpair.forces:
+
                 if has_error[property_index]==True:
-                    yvalue=np.append(ljpair.properties[n][property_index][0],yvalue)
-                    yerror=np.append(ljpair.properties[n][property_index][1],yerror) #Taking the autocorrelation error
+                    yvalue=np.append(yvalue,ljpair.properties[n][property_index][0]) #Be careful np.append inserts in reverse order compared to .append
+                    yerror=np.append(yerror,ljpair.properties[n][property_index][1]) #Taking the autocorrelation error
                 else:
                     yerror=None
-                    yvalue=np.append(ljpair.properties[n][property_index],yvalue)
+                    yvalue=np.append(yvalue,ljpair.properties[n][property_index])
                 force_list.append(force)
                 n+=1
-            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,marker='o',label='$\epsilon$=%s $\sigma$=%s '%(ljpair.epsilon,ljpair.sigma))
+            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
+                         color=colors[i_interaction],capsize=error_cap)
+            
+            # Adding a linear fit
+            x=force_list
+            y=yvalue
+            ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),color=colors[i_interaction],linestyle='--')
             #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
+            i_interaction+=1
 
-        file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
-        name=re.sub('_',' ',file_name)
 
-        print "\nplotting the %s" %name
+
+       
 
         file_name=name.replace(" ","_")
 
         """Legend"""
-        plt.legend(fontsize=legend_font,loc=1,labelspacing=0.5,ncol=ncols(n_interactions,4),borderpad=0.1,scatteryoffsets=[0.5])
+        plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+           frameon=True, fancybox=False, edgecolor='k')
 
 
 
@@ -188,18 +201,21 @@ def plot_force_individuals(interactions):
         except:
             ylabel=file_name
 
-        ax.set_xlabel("$F$",fontsize=axis_font)
-        ax.tick_params(labelsize=tick_font,direction='in')
+        ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla \mu_s [\epsilon/\sigma]$',fontsize=axis_font)
+        ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
         ylabel=file_name
 
         ymin,ymax=plt.ylim()
         deltay=ymax-ymin
+        ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*0.45)
 
         xmin,xmax=plt.xlim()
         deltax=xmax-xmin
-
-        ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*0.45)
         ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
+        
+        
+        
+        plt.xticks(np.arange(0.02,0.12,0.02))
         ax.spines["top"].set_visible(True)
         ax.spines["right"].set_visible(True)
 
@@ -428,6 +444,9 @@ error_cap=4
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
+    
+    
+    
 """
 ###############################################################################
 Mobility vs Delta Cs
@@ -453,12 +472,17 @@ ax.tick_params(labelsize=tick_font,direction='in')
 
 ymin,ymax=plt.ylim()
 deltay=ymax-ymin
+ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+
 
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
-
-ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
 ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
+
+
+
+
+
 
 
 """Lines"""
@@ -473,6 +497,53 @@ fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
 
 
+
+
+"""
+###############################################################################
+Mobility vs epsilon ms
+###############################################################################
+"""
+epsilon_vect=[]
+for i in xrange(len(interactions)):
+    epsilon_vect.append(interactions[i].epsilon)
+
+fig,ax=plt.subplots()
+
+ax.errorbar(epsilon_vect,ave_data[:,0],yerr=ave_data[:,1],fmt='o',capsize=error_cap,color='b')
+x=np.array(epsilon_vect)
+y=np.array(ave_data[:,0])
+
+
+
+"""Axis"""
+ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
+ax.grid(False)
+ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$',fontsize=axis_font)
+ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+
+ymin,ymax=plt.ylim()
+deltay=ymax-ymin
+ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+
+xmin,xmax=plt.xlim()
+deltax=xmax-xmin
+#ax.set_xlim(0,xmax+deltax*xoffset)
+ax.set_xlim(0,7)
+plt.xticks(np.arange(0,8,1))
+
+
+
+
+"""Lines"""
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+
+"""General"""
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams["text.usetex"] =True
+plt.tight_layout()
+fig.savefig("plots/all/Mobility_vs_epsilon.pdf")
+plt.close()
 
 
 #"""

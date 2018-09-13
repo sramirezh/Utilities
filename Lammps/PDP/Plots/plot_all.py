@@ -36,6 +36,7 @@ data_pd.append(data3)
 
 #names=[0,30,60,90,120]
 names=[30,60,90,120]
+colors=['r','b','k']
 """
 ###############################################################################
 Starting the plot
@@ -53,7 +54,7 @@ error_cap=4
 Mobility vs N
 """
 fig,ax=plt.subplots()
-interactions=[r'$\epsilon=0.5 \sigma=1.0 $',r'$\epsilon=1.0 \sigma=1.0 $',r'$\epsilon=1.5 \sigma=1.0 $']
+interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 j=0
 for interaction in interactions:
     print interaction
@@ -69,7 +70,7 @@ for interaction in interactions:
         i=i+1
     x=np.array(names).astype(np.float)
     y=np.array(mobility).astype(np.float)
-    ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
+    ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),color=colors[j],linestyle='--')
     color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
     ax.errorbar(names,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o',capsize=error_cap)
     j=j+1
@@ -77,32 +78,42 @@ for interaction in interactions:
 
 
 """Axis"""
-ax.set_xlabel(r'$N $',fontsize=axis_font)
+ax.set_xlabel(r'$N_m $',fontsize=axis_font)
 ax.grid(False)
 ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font,direction='in')
+ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+
+
 
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 #ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
 
-ymin,ymax=plt.ylim()
-deltay=ymax-ymin
+
 
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 
+plt.xticks(np.arange(len(names)+1)*30)
+ax.set_xlim(20,130)
+
+
+ymin,ymax=plt.ylim()
+deltay=ymax-ymin
+
 ax.set_ylim(ymin,ymax+deltay*yoffset)
+plt.yticks(np.arange(-0.1,0.2,0.1))
 #ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
 
 """Legend"""
-plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6])
+plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+           frameon=True, fancybox=False, edgecolor='k')
 
 
 """General"""
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["text.usetex"] =True
 plt.tight_layout()
-fig.savefig("Mobility_N.pdf")
+fig.savefig("Mobility_N.pdf",transparent=False)
 #plt.close()
 
 
@@ -133,7 +144,7 @@ ax.legend(fontsize=legend_font)
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["text.usetex"] =True
 plt.tight_layout()
-fig.savefig("Mobility_Delta_Cs_all.pdf")
+fig.savefig("Mobility_Delta_Cs_all.pdf",transparent=True)
 plt.close()
 
 
@@ -161,7 +172,7 @@ ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
 plt.tight_layout()
 ax.legend(fontsize=legend_font)
-fig.savefig("Mobility_rg_Delta_Cs_all.pdf")
+fig.savefig("Mobility_rg_Delta_Cs_all.pdf",transparent=True)
 plt.close()
 
 
@@ -190,7 +201,7 @@ ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
 plt.tight_layout()
 ax.legend(fontsize=legend_font)
-fig.savefig("Movility_rg_vs_N.pdf")
+fig.savefig("Mobility_rg_vs_N.pdf",transparent=True)
 plt.close()
 
 
@@ -218,6 +229,6 @@ ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
 plt.tight_layout()
 ax.legend(fontsize=legend_font)
-fig.savefig("Movilityvs_N.pdf")
+fig.savefig("Mobilityvs_N.pdf",transparent=True)
 plt.close()
 
