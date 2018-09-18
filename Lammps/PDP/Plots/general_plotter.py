@@ -39,7 +39,7 @@ def general_plotter(data,columns=[0,1],marker="."):
     """
     Plot a property from several files
     Args:
-        data that wants to be plotted 
+        data that wants to be plotted
         columns an array [x.y] containing the positions you want to plot
         path_name automatically gives a name for the legends of the plot taken from the path, so this is the index of the
         name counting from the back that follows the name of the file.
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
     parser.add_argument('-columns', metavar='columns',help='Properties to plot',nargs=2,default=[0,1],type=int)
     parser.add_argument('-path_name',metavar='path_name',help='depth in tree to define name',default=3,type=int )
-    parser.add_argument('-plot_name',metavar='plot_name',help='Name of the pdf file generated', default='plotter.pdf',type=str)
+    parser.add_argument('-plot_name',metavar='plot_name',help='Name of the file generated, including the extension', default='plotter.png',type=str)
     args = parser.parse_args()
     files=args.file_name
     columns=args.columns
