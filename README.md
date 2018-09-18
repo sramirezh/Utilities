@@ -1,4 +1,4 @@
-## Additional python package is required:
+## Additional python packages:
 
 conda install -c conda-forge tqdm
 conda install -c conda-forge uncertainties
