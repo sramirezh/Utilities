@@ -201,7 +201,7 @@ def plot_force_individuals(interactions):
         except:
             ylabel=file_name
 
-        ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla \mu_s [\epsilon/\sigma]$',fontsize=axis_font)
+        ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\epsilon/\sigma]$',fontsize=axis_font)
         ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
         ylabel=file_name
 
