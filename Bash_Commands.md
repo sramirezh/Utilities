@@ -33,4 +33,5 @@ sshfs dexter:/frenkelscratch/sr802 dexter_scratch
 
 # Change the walltime of all *.qsub
 list=`find . -name "run.qsub"`
+
 for file in $list; do sed -i '3s/.*/#PBS -l walltime=24:00:00/' $file;done 
