@@ -131,8 +131,8 @@ def plot_force_individuals(interactions):
     error_cap=4
 
     #This Dict is going to be compared with the variable file_name
-    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$V_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$'}
-
+    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$V_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
+    dic_fit={'vx_poly':1}
     print "\nGenerating Plots..."
     directory="plots/individual"
 
@@ -175,10 +175,16 @@ def plot_force_individuals(interactions):
             plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=colors[i_interaction],capsize=error_cap)
             
-            # Adding a linear fit
-            x=force_list
-            y=yvalue
-            ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),color=colors[i_interaction],linestyle='--')
+            """Linear fit"""
+            try:
+                fit_deg=dic_fit[file_name]
+                x=force_list
+                y=yvalue
+                ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, fit_deg))(np.unique(x)),color=colors[i_interaction],linestyle='--')
+            except:
+                pass
+                
+           
             #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
             i_interaction+=1
 
