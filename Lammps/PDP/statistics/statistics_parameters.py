@@ -121,7 +121,8 @@ def plot_force_individuals(interactions):
     """
     Plots the parameters from statistic_summary for each force, for each interaction
     """
-    colors=['r','b','k','g','r','b','k','g','r','b','k','g']
+    
+    
     #General plot parameters
     axis_font=24
     tick_font=20
@@ -129,7 +130,9 @@ def plot_force_individuals(interactions):
     xoffset=0.1
     yoffset=0.1
     error_cap=4
-
+    
+    
+    colors=['r','b','k','g']
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$V_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
     dic_fit={'vx_poly':1}
@@ -152,8 +155,8 @@ def plot_force_individuals(interactions):
         file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
         name=re.sub('_',' ',file_name)
         print "\nplotting the %s" %name
-         
-        
+
+
 
         fig,ax=plt.subplots()
         i_interaction=0
@@ -172,25 +175,43 @@ def plot_force_individuals(interactions):
                     yvalue=np.append(yvalue,ljpair.properties[n][property_index])
                 force_list.append(force)
                 n+=1
-            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
-                         color=colors[i_interaction],capsize=error_cap)
+
+                if file_name=='vx_poly':
+                        force_list.append(0)
+                        yvalue=np.append(yvalue,0)
+                        yerror=np.append(yerror,0)
+                        print force_list
+                        print yvalue
+                        print yerror
             
+            #Defining the first colors from array and the rest by random numbers
+            if i_interaction<len(colors):color=colors[i_interaction]
+            else: color=np.random.rand(3)
+            
+            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
+                         color=color,capsize=error_cap)
+
             """Linear fit"""
             try:
                 fit_deg=dic_fit[file_name]
                 x=force_list
                 y=yvalue
-                ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, fit_deg))(np.unique(x)),color=colors[i_interaction],linestyle='--')
+                ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, fit_deg))(np.unique(x)),color=color,linestyle='--')
+
+
+
+
+
             except:
                 pass
-                
-           
+
+
             #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
             i_interaction+=1
 
 
 
-       
+
 
         file_name=name.replace(" ","_")
 
@@ -218,9 +239,9 @@ def plot_force_individuals(interactions):
         xmin,xmax=plt.xlim()
         deltax=xmax-xmin
         ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-        
-        
-        
+
+
+
         plt.xticks(np.arange(0.02,0.12,0.02))
         ax.spines["top"].set_visible(True)
         ax.spines["right"].set_visible(True)
@@ -303,7 +324,7 @@ class LJInteraction(object):
                 value=float('nan')
             elif len(value)>1:
                 value=value.split()
-            
+
             values.append(np.double(value))
             names.append(name)
         self.properties.append(values)
@@ -450,9 +471,9 @@ error_cap=4
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
-    
-    
-    
+
+
+
 """
 ###############################################################################
 Mobility vs Delta Cs
@@ -535,8 +556,8 @@ ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 #ax.set_xlim(0,xmax+deltax*xoffset)
-ax.set_xlim(0,7)
-plt.xticks(np.arange(0,8,1))
+ax.set_xlim(0,30)
+plt.xticks(np.arange(0,31,5))
 
 
 
