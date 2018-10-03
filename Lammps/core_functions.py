@@ -4,6 +4,7 @@ from shlex import split
 import argparse
 import os
 import pandas as pd
+import re
 
 def bash_command(cmd):
     """
@@ -92,8 +93,8 @@ def read_data_file(input_file):
 
     return data
 
-    def extract_digits(string):
-        """
-        Returns an array of all the digits in a string
-        """
-        return re.findall(r"[-+]?\d*\.?\d+",string)
+def extract_digits(string):
+    """
+    Returns an array of all the digits in a string
+    """
+    return re.findall(r"[-+]?\d*\.?\d+",string)

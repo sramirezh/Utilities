@@ -13,6 +13,7 @@ import warnings
 import sys 
 import os
 import glob
+import bisect 
 
 warnings.filterwarnings("ignore")
 
@@ -49,40 +50,29 @@ else:
     dat_files=files
 
 
+    
+#Sorting with the number of polymers
+
+
+
 all_data=[] #Every position keeps the data for one number of particles
 data_pd=[]
+lengths=[]
 
-for file in dat_files:
-    print "reading file %s \n"%file 
-    data=pd.read_csv(file,sep=" ").as_matrix()
-    all_data.append(np.array(data[:,1:],dtype=float))
-    data_pd.append(data)
+for f in dat_files:
+    """
+    Inserts the data from the files in order based on the length of the polymer.
+    """
+    print "reading file %s \n"%f 
+    length=int(cf.extract_digits(f)[0])
+    position=bisect.bisect(lengths,length)
+    lengths.insert(position,length)
+    data=pd.read_csv(f,sep=" ").as_matrix()
+    all_data.insert(position,np.array(data[:,1:],dtype=float))
+    data_pd.insert(position,data)
     
     
-    
-#data=pd.read_csv("N_30_Results.dat",sep=" ").as_matrix()
-#data1=pd.read_csv("N_60_Results.dat",sep=" ").as_matrix()
-#data2=pd.read_csv("N_90_Results.dat",sep=" ").as_matrix()
-#data3=pd.read_csv("N_120_Results.dat",sep=" ").as_matrix()
-##all_data.append(np.array(data0[:,1:],dtype=float))
-#all_data.append(np.array(data[:,1:],dtype=float))
-#all_data.append(np.array(data1[:,1:],dtype=float))
-#all_data.append(np.array(data2[:,1:],dtype=float))
-#all_data.append(np.array(data3[:,1:],dtype=float))
-#
-##data_pd.append(data0)
-#data_pd.append(data)
-#data_pd.append(data1)
-#data_pd.append(data2)
-#data_pd.append(data3)
-
-
-
-
-
-#names=[0,30,60,90,120]
-names=[30,60,90,120]
-colors=['r','b','k']
+colors=['r','b','k','g']
 """
 ###############################################################################
 Starting the plot
@@ -103,20 +93,21 @@ fig,ax=plt.subplots()
 interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 
 for j,interaction in enumerate(interactions):
-    print j
     mobility=[]
     error_mobility=[]
     for i,ave_data in enumerate(all_data):
         mobility.append(ave_data[j,0])
         error_mobility.append(ave_data[j,1])
-    #    x=np.array(ave_data[3,4]).astype(np.float)
-    #    y=np.array(ave_data[3,0]).astype(np.float)
-    #    ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
-    x=np.array(names).astype(np.float)
+    
+    if j<len(colors):color=colors[j]
+    else: color=np.random.rand(3)
+    
+    x=np.array(lengths).astype(np.float)
     y=np.array(mobility).astype(np.float)
+    
     ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),color=colors[j],linestyle='--')
     color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
-    ax.errorbar(names,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o',capsize=error_cap)
+    ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o',capsize=error_cap)
 
 
 
@@ -137,7 +128,7 @@ ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 
-plt.xticks(np.arange(len(names)+1)*30)
+plt.xticks(np.arange(len(lengths)+1)*30)
 ax.set_xlim(20,130)
 
 
