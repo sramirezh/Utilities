@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 import re
 import argparse
-
+from scipy import optimize
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -116,6 +116,9 @@ def ncols(nparameters, row_per_column):
 
     return ncols
 
+# define our (line) fitting function
+    
+
 
 def plot_force_individuals(interactions):
     """
@@ -159,13 +162,11 @@ def plot_force_individuals(interactions):
 
 
         fig,ax=plt.subplots()
-        i_interaction=0
-        for ljpair in interactions:
-            n=0
+        for i,ljpair in enumerate(interactions):
             yvalue=np.empty(0)
             yerror=np.empty(0)
             force_list=[]
-            for force in ljpair.forces:
+            for n,force in enumerate(ljpair.forces):
 
                 if has_error[property_index]==True:
                     yvalue=np.append(yvalue,ljpair.properties[n][property_index][0]) #Be careful np.append inserts in reverse order compared to .append
@@ -174,44 +175,31 @@ def plot_force_individuals(interactions):
                     yerror=None
                     yvalue=np.append(yvalue,ljpair.properties[n][property_index])
                 force_list.append(force)
-                n+=1
 
-                if file_name=='vx_poly':
-                        force_list.append(0)
-                        yvalue=np.append(yvalue,0)
-                        yerror=np.append(yerror,0)
-                        print force_list
-                        print yvalue
-                        print yerror
             
             #Defining the first colors from array and the rest by random numbers
-            if i_interaction<len(colors):color=colors[i_interaction]
+            if i<len(colors):color=colors[i]
             else: color=np.random.rand(3)
             
             plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=color,capsize=error_cap)
 
             """Linear fit"""
+            
+            fitfunc = lambda p, x: p[1] * x
+            errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
+            
             try:
-                fit_deg=dic_fit[file_name]
-                x=force_list
+                x=np.array(force_list)
                 y=yvalue
-                ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, fit_deg))(np.unique(x)),color=color,linestyle='--')
 
-
-
-
-
+                pinit = [1.0, -1.0]
+                out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
+                pfinal = out[0] #fitting coefficients
+                x=np.insert(x,0,0)
+                ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=color,linestyle='--')
             except:
                 pass
-
-
-            #plt.legend("" %(ljpair.epsilon,ljpair.sigma))
-            i_interaction+=1
-
-
-
-
 
         file_name=name.replace(" ","_")
 
@@ -238,7 +226,7 @@ def plot_force_individuals(interactions):
 
         xmin,xmax=plt.xlim()
         deltax=xmax-xmin
-        ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
+        ax.set_xlim(0,0.12)
 
 
 

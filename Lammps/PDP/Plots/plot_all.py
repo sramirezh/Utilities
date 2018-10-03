@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jun  7 12:00:01 2018
-Script to plot all the results from different polymer number
+Script to plot all the results from different polymer number, in the options you can decide if to plot all the dat files or just the ones you decide
 @author: sr802
 """
 from __future__ import division
