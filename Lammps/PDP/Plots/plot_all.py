@@ -2,33 +2,79 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jun  7 12:00:01 2018
-Script to plot all the results, it is really rough yet, so need to be improved
+Script to plot all the results from different polymer number
 @author: sr802
 """
-import matplotlib.pyplot as plt
+from __future__ import division
+import argparse
 import pandas as pd
 import numpy as np
+import warnings
+import sys 
+import os
+import glob
 
+warnings.filterwarnings("ignore")
+
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
+import Lammps.core_functions as cf
+
+
+try:
+    import matplotlib
+    matplotlib.use('agg')
+    import matplotlib.pyplot as plt
+except ImportError as err:
+    print err
+  
+    
+    
+"""
+*******************************************************************************
+Main
+*******************************************************************************
+"""
+parser = argparse.ArgumentParser(description='This script reads the Results.dat ' \
+                                 'from several simualtions and plots the mobility'\
+                                 'vs N, as long as they are named "*Results.dat"',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('-file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
+args = parser.parse_args()
+files=args.file_name
+
+
+if files==None:
+    dat_files=glob.glob('*Results.dat') #Set this as the option for no input.
+else:
+    dat_files=files
 
 
 all_data=[] #Every position keeps the data for one number of particles
 data_pd=[]
-#data0=pd.read_csv("N_1_Results.dat",sep=" ").as_matrix()
-data=pd.read_csv("N_30_Results.dat",sep=" ").as_matrix()
-data1=pd.read_csv("N_60_Results.dat",sep=" ").as_matrix()
-data2=pd.read_csv("N_90_Results.dat",sep=" ").as_matrix()
-data3=pd.read_csv("N_120_Results.dat",sep=" ").as_matrix()
-#all_data.append(np.array(data0[:,1:],dtype=float))
-all_data.append(np.array(data[:,1:],dtype=float))
-all_data.append(np.array(data1[:,1:],dtype=float))
-all_data.append(np.array(data2[:,1:],dtype=float))
-all_data.append(np.array(data3[:,1:],dtype=float))
 
-#data_pd.append(data0)
-data_pd.append(data)
-data_pd.append(data1)
-data_pd.append(data2)
-data_pd.append(data3)
+for file in dat_files:
+    print "reading file %s \n"%file 
+    data=pd.read_csv(file,sep=" ").as_matrix()
+    all_data.append(np.array(data[:,1:],dtype=float))
+    data_pd.append(data)
+    
+    
+    
+#data=pd.read_csv("N_30_Results.dat",sep=" ").as_matrix()
+#data1=pd.read_csv("N_60_Results.dat",sep=" ").as_matrix()
+#data2=pd.read_csv("N_90_Results.dat",sep=" ").as_matrix()
+#data3=pd.read_csv("N_120_Results.dat",sep=" ").as_matrix()
+##all_data.append(np.array(data0[:,1:],dtype=float))
+#all_data.append(np.array(data[:,1:],dtype=float))
+#all_data.append(np.array(data1[:,1:],dtype=float))
+#all_data.append(np.array(data2[:,1:],dtype=float))
+#all_data.append(np.array(data3[:,1:],dtype=float))
+#
+##data_pd.append(data0)
+#data_pd.append(data)
+#data_pd.append(data1)
+#data_pd.append(data2)
+#data_pd.append(data3)
 
 
 
@@ -55,25 +101,23 @@ Mobility vs N
 """
 fig,ax=plt.subplots()
 interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
-j=0
-for interaction in interactions:
-    print interaction
+
+for j,interaction in enumerate(interactions):
+    print j
     mobility=[]
     error_mobility=[]
-    i=0
-    for ave_data in all_data:
+    for i,ave_data in enumerate(all_data):
         mobility.append(ave_data[j,0])
         error_mobility.append(ave_data[j,1])
     #    x=np.array(ave_data[3,4]).astype(np.float)
     #    y=np.array(ave_data[3,0]).astype(np.float)
     #    ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)))
-        i=i+1
     x=np.array(names).astype(np.float)
     y=np.array(mobility).astype(np.float)
     ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),color=colors[j],linestyle='--')
     color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
     ax.errorbar(names,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o',capsize=error_cap)
-    j=j+1
+
 
 
 

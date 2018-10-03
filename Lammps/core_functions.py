@@ -91,3 +91,9 @@ def read_data_file(input_file):
             data.columns=header.split()
 
     return data
+
+    def extract_digits(string):
+        """
+        Returns an array of all the digits in a string
+        """
+        return re.findall(r"[-+]?\d*\.?\d+",string)
