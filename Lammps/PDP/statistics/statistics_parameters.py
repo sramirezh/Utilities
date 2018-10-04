@@ -242,8 +242,11 @@ def plot_force_individuals(interactions):
         """General"""
 
         plt.grid(False)
-        plt.rcParams["mathtext.fontset"] = "cm"
-        plt.rcParams["text.usetex"] =True
+        try:
+            plt.rcParams["mathtext.fontset"] = "cm"
+            plt.rcParams["text.usetex"] =True
+        except:
+            pass
         plt.tight_layout()
         plt.savefig("plots/individual/%s.pdf"%file_name)
         plt.close()

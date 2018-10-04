@@ -76,7 +76,7 @@ def pre_processing(files,path_name):
     for fil in files:
         data.append(cf.read_data_file(fil).values)
         names.append(get_name(fil,path_name))
-
+        
     return data,names
 
 """

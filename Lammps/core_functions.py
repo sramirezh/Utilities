@@ -88,8 +88,13 @@ def read_data_file(input_file):
             if len(data_1)!=len(data_2): #If there is a line containing the number of particles,
                 data_file.readline()
             data_file.readline()
-            data=pd.read_csv(data_file,sep=" ",header=None).dropna(axis=1,how='all')
-            data.columns=header.split()
+            
+            try:
+                data=pd.read_csv(data_file,sep=" ",header=None).dropna(axis=1,how='all')
+                data.columns=header.split()
+            except:
+                raise Exception("The input file '%s' is corrupted, usually the problem is because "\
+                                "there is an end of a line that has an additional space" %input_file)
 
     return data
 
