@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct  4 12:36:57 2018
-This plots the results from different methods, moving
+This plots the results from different sizes.
+This is done in 
+/home/sr802/Dropbox/PhD/Cambridge/Academic/2.Redaction/3.Diffusiophoresis/3.Report/Figs/2.size_effect
 @author: sr802
 """
 
@@ -30,13 +32,12 @@ parser = argparse.ArgumentParser(description='This script plots the method files
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
 parser.add_argument('-columns', metavar='columns',help='Properties to plot',nargs=2,default=[0,1],type=int)
 parser.add_argument('-path_name',metavar='path_name',help='depth in tree to define name',default=3,type=int )
-parser.add_argument('-plot_name',metavar='plot_name',help='Name of the file generated, including the extension', default='method_comparison.pdf',type=str)
+parser.add_argument('-plot_name',metavar='plot_name',help='Name of the file generated, including the extension', default='size_analysis.pdf',type=str)
 args = parser.parse_args()
 files=args.file_name
 columns=args.columns
 path_name=args.path_name
 file_name=args.plot_name
-
 
 """
 This is the general structure of anything in a file
@@ -49,7 +50,6 @@ data,names=pre_processing(files,path_name)
 Preprocessing data
 """
 index=cf.parameter_finder(names,"free")
-data[1][:,1]*=-1 #As the free polymer moves in the opposite direction of the flow
 
 for i,name in enumerate(names):
     names[i]=name.split('_')[-2].capitalize()
@@ -87,7 +87,7 @@ plt.legend(names,fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpa
 
 """Axis"""
 
-ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\epsilon/\sigma]$',fontsize=axis_font)
+ax.set_xlabel(r'$L[\sigma]$',fontsize=axis_font)
 ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
 
 ax.set_ylabel(r'$|V_p^x|[\sigma/\tau]$',fontsize=axis_font)
@@ -98,11 +98,11 @@ ax.set_ylim(0,ymax+deltay*0.45)
 
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
-ax.set_xlim(0,0.12)
+ax.set_xlim(19,31)
 
 
 
-plt.xticks(np.arange(0.02,0.12,0.02))
+plt.xticks(np.arange(20,32,2))
 ax.spines["top"].set_visible(True)
 ax.spines["right"].set_visible(True)
 

@@ -35,12 +35,13 @@ def get_name(file_name,path_name):
     return name
 
 
-def general_plotter(data,columns=[0,1],marker="."):
+def general_plotter(data,columns=[0,1],xerror=None,yerror=None,marker=None):
     """
     Plot a property from several files
     Args:
         data that wants to be plotted
         columns an array [x.y] containing the positions you want to plot
+        xerror,yerror give the position in the data of the errors
         path_name automatically gives a name for the legends of the plot taken from the path, so this is the index of the
         name counting from the back that follows the name of the file.
 
@@ -48,17 +49,29 @@ def general_plotter(data,columns=[0,1],marker="."):
         fig,ax to be handled and later customized.
 
     """
+
+    colors=['r','b','k','g']
+    error_cap=4
+
     x_index=columns[0]
     y_index=columns[1]
 
     fig,ax=plt.subplots()
 
-    for dat in data:
+    for i,dat in enumerate(data):
+        if yerror == None: yerr_vals=yerror
+        else: yerr_vals=dat[:,yerror]
+
+        if xerror == None: xerr_vals=xerror
+        else: xerr_vals=dat[:,xerror]
+
+        #Defining the first colors from array and the rest by random numbers
+        if i<len(colors):color=colors[i]
+        else: color=np.random.rand(3)
+
+        ax.errorbar(dat[:,x_index],dat[:,y_index],xerr=xerr_vals,yerr=yerr_vals,fmt='o',color=color,capsize=error_cap)
 
 
-        ax.plot(dat[:,x_index],dat[:,y_index],marker=marker)
-
-    ax.legend()
 
 
     return ax,fig
@@ -76,7 +89,7 @@ def pre_processing(files,path_name):
     for fil in files:
         data.append(cf.read_data_file(fil).values)
         names.append(get_name(fil,path_name))
-        
+
     return data,names
 
 """
