@@ -5,6 +5,7 @@ import argparse
 import os
 import pandas as pd
 import re
+import numpy as np
 
 def bash_command(cmd):
     """
@@ -88,7 +89,7 @@ def read_data_file(input_file):
             if len(data_1)!=len(data_2): #If there is a line containing the number of particles,
                 data_file.readline()
             data_file.readline()
-            
+
             try:
                 data=pd.read_csv(data_file,sep=" ",header=None).dropna(axis=1,how='all')
                 data.columns=header.split()
@@ -98,8 +99,22 @@ def read_data_file(input_file):
 
     return data
 
-def extract_digits(string):
+def extract_digits(strings):
     """
-    Returns an array of all the digits in a string
+    input:
+        strings: Array or single string
+    Returns:
+         An array of all the digits in a string
+         if it is an array of strings, extracts the numbers and returns them sorted
+
     """
-    return re.findall(r"[-+]?\d*\.?\d+",string)
+    if isinstance(strings, str):
+        output=re.findall(r"[-+]?\d*\.?\d+",strings)
+
+    if isinstance(strings, list):
+        output=[]
+        for element in strings:
+            output.append(re.findall(r"[-+]?\d*\.?\d+",element))
+        output=np.sort(np.array(output,dtype=float).reshape((len(output))))
+
+    return output
