@@ -27,7 +27,7 @@ def make_dp_poly():
     path_dp_poly+="dp_poly"
     return path_dp_poly
 
-def gather_statistics():
+def gather_statistics(directories):
     """
     Gathers all the information from a previous statistics analyisis
 
@@ -35,7 +35,6 @@ def gather_statistics():
     """
     
     os.chdir(cwd)
-    directories=glob.glob('E_*')
     f=open(cwd+"/Statistic_summary.dat",'w')
     
     for directory in directories:
@@ -85,23 +84,23 @@ def run_analysis(interaction,force,path_dp_poly,s,d,n,dmin):
     os.chdir(initial_directory)
     return
 
-def compute_statistics(s, d, n, dmin):
+def compute_statistics(directories,s, d, n, dmin):
+    
     """
     runs the statistics anaylisis with dp_poly and fast_averager
     
     Args:
-        
+    interactions: folders where this algoritm is going to run
     s: initial step
     d: interval
     n: final time step  [This is always overrided]
     dmin: samples to be discarded from vdata
     
-    
     creates the file "Statistics_summary.dat"
-    """
+    """    
     
     os.chdir(cwd)
-    directories=glob.glob('E_*')
+
     path_dp_poly=make_dp_poly()
     
     num_cores = multiprocessing.cpu_count()
@@ -122,7 +121,7 @@ def compute_statistics(s, d, n, dmin):
 
     print "This is the time in paralell %f" %(time.time()-t)
     
-    gather_statistics()
+    gather_statistics(directories)
     
     return
     

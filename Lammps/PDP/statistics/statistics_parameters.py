@@ -19,6 +19,7 @@ import numpy as np
 import re
 import argparse
 from scipy import optimize
+import glob
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -367,12 +368,13 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat, computes relevant quantities and generates plots, It has to be run inside every N_X",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-folder_names',help='Folders where the analysis is going to run i.e E_*',default=glob.glob('E_*'),nargs='+')
     parser.add_argument('-s','--source',choices=['read','run','gather'], default="read",help='Decides if the if the file Statistics_summary.dat needs to be read, run, gather  ')
     parser.add_argument('--vdatamin', help='Number of samples to be discarded in vdata.dat', default=1000, type=int)
     parser.add_argument('--dpolymin', help='Number of samples to be discarded in DPpoly', default=100, type=int)
     args = parser.parse_args()
+    directories=args.folder_names
     source=args.source
-    
 
 if source == "read":
     is_valid_file(parser,"Statistic_summary.dat")
@@ -386,12 +388,12 @@ if source=="run":
     print "Final dp_poly step=%d"%dppoly_params[2]
     print "vdata discarded steps =%d"%args.vdatamin
     print " "
-    cstat.compute_statistics(dppoly_params[0],dppoly_params[1],dppoly_params[2],args.vdatamin)
+    cstat.compute_statistics(directories, dppoly_params[0],dppoly_params[1],dppoly_params[2],args.vdatamin)
 
 
 elif source=="gather":
     print "\nGathering the statistics analysis results"
-    cstat.gather_statistics()
+    cstat.gather_statistics(directories)
 
 
 """
