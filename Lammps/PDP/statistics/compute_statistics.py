@@ -10,9 +10,7 @@ s
 
 import os
 import glob
-import numpy as np
 import sys
-import time
 
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
@@ -78,18 +76,4 @@ for directory in directories:
 
     os.chdir(cwd)
         
-        
-        
-        
-        
-
-    
-    
-    
-    
-            
-    
-    
-
-
 f.close()
