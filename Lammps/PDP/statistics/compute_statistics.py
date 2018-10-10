@@ -15,6 +15,7 @@ import sys
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
+import Others.Statistics.FastAverager as stat
 
 s=0#Initial step
 d=10000 #Interval
@@ -68,7 +69,7 @@ for directory in directories:
             f.writelines(ave_info.readlines())
             
         #Results from Fast averager    
-        out, error = cf.bash_command("""python %s vdata.dat --min %s""" %(path_to_averager,dmin))
+        stat.main("vdata.dat",dmin)
         with open("statistics.dat",'r') as ave_info:
             f.writelines(ave_info.readlines()[1:])
         

@@ -3,7 +3,7 @@
 s=$1 #Initial step
 d=$2 #Interval
 n=$3 #FinalTimestep
-min=$4 #Samples to be discarded from vdata.dat
+min=$4  #Samples to be discarded from vdata.dat
 
 CurrentPath=$(pwd)
 rm Statistic_summary.dat 2>/dev/null
