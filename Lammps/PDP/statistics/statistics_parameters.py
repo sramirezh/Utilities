@@ -22,8 +22,7 @@ from scipy import optimize
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-
-
+import compute_statistics as cstat
 try:
     import matplotlib
     matplotlib.use('Agg')
@@ -117,15 +116,15 @@ def ncols(nparameters, row_per_column):
     return ncols
 
 # define our (line) fitting function
-    
+
 
 
 def plot_force_individuals(interactions):
     """
     Plots the parameters from statistic_summary for each force, for each interaction
     """
-    
-    
+
+
     #General plot parameters
     axis_font=24
     tick_font=20
@@ -133,8 +132,8 @@ def plot_force_individuals(interactions):
     xoffset=0.1
     yoffset=0.1
     error_cap=4
-    
-    
+
+
     colors=['r','b','k','g']
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$V_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
@@ -176,19 +175,19 @@ def plot_force_individuals(interactions):
                     yvalue=np.append(yvalue,ljpair.properties[n][property_index])
                 force_list.append(force)
 
-            
+
             #Defining the first colors from array and the rest by random numbers
             if i<len(colors):color=colors[i]
             else: color=np.random.rand(3)
-            
+
             plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=color,capsize=error_cap)
 
             """Linear fit"""
-            
+
             fitfunc = lambda p, x: p[1] * x
             errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
-            
+
             try:
                 x=np.array(force_list)
                 y=yvalue
@@ -357,7 +356,19 @@ class LJInteraction(object):
 
 
 
-"""
+
+    
+#def statistic_parameters(parser, source,vdatamin,dpolymin):
+#    """
+#    gets the results created by dp_poly and the averages of vdata.dat, computes relevant quantities and generates plots, It has to be run inside every N_X
+#    Args:
+#        source: options ['read','run','gather'] decides if the if the file Statistics_summary.dat needs to be read, run, gather
+#        vdatamin:  Number of samples to be discarded in vdata.dat
+#        dpolymin: Number of samples to be discarded in DPpoly
+#    """
+    
+
+    """
 ###############################################################################
 Argument Parser
 ###############################################################################
@@ -367,13 +378,18 @@ cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat and computes relevant quantities and generates plots, It has to be run inside every N_X",
+    parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat, computes relevant quantities and generates plots, It has to be run inside every N_X",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s','--source',choices=['read','run','gather'], default="read",help='Decides if the if the file Statistics_summary.dat needs to be read, run, gather  ')
     parser.add_argument('--vdatamin', help='Number of samples to be discarded in vdata.dat', default=1000, type=int)
     parser.add_argument('--dpolymin', help='Number of samples to be discarded in DPpoly', default=100, type=int)
-args = parser.parse_args()
-source=args.source
+    args = parser.parse_args()
+    source=args.source
+    
+
+if source == "read":
+    is_valid_file(parser,"Statistic_summary.dat")
+    
 
 if source=="run":
     print "\nRunning the statistics analysis, using the following parameters"
@@ -383,22 +399,12 @@ if source=="run":
     print "Final dp_poly step=%d"%dppoly_params[2]
     print "vdata discarded steps =%d"%args.vdatamin
     print " "
-    cf.bash_command("""bash %s/compute_statistics.sh %d %d %d %d"""%(dir_path,dppoly_params[0],dppoly_params[1],dppoly_params[2],args.vdatamin))
+    cstat.compute_statistics(dppoly_params[0],dppoly_params[1],dppoly_params[2],args.vdatamin)
+
 
 elif source=="gather":
     print "\nGathering the statistics analysis results"
-    cf.bash_command("""bash %s/gather_statistics.sh"""%dir_path)
-
-else:
-    is_valid_file(parser,"Statistic_summary.dat")
-
-
-
-
-
-
-
-
+    cstat.gather_statistics()
 
 
 """
@@ -406,20 +412,15 @@ else:
 Main program
 *******************************************************************************
 """
-
 print "\nAnalizing the results"
 interactions=build_data()
 plot_force_individuals(interactions)
-
-
-
 
 """
 *******************************************************************************
 Building the averaged data, excluding force equal=0
 *******************************************************************************
 """
-
 
 ave_data=[]
 for interaction in interactions:
@@ -446,6 +447,7 @@ pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility','mobility
 
 pd_data.to_csv("Results.dat",sep=' ',index=False)
 
+
 """
 ###############################################################################
 Starting the plot
@@ -462,8 +464,6 @@ error_cap=4
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
-
-
 
 """
 ###############################################################################
@@ -497,12 +497,6 @@ xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
 
-
-
-
-
-
-
 """Lines"""
 ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
@@ -513,9 +507,6 @@ plt.rcParams["text.usetex"] =True
 plt.tight_layout()
 fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
 plt.close()
-
-
-
 
 """
 ###############################################################################
@@ -562,55 +553,12 @@ plt.rcParams["text.usetex"] =True
 plt.tight_layout()
 fig.savefig("plots/all/Mobility_vs_epsilon.pdf")
 plt.close()
-
-
-#"""
-################################################################################
-#Mobility/Rg vs Delta Cs
-################################################################################
-#"""
-#
-#fig,ax=plt.subplots()
-#ax.errorbar(ave_data[:,-4],ave_data[:,-2],yerr=ave_data[:,-1], fmt='o', capsize=error_cap)
-#
-#
-#x=np.array(ave_data[:,-4])
-#y=np.array(ave_data[:,-2])
-#
-#for i in xrange(len(interactions)):
-#    txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-#    ax.annotate(txt, (x[i]+0.002,y[i]),horizontalalignment='left',verticalalignment='center',fontsize=annotate_size)
-#
-#"""Axis"""
-#ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
-#ax.grid(False)
-#ax.set_ylabel(r'$\Gamma_{ps}/R_g [\tau/m\sigma]$',fontsize=axis_font)
-#ax.tick_params(labelsize=tick_font, direction='in')
-#
-#ymin,ymax=plt.ylim()
-#deltay=ymax-ymin
-#
-#xmin,xmax=plt.xlim()
-#deltax=xmax-xmin
-#
-#ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
-#ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-#
-#
-#"""Lines"""
-#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-#ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
-#
-#"""General"""
-#plt.rcParams["mathtext.fontset"] = "cm"
-#plt.rcParams["text.usetex"] =True
-#plt.tight_layout()
-#fig.savefig("plots/all/Mobility_rg_Delta_Cs.pdf")
-#plt.close()
-
-
-
-
+    
 pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
 
 print "\nGenerated average results Results.dat and plots in '%s'"%directory
+
+
+
+
+
