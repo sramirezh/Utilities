@@ -47,25 +47,25 @@ Main
 *******************************************************************************
 """
 
-def main(input_file ,min_limit):
+def fast_averager(input_file ,min_limit):
     """
     This script evaluates the average of a quantity
-    
+
     Args:
         input_file that contains the data
         min_limit Number of samples to be discarded
-    
-    It creates a file statistics.dat with the averages, containing the valiable name, 
+
+    It creates a file statistics.dat with the averages, containing the valiable name,
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
     """
-    
+
     data=cf.read_data_file(input_file)
-    
-    
+
+
     names= list(data.columns.values)
     data1=data.values[min_limit::]
-    
-    
+
+
     #Excluding some data that does not need to be analysed
     exclude=["time", "Chunk", "Coord1"]
     if isinstance(names[0],basestring)==True:
@@ -75,32 +75,32 @@ def main(input_file ,min_limit):
     else: #If the data does not have header
         data_to_analyse=data1
         names_to_analyse=names
-    
-    
+
+
     size=len(names_to_analyse)
     averages=np.average(data_to_analyse,axis=0)
-    
-    
+
+
     """
     *******************************************************************************
     Error Analysis
     *******************************************************************************
     """
-    
+
     #Autocorrelation Analysis
-    
+
     n,m=np.shape(data_to_analyse)
     Correlation,time=autocorrelation_error(data_to_analyse, averages)
     error_c=np.sqrt(Correlation[0,:]*2*time/(n+1))
-    
-    
+
+
     #Simple error
     error_s=stats.sem(data_to_analyse)
-    
+
     #Blocking analysis
     error_b=blocking_error(data_to_analyse)
-    
-    
+
+
     print "The Results are:\n"
     print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple"
     file=open("statistics.dat",'w')
@@ -109,28 +109,23 @@ def main(input_file ,min_limit):
         print "%s = %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i])
         file.write("%s = %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i]))
     file.close()
-    
+
     print "\nCreated a file statistics.dat with the averages"
 
 
 
 
 if __name__ == "__main__":
-    
+
     parser = argparse.ArgumentParser(description='This script evaluates the average of a quantity')
     parser.add_argument('filename', metavar='InputFile', type=str,
                         help='Input filename')
-    
+
     parser.add_argument('--min', help='Number of samples to be discarded', default=1000, type=int)
-    
-    
+
+
     args = parser.parse_args()
     min_limit=args.min
     input_file=args.filename
-    
+
     main(input_file ,min_limit)
-    
-
-    
-
-

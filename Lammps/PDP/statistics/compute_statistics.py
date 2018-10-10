@@ -17,9 +17,6 @@ sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 
-
-
-os.chdir('/home/sr802/Delete/compute_statistics')
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
@@ -69,6 +66,8 @@ def gather_statistics():
         os.chdir(cwd)
             
     f.close()
+    return
+    
 
 def run_analysis(interaction,force,path_dp_poly,s,d,n,dmin):
     
@@ -82,10 +81,9 @@ def run_analysis(interaction,force,path_dp_poly,s,d,n,dmin):
     #Results from dp_poly
     out,error=cf.bash_command("%s -s %s -d %s -n %s" %(path_dp_poly,s,d,n))        
     #Results from Fast averager    
-    stat.main("vdata.dat",dmin)
+    stat.fast_averager("vdata.dat",dmin)
     os.chdir(initial_directory)
-
-
+    return
 
 def compute_statistics(s, d, n, dmin):
     """
@@ -104,8 +102,6 @@ def compute_statistics(s, d, n, dmin):
     
     os.chdir(cwd)
     directories=glob.glob('E_*')
-    f=open(cwd+"/Statistic_summary.dat",'w')
-    
     path_dp_poly=make_dp_poly()
     
     num_cores = multiprocessing.cpu_count()
@@ -117,18 +113,16 @@ def compute_statistics(s, d, n, dmin):
         for force in forces:
             parameters.append([directory,force])
         os.chdir("../")
-            
-    print parameters
     
     t=time.time()
     
     #Parallel analysis
-    Parallel(n_jobs=num_cores)(delayed(run_analysis)(param[0], param[1] ,path_dp_poly,s,d,n,dmin) for param in parameters)
+    Parallel(n_jobs=num_cores,verbose=10)(delayed(run_analysis)(param[0], param[1] ,path_dp_poly,s,d,n,dmin) for param in parameters)
     
 
     print "This is the time in paralell %f" %(time.time()-t)
     
     gather_statistics()
     
-    f.close()
+    return
     

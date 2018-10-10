@@ -355,19 +355,6 @@ class LJInteraction(object):
 
 
 
-
-
-    
-#def statistic_parameters(parser, source,vdatamin,dpolymin):
-#    """
-#    gets the results created by dp_poly and the averages of vdata.dat, computes relevant quantities and generates plots, It has to be run inside every N_X
-#    Args:
-#        source: options ['read','run','gather'] decides if the if the file Statistics_summary.dat needs to be read, run, gather
-#        vdatamin:  Number of samples to be discarded in vdata.dat
-#        dpolymin: Number of samples to be discarded in DPpoly
-#    """
-    
-
     """
 ###############################################################################
 Argument Parser
