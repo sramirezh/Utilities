@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import re
 import numpy as np
+import sys
 
 def bash_command(cmd):
     """
@@ -118,3 +119,11 @@ def extract_digits(strings):
         output=np.sort(np.array(output,dtype=float).reshape((len(output))))
 
     return output
+
+
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+
+# Restore
+def enablePrint():
+    sys.stdout = sys.__stdout__

@@ -8,14 +8,16 @@ s
 import os
 import glob
 import sys
+from joblib import Parallel, delayed
+import multiprocessing
+import time
 
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 
-from joblib import Parallel, delayed
-import multiprocessing
+
 
 os.chdir('/home/sr802/Delete/compute_statistics')
 cwd = os.getcwd() #current working directory
@@ -25,10 +27,8 @@ def make_dp_poly():
     
     path_dp_poly=Utilities_path+"Lammps/PDP/f_programs/"
     out, error = cf.bash_command("""make -C %s -f Makefile""" %path_dp_poly)
-    print out, error
     path_dp_poly+="dp_poly"
     return path_dp_poly
-
 
 def gather_statistics():
     """
@@ -70,23 +70,21 @@ def gather_statistics():
             
     f.close()
 
-
-
-
-num_cores = multiprocessing.cpu_count()
-
-def run_analysis(force,path_dp_poly,s,d,n,dmin):
+def run_analysis(interaction,force,path_dp_poly,s,d,n,dmin):
+    
     initial_directory=os.getcwd()
-    os.chdir(force)
+    
+    os.chdir("%s/%s"%(interaction,force))
     files=glob.glob('conf/*.gz')
     
-    #n=int(cf.extract_digits(files)[-1])
-    
+    n=int(cf.extract_digits(files)[-1])
+
     #Results from dp_poly
     out,error=cf.bash_command("%s -s %s -d %s -n %s" %(path_dp_poly,s,d,n))        
     #Results from Fast averager    
     stat.main("vdata.dat",dmin)
     os.chdir(initial_directory)
+
 
 
 def compute_statistics(s, d, n, dmin):
@@ -110,22 +108,27 @@ def compute_statistics(s, d, n, dmin):
     
     path_dp_poly=make_dp_poly()
     
+    num_cores = multiprocessing.cpu_count()
+    
+    parameters=[]
     for directory in directories:
         os.chdir(directory)
         forces=glob.glob("dDP*")
-        forces.sort(key=lambda f: int(filter(str.isdigit, f)))
-        
         for force in forces:
-            print force
-            run_analysis(force,path_dp_poly,s,d,n,dmin)
+            parameters.append([directory,force])
+        os.chdir("../")
             
-        os.chdir(cwd)
+    print parameters
     
-    print "############################################################################"
-    print "Remember to uncomment the n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    print "############################################################################"
+    t=time.time()
+    
+    #Parallel analysis
+    Parallel(n_jobs=num_cores)(delayed(run_analysis)(param[0], param[1] ,path_dp_poly,s,d,n,dmin) for param in parameters)
+    
+
+    print "This is the time in paralell %f" %(time.time()-t)
+    
+    gather_statistics()
+    
     f.close()
-
-
-compute_statistics(0,10000,100000,0)
     
