@@ -30,19 +30,8 @@ import sys
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
-from Lammps.linux import bash_command
+import Lammps.core_functions as cf
 
-
-
-try:
-    import matplotlib
-    matplotlib.use('agg')
-    import matplotlib.pyplot as plt
-except ImportError as err:
-    print err
-
-cwd = os.getcwd() #current working directory
-dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
 
 """
@@ -51,35 +40,6 @@ Functions
 *******************************************************************************
 """
 
-
-def is_valid_file(parser, arg):
-    if not os.path.exists(arg):
-        parser.error("The file %s does not exist!" % arg)
-    else:
-        return arg
-
-
-parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: is_valid_file(parser, x))
-parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
-parser.add_argument('--Nbins', help='Number of bins in one direction, i,e positive', default=10, type=float)
-parser.add_argument('--Nmin', help='Number of timesteps to be discarded', default=300, type=int)
-
-args = parser.parse_args()
-InputFile=args.FileName
-
-
-#InputFile="1.5_f0.02.atom"
-
-#Uncomment to split the trajectory again
-if args.split==True:
-    InputFile=InputFile
-    print "\nSplitting the trajectory file"
-    out,err=bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,InputFile))
-else:
-    print "The Trajectory file was not splitted"
-
-#
 def Box_limits():
     """
     read the box limits
@@ -89,7 +49,7 @@ def Box_limits():
         limits, an array with the box limits in every dimension.
         L, box size per dimension
     """
-    out2,err2=bash_command("""grep -n -m1 "BOUNDS" %s"""%InputFile)
+    out2,err2=cf.bash_command("""grep -n -m1 "BOUNDS" %s"""%InputFile)
     LineNumber=int(out2.split(":")[0])
 
     #a=file.readlines()[LineNumber,LineNumber+3]
@@ -110,7 +70,7 @@ def number_of_monomers():
         The number of monomers
 
     """
-    out,err=bash_command('grep -n -m1 "NUMBER OF ATOMS" '+InputFile)
+    out,err=cf.bash_command('grep -n -m1 "NUMBER OF ATOMS" '+InputFile)
     line_number=int(out.split(":")[0])
     number_part=int(linecache.getline(InputFile, line_number+1))
 
@@ -214,158 +174,198 @@ Main program
 *******************************************************************************
 """
 
-#Reading the initial data
-Box,L=Box_limits()
-times=pd.read_csv("Times.dat",header=None).as_matrix()
-x=np.size(times)
+def trajectory_analysis(nbins,imin):
 
-nbins=args.Nbins
-rmax=number_of_monomers()**(3/5) #Assumes the maximum radius is number_particles/2
-imin=args.Nmin
+    #Reading the initial data
+    Box,L=Box_limits()
+    times=pd.read_csv("Times.dat",header=None).as_matrix()
+    x=np.size(times)
 
-rel_tail=[]
-rel_head=[]
-av_rd_positive=np.zeros((nbins,2))
-av_rd_negative=np.zeros((nbins,2))
-#r_gyration_2=[]
-cm_disp=[] #Cm displacement
+    nbins=args.Nbins
+    rmax=number_of_monomers()**(3/5) #Assumes the maximum radius is number_particles/2
+    imin=args.Nmin
 
-counter=0
-for k in xrange(imin,x): #Runs over the sampled times.
-    print("Reading configuration %d of %d" %(k,x-1))
-    File_Name=str(int(times[k]))+".cxyz"
-    # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
-    Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
-    n,m=Data.shape
-    pos=real_position(Data) #Real positions of all the atoms
-    cm_disp.append(np.hstack([times[k]-times[imin,0],cm(pos)]))
-    pos_relative=relative_position(pos) #
-    #Evaluating the positions of the head and the tail respect to v_cm
-    i_head=np.where((Data[:,0]==1))[0][0]
-    i_tail=np.where((Data[:,0]==n))[0][0]
-    rel_tail.append(pos_relative[i_tail,0])
-    rel_head.append(pos_relative[i_head,0])
+    rel_tail=[]
+    rel_head=[]
+    av_rd_positive=np.zeros((nbins,2))
+    av_rd_negative=np.zeros((nbins,2))
+    #r_gyration_2=[]
+    cm_disp=[] #Cm displacement
 
-    "Getting the points in front and in the back"
-    #First i get the indexes of the points in front and then I delete those indexes to get the points in the back
-    pos_sphere=spherical_coordinates(pos_relative)
-    i_front=np.where(np.abs(pos_sphere[:,2])<=np.pi/2.)[0]
-    pos_semi_positive=pos_sphere[i_front,:]
-    pos_semi_negative=np.delete(pos_sphere,i_front,axis=0)
+    counter=0
+    for k in xrange(imin,x): #Runs over the sampled times.
+        print("Reading configuration %d of %d" %(k,x-1))
+        File_Name=str(int(times[k]))+".cxyz"
+        # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
+        Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
+        n,m=Data.shape
+        pos=real_position(Data) #Real positions of all the atoms
+        cm_disp.append(np.hstack([times[k]-times[imin,0],cm(pos)]))
+        pos_relative=relative_position(pos) #
+        #Evaluating the positions of the head and the tail respect to v_cm
+        i_head=np.where((Data[:,0]==1))[0][0]
+        i_tail=np.where((Data[:,0]==n))[0][0]
+        rel_tail.append(pos_relative[i_tail,0])
+        rel_head.append(pos_relative[i_head,0])
 
-    """Computing the polymeric distribution"""
-    rd_positive=radial_distribution(nbins,rmax,pos_semi_positive)
-    rd_negative=radial_distribution(nbins,rmax,pos_semi_negative)
-    av_rd_positive+=rd_positive[:,1:]
-    av_rd_negative+=rd_negative[:,1:]
-    rd_negative[:,0]=rd_negative[:,0]*-1
+        "Getting the points in front and in the back"
+        #First i get the indexes of the points in front and then I delete those indexes to get the points in the back
+        pos_sphere=spherical_coordinates(pos_relative)
+        i_front=np.where(np.abs(pos_sphere[:,2])<=np.pi/2.)[0]
+        pos_semi_positive=pos_sphere[i_front,:]
+        pos_semi_negative=np.delete(pos_sphere,i_front,axis=0)
+
+        """Computing the polymeric distribution"""
+        rd_positive=radial_distribution(nbins,rmax,pos_semi_positive)
+        rd_negative=radial_distribution(nbins,rmax,pos_semi_negative)
+        av_rd_positive+=rd_positive[:,1:]
+        av_rd_negative+=rd_negative[:,1:]
+        rd_negative[:,0]=rd_negative[:,0]*-1
 
 
-    """Other properties"""
-    #r_gyration_2.append(gyration_radious_squared(pos_relative))
-    counter+=1
+        """Other properties"""
+        #r_gyration_2.append(gyration_radious_squared(pos_relative))
+        counter+=1
 
-#time translation due to discarded trajectories
-times=times[imin::,0]-times[imin,0]
+    #time translation due to discarded trajectories
+    times=times[imin::,0]-times[imin,0]
 
-cm_disp=np.array(cm_disp)
+    cm_disp=np.array(cm_disp)
 
-av_rd_positive=av_rd_positive/counter
-av_rd_negative=av_rd_negative/counter
-rd_positive[:,1:]=av_rd_positive
-rd_negative[:,1:]=av_rd_negative
+    av_rd_positive=av_rd_positive/counter
+    av_rd_negative=av_rd_negative/counter
+    rd_positive[:,1:]=av_rd_positive
+    rd_negative[:,1:]=av_rd_negative
 
-#Need to multiply by two the density as I counted only on the semisphere.
-rd_positive[:,2]*=2
-rd_negative[:,2]*=2
+    #Need to multiply by two the density as I counted only on the semisphere.
+    rd_positive[:,2]*=2
+    rd_negative[:,2]*=2
 
-#To add altogether
+    #To add altogether
 
-rd=np.concatenate((rd_negative[::-1,:],rd_positive),axis=0)
+    rd=np.concatenate((rd_negative[::-1,:],rd_positive),axis=0)
+
+    """
+    ###############################################################################
+    Other properties
+    ###############################################################################
+    """
+    #r_gyration=np.sqrt(r_gyration_2)
+
+
+    """
+    ###############################################################################
+    Plots
+    ###############################################################################
+    """
+
+    directory="plots"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    """
+    Cm displacement in x
+    """
+    for i in range(3):
+        cm_disp[:,i]=cm_disp[:,i]-cm_disp[0,i]
+
+    np.savetxt("plots/cm_disp.dat",cm_disp, header=" Time x y z")
+    plt.figure()
+    plt.plot(cm_disp[:,0],cm_disp[:,1])
+    plt.grid()
+    plt.ylabel(r'$x_{cm}[\sigma]$',fontsize=16)
+    plt.xlabel("Timestep",fontsize=16)
+    plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
+    plt.tick_params(labelsize=14)
+    plt.tight_layout()
+    plt.savefig('plots/xcm.pdf')
+    plt.close()
+
+
+    """
+    Radial distribution output
+    """
+
+    np.savetxt('plots/rdist_positive.dat',rd_positive)
+    np.savetxt('plots/rdist_negative.dat',rd_negative)
+    np.savetxt('plots/rdist_total.dat',rd)
+
+    plt.figure()
+    plt.plot(rd[:,0],rd[:,2],'-o')
+    plt.grid()
+    plt.tick_params(labelsize=14)
+    plt.xlabel(r'$r-r_{cm}  [\sigma]$',fontsize=16)
+    plt.ylabel(r'$c_p  [1/\sigma^3]$',fontsize=16)
+    plt.tight_layout()
+    plt.savefig('plots/radial_distribution.pdf')
+    plt.close()
+
+
+    """
+    alternation of tail and head in the x axis with respect to the center of mass
+    """
+    plt.figure()
+
+
+    plt.subplot(311)
+    plt.plot(times,rel_tail)
+    plt.grid()
+
+    plt.subplot(312)
+    plt.plot(times,rel_head,'r')
+    plt.ylabel("$x-x_{cm}$")
+    plt.grid()
+
+    plt.subplot(313)
+    plt.plot(times,rel_head,'r')
+    plt.plot(times,rel_tail)
+    plt.grid()
+
+    plt.xlabel("Time")
+    plt.savefig('plots/tip_behaviour.pdf')
+    plt.close()
+
+    tip_behaviour=np.transpose(np.vstack([times,rel_tail,rel_head]))
 
 """
-###############################################################################
-Other properties
-###############################################################################
-"""
-#r_gyration=np.sqrt(r_gyration_2)
-
-
-"""
-###############################################################################
-Plots
-###############################################################################
+*******************************************************************************
+Main
+*******************************************************************************
 """
 
-directory="plots"
-if not os.path.exists(directory):
-    os.makedirs(directory)
+cwd = os.getcwd() #current working directory
+dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
-"""
-Cm displacement in x
-"""
-for i in range(3):
-    cm_disp[:,i]=cm_disp[:,i]-cm_disp[0,i]
-
-np.savetxt("plots/cm_disp.dat",cm_disp, header=" Time x y z")
-plt.figure()
-plt.plot(cm_disp[:,0],cm_disp[:,1])
-plt.grid()
-plt.ylabel(r'$x_{cm}[\sigma]$',fontsize=16)
-plt.xlabel("Timestep",fontsize=16)
-plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
-plt.tick_params(labelsize=14)
-plt.tight_layout()
-plt.savefig('plots/xcm.pdf')
-plt.close()
+if __name__ == "__main__":
+    try:
+        import matplotlib
+        matplotlib.use('agg')
+        import matplotlib.pyplot as plt
+    except ImportError as err:
+        print err
 
 
-"""
-Radial distribution output
-"""
+    parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
+    parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
+    parser.add_argument('--Nbins', help='Number of bins in one direction, i,e positive', default=10, type=float)
+    parser.add_argument('--Nmin', help='Number of timesteps to be discarded', default=300, type=int)
 
-np.savetxt('plots/rdist_positive.dat',rd_positive)
-np.savetxt('plots/rdist_negative.dat',rd_negative)
-np.savetxt('plots/rdist_total.dat',rd)
-
-plt.figure()
-plt.plot(rd[:,0],rd[:,2],'-o')
-plt.grid()
-plt.tick_params(labelsize=14)
-plt.xlabel(r'$r-r_{cm}  [\sigma]$',fontsize=16)
-plt.ylabel(r'$c_p  [1/\sigma^3]$',fontsize=16)
-plt.tight_layout()
-plt.savefig('plots/radial_distribution.pdf')
-plt.close()
+    args = parser.parse_args()
+    InputFile=args.FileName
 
 
-"""
-alternation of tail and head in the x axis with respect to the center of mass
-"""
-plt.figure()
 
 
-plt.subplot(311)
-plt.plot(times,rel_tail)
-plt.grid()
 
-plt.subplot(312)
-plt.plot(times,rel_head,'r')
-plt.ylabel("$x-x_{cm}$")
-plt.grid()
+    if args.split==True:
+        InputFile=InputFile
+        print "\nSplitting the trajectory file"
+        out,err=cf.bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,InputFile))
+    else:
+        print "The Trajectory file was not splitted"
 
-plt.subplot(313)
-plt.plot(times,rel_head,'r')
-plt.plot(times,rel_tail)
-plt.grid()
-
-plt.xlabel("Time")
-plt.savefig('plots/tip_behaviour.pdf')
-plt.close()
-
-tip_behaviour=np.transpose(np.vstack([times,rel_tail,rel_head]))
-
-
+        trajectory_analysis(args.Nbins,args.Nmin)
 
 
 #"""
