@@ -27,37 +27,54 @@ import argparse
 import linecache
 import os
 import sys
+import gzip
+
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
 
-
+# %% 
 """
 *******************************************************************************
 Functions
 *******************************************************************************
 """
 
-def Box_limits():
+def Box_limits(input_file):
     """
     read the box limits
+    works also for compressed files *.gz
     Args:
 
     Returns:
         limits, an array with the box limits in every dimension.
         L, box size per dimension
     """
-    out2,err2=cf.bash_command("""grep -n -m1 "BOUNDS" %s"""%InputFile)
-    LineNumber=int(out2.split(":")[0])
+    if input_file.split('.')[-1] == 'gz':
+        out2,err2=cf.bash_command("""zgrep -n -m1 "BOUNDS" %s"""%input_file)
+        LineNumber=int(out2.split(":")[0])
+        f=gzip.open(input_file, 'rb')
 
-    #a=file.readlines()[LineNumber,LineNumber+3]
-    limits=[]
-    for i in range(LineNumber,LineNumber+3):
-        limits.append(linecache.getline(InputFile, i+1).strip('\n').split())
-    limits=np.array(limits,dtype='double')
-    L=limits[:,1]-limits[:,0]
+
+        limits=[]
+        for i in range(LineNumber+3):
+            line=f.readline()
+            if i>=LineNumber:
+                limits.append(line.strip('\n').split())
+        limits=np.array(limits,dtype='double')
+        L=limits[:,1]-limits[:,0]
+
+    else:
+        out2,err2=cf.bash_command("""grep -n -m1 "BOUNDS" %s"""%input_file)
+        LineNumber=int(out2.split(":")[0])
+
+        limits=[]
+        for i in range(LineNumber,LineNumber+3):
+            limits.append(linecache.getline(input_file, i+1).strip('\n').split())
+        limits=np.array(limits,dtype='double')
+        L=limits[:,1]-limits[:,0]
 
     return limits,L
 
@@ -79,13 +96,14 @@ def number_of_monomers():
 
 cm=lambda x: np.average(x,axis=0)
 
-def real_position(Data):
+def real_position(Data,L):
     """
     return the real positions of the particles after taking into account the box image of the atom.
     Args:
         Data should have the next structure in the first 8 columns,
         id type x y z ix iy iz, where ix represents the image box of the particle as described in
-        Lammps dum
+        Lammps dump
+        L vector containing the box lenght in 3 dimensions
     Returns:
         Array which has only 3 columns:  x y z
     """
@@ -164,20 +182,10 @@ def gyration_radious_squared(pos):
 
     return gr2
 
-
-
-
-
-"""
-*******************************************************************************
-Main program
-*******************************************************************************
-"""
-
 def trajectory_analysis(nbins,imin):
 
     #Reading the initial data
-    Box,L=Box_limits()
+    Box,L=Box_limits(InputFile)
     times=pd.read_csv("Times.dat",header=None).as_matrix()
     x=np.size(times)
 
