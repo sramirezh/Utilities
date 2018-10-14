@@ -77,6 +77,10 @@ def computation(particles,p_types,dist,i,j,nbins, rmax):
 
 
 def compute_one_configuration(fil):
+    """
+    Computes the g(r) of the polymer particles with other particle types, so only 3 
+    three distri
+    """
     
 
     Data=pd.read_csv(fil,sep=" ",skiprows=9,dtype=np.float64,header=None).values[:,:-1]
@@ -87,12 +91,17 @@ def compute_one_configuration(fil):
     p_types=np.unique(Data[:,1]).astype(int)
     particles=[np.where(Data[:,1]==j)[0] for j in p_types]
 
-
     dist=squareform(pdist(pos))
+    np.fill_diagonal(dist, 1000) #To avoid self contributions
     
+    results=np.zeros((3,nbins,3)) #Factorial is the number of gr that we have 
     
-    g_poly_solvent=computation(particles,p_types, dist,3,1,nbins,rmax)
-    return g_poly_solvent
+    cont=0
+    
+    for m in p_types:
+            results[cont]=computation(particles,p_types,dist,3,m,nbins, rmax)
+            cont+=1
+    return results
 
 
 """
@@ -101,7 +110,8 @@ Main
 *******************************************************************************
 """
 
-input_files = glob.glob("*.gz")
+
+input_files = glob.glob("*1*.gz")
 
 input_files.sort(key=lambda f: int(filter(str.isdigit, f)))
 
@@ -110,23 +120,27 @@ times=cf.extract_digits(input_files)
 num_conf=len(times)
 
 
-#initialising
 
-g_poly_solvent=np.zeros((nbins,3))
-
-#I can do a function here and a loop inside tha calls computation for all the indexes that I want
 
 num_cores = multiprocessing.cpu_count()
 
 results=Parallel(n_jobs=num_cores,verbose=10)(delayed(compute_one_configuration)(fil) for fil in input_files)
 
 
+g_r=np.average(results,axis=0)
+
 #g_poly_solvent=g_poly_solvent/num_conf
 # 
-#import matplotlib.pyplot as plt
-#
-#plt.plot(g_poly_solvent[:,0],g_poly_solvent[:,2])
-#plt.show()
+import matplotlib.pyplot as plt
+
+plt.plot(g_r[0][:,0],g_r[0][:,2],label="poly-solvent")
+plt.plot(g_r[1][:,0],g_r[1][:,2],label="poly-solute")
+plt.plot(g_r[2][:,0],g_r[2][:,2],label="poly-poly")
+
+plt.legend()
+
+
+plt.show()
 
 
 
