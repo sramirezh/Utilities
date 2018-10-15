@@ -1,0 +1,3 @@
+LAMMPS (16 Mar 2018)
+region box block 0 20 0 19.47 0 30
+Total wall time: 0:00:15
