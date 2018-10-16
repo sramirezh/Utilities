@@ -68,7 +68,6 @@ def call_pylammps(fil,p_types):
                 fix_name="f_%s" %compute_name
                 L.command("compute %s all rdf %s %s %s"%(compute_name,nbins,i,j))
                 L.fix("%s all ave/time 1 1 1 c_%s[*] file %s_%s.dat mode vector" %(fix_name,compute_name,compute_name,file_time))
-
     L.run(0)
     L.close()
 
@@ -189,7 +188,7 @@ ax.set_xlim(0,rmax)
 ymin,ymax=plt.ylim()
 deltay=ymax-ymin
 
-ax.set_ylim(0,ymax)
+#ax.set_ylim(0,ymax)
 #plt.yticks(np.arange(-0.1,0.2,0.1))
 #ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
 
