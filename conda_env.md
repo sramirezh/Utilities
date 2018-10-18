@@ -13,3 +13,11 @@ conda info --envs
 # To install in a given package
 
 conda install -c omnia pymbar --name simon
+
+# To export an environment
+
+conda env export > environment.yml
+
+# To recreate it 
+
+conda env create -f environment.yml
