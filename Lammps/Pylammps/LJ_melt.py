@@ -51,3 +51,11 @@ Data=pd.read_csv("gr.dat",sep=" ",skiprows=4,dtype=np.float64,header=None).value
 plt.plot(Data[:,1],Data[:,2],label="lammps")
 plt.legend()
 plt.show()
+
+###Comments
+
+"""
+
+in theory you can define the atom positions as shown in the MC example.
+ L.atoms[i].position = (x+dx, y+dy)
+"""
