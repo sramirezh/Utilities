@@ -68,6 +68,7 @@ def call_pylammps(fil,p_types):
                 fix_name="f_%s" %compute_name
                 L.command("compute %s all rdf %s %s %s"%(compute_name,nbins,i,j))
                 L.fix("%s all ave/time 1 1 1 c_%s[*] file %s_%s.dat mode vector" %(fix_name,compute_name,compute_name,file_time))
+
     L.run(0)
     L.close()
 
