@@ -18,6 +18,13 @@ sed 's/$Epsilon/'$Epsilon'/g' in.interaction>output
 sed 's/$Sigma/'$Sigma'/g' output>in.interaction
 rm output
 
+
+#Creating the relax interaction file
+
+sed 's/$Epsilon/'$Epsilon'/g' in.relax_interaction>output
+sed 's/$Sigma/'$Sigma'/g' output>in.relax_interaction
+rm output
+
 #Modifying all the qsub
 files=`find . -name "*.qsub"`
 for file in $files;
