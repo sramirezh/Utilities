@@ -15,6 +15,7 @@ import sys
 import os
 import glob
 import bisect
+from scipy import optimize
 
 warnings.filterwarnings("ignore")
 
@@ -30,6 +31,18 @@ try:
 except ImportError as err:
     print err
 
+"""
+*******************************************************************************
+Functions
+*******************************************************************************
+"""
+
+"""
+Linear fit
+"""
+
+fitfunc = lambda p, x: p[1] * x+p[0]
+errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
 
 
 """
@@ -105,10 +118,32 @@ for j,interaction in enumerate(interactions):
 
     x=np.array(lengths).astype(np.float)
     y=np.array(mobility).astype(np.float)
-
-    ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),color=colors[j],linestyle='--')
+    yerror=error_mobility
+    pinit = [1.0,-1.0]
+    out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
+    cov=out[1] #Covariance in the 
+    pfinal = out[0] #fitting coefficients
+    #print "for %s The slope is %f error is %f" %(interaction,pfinal,np.sqrt(cov))
+    
+    epsilon=float(cf.extract_digits(interaction)[0])
+    sigma=float(cf.extract_digits(interaction)[1])
+    
+    if epsilon==1.0 and sigma==1.0:
+        ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=colors[j],linestyle='--')
+    else:    
+        ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=colors[j],linestyle='--')
     color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
     ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o',capsize=error_cap)
+    
+    """
+    Printing the fitting factors and their errors
+    """
+    
+    print "For epsilon=%s and sigma=%s" %(epsilon,sigma)
+    print "The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1]))
+    print "The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0]))
+    
+    
 
 
 
