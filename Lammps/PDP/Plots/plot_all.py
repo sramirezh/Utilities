@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jun  7 12:00:01 2018
-Script to plot all the results from different polymer number, in the options you can decide if to plot all the dat files or just the ones you decide
+Script to plot all the results from different polymer number,
+in the options you can decide to plot all the dat files or just the ones you decide
 @author: sr802
 """
 from __future__ import division
@@ -10,10 +11,10 @@ import argparse
 import pandas as pd
 import numpy as np
 import warnings
-import sys 
+import sys
 import os
 import glob
-import bisect 
+import bisect
 
 warnings.filterwarnings("ignore")
 
@@ -28,9 +29,9 @@ try:
     import matplotlib.pyplot as plt
 except ImportError as err:
     print err
-  
-    
-    
+
+
+
 """
 *******************************************************************************
 Main
@@ -50,7 +51,7 @@ else:
     dat_files=files
 
 
-    
+
 #Sorting with the number of polymers
 
 
@@ -63,15 +64,15 @@ for f in dat_files:
     """
     Inserts the data from the files in order based on the length of the polymer.
     """
-    print "reading file %s \n"%f 
+    print "reading file %s \n"%f
     length=int(cf.extract_digits(f)[0])
     position=bisect.bisect(lengths,length)
     lengths.insert(position,length)
     data=pd.read_csv(f,sep=" ").as_matrix()
     all_data.insert(position,np.array(data[:,1:],dtype=float))
     data_pd.insert(position,data)
-    
-    
+
+
 colors=['r','b','k','g']
 """
 ###############################################################################
@@ -98,13 +99,13 @@ for j,interaction in enumerate(interactions):
     for i,ave_data in enumerate(all_data):
         mobility.append(ave_data[j,0])
         error_mobility.append(ave_data[j,1])
-    
+
     if j<len(colors):color=colors[j]
     else: color=np.random.rand(3)
-    
+
     x=np.array(lengths).astype(np.float)
     y=np.array(mobility).astype(np.float)
-    
+
     ax.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),color=colors[j],linestyle='--')
     color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
     ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o',capsize=error_cap)
@@ -179,4 +180,3 @@ plt.close()
 #ax.legend(fontsize=legend_font)
 #fig.savefig("Mobility_vs_N.pdf",transparent=True)
 #plt.close()
-

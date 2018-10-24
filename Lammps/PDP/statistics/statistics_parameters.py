@@ -20,6 +20,8 @@ import re
 import argparse
 from scipy import optimize
 import glob
+import warnings
+warnings.filterwarnings("ignore")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -184,20 +186,27 @@ def plot_force_individuals(interactions):
             plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=color,capsize=error_cap)
 
-            """Linear fit"""
+            """
+            Linear fit
+            """
 
-            fitfunc = lambda p, x: p[1] * x
+            fitfunc = lambda p, x: p[0] * x
             errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
 
             try:
                 x=np.array(force_list)
                 y=yvalue
-
-                pinit = [1.0, -1.0]
+                pinit = [1.0]
                 out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
+                cov=out[1] #Covariance
                 pfinal = out[0] #fitting coefficients
+                print "for Epsilon=%s and Sigma =%s The slope is %f error is %f" %(ljpair.epsilon,ljpair.sigma,pfinal,np.sqrt(cov))
                 x=np.insert(x,0,0)
-                ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=color,linestyle='--')
+                
+                if file_name=="vx_poly" and ljpair.epsilon==1.0 and ljpair.sigma==1.0:
+                    ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=color,linestyle='--')
+                else:
+                    ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=color,linestyle='--')
             except:
                 pass
 
