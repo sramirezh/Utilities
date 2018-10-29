@@ -107,7 +107,7 @@ def run_one_time(fil,p_types):
     return results
 
 
-def run_analysis():
+def run_analysis(input_files,p_types):
 
     input_files.sort(key=lambda f: int(filter(str.isdigit, f)))    
     t=time.time()
@@ -126,11 +126,11 @@ def run_analysis():
     
     return g_r
 
-def load_gr():
+def load_gr(file_name):
     """
     Loads the data structure to be used later
     """
-    file1 = open(r'gr.pkl', 'rb')
+    file1 = open(file_name[0], 'rb')
     g_r = pickle.load(file1)
     file1.close()
     
@@ -151,12 +151,14 @@ def plot_gr(g_r):
     
     fig,ax=plt.subplots()
     names=[r"$g_{ff}$",r"$g_{fs}$",r"$g_{pf}$",r"$g_{ss}$",r"$g_{ps}$"]
+    markers=['.','^','v','s','D']
+    markevery=[5,6,5,6,5]
     
     for i in xrange(5):
         if i<len(colors):color=colors[i]
         else: color=np.random.rand(3)
     
-        ax.plot(g_r[i][:,1],g_r[i][:,2],label=names[i],color=color)
+        ax.plot(g_r[i][:,1],g_r[i][:,2],label=names[i],color=color,marker=markers[i],markersize=3,markevery=markevery[i])
     
     rmax=np.max(g_r[:][:,1])
     
@@ -168,7 +170,7 @@ def plot_gr(g_r):
     
     
     
-    ax.axhline(y=1, xmin=0, xmax=1,ls='--',c='black')
+    #ax.axhline(y=1, xmin=0, xmax=1,ls='--',c='black')
     ax.axvline(x=2**(1/6), ymin=0, ymax=1,ls=':',c='black')
     
     
@@ -204,25 +206,26 @@ Main
 """
 parser = argparse.ArgumentParser(description='This script reads trajectory files and computes the pair distribution function',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('mode',help='Indicate if you want to run the analyisis or just read a previous computed g(r)',choices=['read','run'],default="read")
-parser.add_argument('-file_names', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
+parser.add_argument('-input_files', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
 parser.add_argument('-nbins', help='Number of bins in the radial direction', default=100, type=float)
 parser.add_argument('-nmin', help='Number of timesteps to be discarded', default=500, type=int)
 
 
 args = parser.parse_args()
+input_files=args.input_files
 
 if args.mode=="run":
-    input_files=args.file_names
+    
     imin=args.nmin
     nbins=args.nbins
     rmax=2.5
     input_files = input_files[imin:]
     p_types=[1,2,3]
-    g_r=run_analysis()
+    g_r=run_analysis(input_files, p_types)
     
 else:
     try:
-        g_r=load_gr(args.file_names)
+        g_r=load_gr(input_files)
     except:
         sys.exit("There is no file to load, run the analysis first!")
     

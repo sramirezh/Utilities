@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+    #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 This script gets the results created by dp_poly and the averages of vdata.dat
@@ -21,6 +21,7 @@ import argparse
 from scipy import optimize
 import glob
 import warnings
+import seaborn as sns
 warnings.filterwarnings("ignore")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
@@ -137,7 +138,10 @@ def plot_force_individuals(interactions):
     error_cap=4
 
 
-    colors=['r','b','k','g']
+    colors=['r','b','k','g', sns.xkcd_rgb['tangerine'], sns.xkcd_rgb['dark red']]
+    if len(interactions)>len(colors):
+        palette=sns.color_palette(palette= "bright" , n_colors = len(interactions))
+        
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$V_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
     dic_fit={'vx_poly':1}
@@ -162,7 +166,8 @@ def plot_force_individuals(interactions):
         print "\nplotting the %s" %name
 
 
-
+        interactions.sort() #sorts using the method __lt__
+        
         fig,ax=plt.subplots()
         for i,ljpair in enumerate(interactions):
             yvalue=np.empty(0)
@@ -178,10 +183,12 @@ def plot_force_individuals(interactions):
                     yvalue=np.append(yvalue,ljpair.properties[n][property_index])
                 force_list.append(force)
 
-
+            
             #Defining the first colors from array and the rest by random numbers
             if i<len(colors):color=colors[i]
-            else: color=np.random.rand(3)
+            else: 
+                color=palette[i]
+    
 
             plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=color,capsize=error_cap)
@@ -190,31 +197,46 @@ def plot_force_individuals(interactions):
             Linear fit
             """
 
-            fitfunc = lambda p, x: p[0] * x
-            errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
+            fitfunc1 = lambda p, x: p[0] * x  #Fitting to a line that goes through the origin
+            fitfunc2 = lambda p, x: p[0] * x + p[1] #Fitting to a line
+            errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error in the least squares
+            errfunc2 = lambda p, x, y, err: (y - fitfunc2(p, x)) / err
 
             try:
                 x=np.array(force_list)
                 y=yvalue
-                pinit = [1.0]
-                out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
+                #The velocity is the only one that is forced to go through the origin
+                if file_name=="vx_poly":
+                    pinit=[1.0]
+                    out = optimize.leastsq(errfunc1, pinit, args=(x, y, yerror), full_output=1)
+                    pfinal = out[0] #fitting coefficients
+                    x=np.insert(x,0,0)
+                    if ljpair.epsilon==1.0 and ljpair.sigma==1.0:
+                        ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=color,linestyle='--')
+                    else:
+                        ax.plot(np.unique(x),fitfunc1(pfinal,np.unique(x)),color=color,linestyle='--')
+                else: 
+                    # This is for not vx_poly"
+                    pinit=[1.0,-1.0]
+                    out = optimize.leastsq(errfunc2, pinit, args=(x, y, yerror), full_output=1)
+                    pfinal = out[0] #fitting coefficients
+                    ax.plot(np.unique(x),fitfunc2(pfinal,np.unique(x)),color=color,linestyle='--')
                 cov=out[1] #Covariance
-                pfinal = out[0] #fitting coefficients
-                print "for Epsilon=%s and Sigma =%s The slope is %f error is %f" %(ljpair.epsilon,ljpair.sigma,pfinal,np.sqrt(cov))
-                x=np.insert(x,0,0)
-                
-                if file_name=="vx_poly" and ljpair.epsilon==1.0 and ljpair.sigma==1.0:
-                    ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=color,linestyle='--')
-                else:
-                    ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=color,linestyle='--')
+
+                print "for Epsilon=%s and Sigma =%s The slope is %f error is %f" %(ljpair.epsilon,ljpair.sigma,pfinal[0],np.sqrt(cov[0][0]))
+
             except:
                 pass
 
         file_name=name.replace(" ","_")
+        
 
         """Legend"""
-        plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
-           frameon=True, fancybox=False, edgecolor='k')
+        ncols=int(np.ceil(len(interactions)/4))
+#        plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+#           frameon=True, fancybox=False, edgecolor='k')
+        plt.legend(fontsize=legend_font,loc='upper center',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+           frameon=True, fancybox=False, edgecolor='k',bbox_to_anchor=(0.5, 1.2),ncol=ncols)
 
 
 
@@ -362,6 +384,12 @@ class LJInteraction(object):
             count+=1
 
         return prop
+    
+    def __lt__(self,other):
+        """
+        In order to sort the interactions by the epsilon
+        """
+        return self.epsilon < other.epsilon
 
 
 
@@ -387,7 +415,7 @@ if __name__ == "__main__":
 
 if source == "read":
     is_valid_file(parser,"Statistic_summary.dat")
-    
+
 
 if source=="run":
     print "\nRunning the statistics analysis, using the following parameters"
@@ -551,12 +579,7 @@ plt.rcParams["text.usetex"] =True
 plt.tight_layout()
 fig.savefig("plots/all/Mobility_vs_epsilon.pdf")
 plt.close()
-    
+
 pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
 
 print "\nGenerated average results Results.dat and plots in '%s'"%directory
-
-
-
-
-
