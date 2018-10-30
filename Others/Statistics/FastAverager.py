@@ -36,6 +36,7 @@ def exclude_parameters(names, p_to_exclude):
     """
     i_exclude=list(map(lambda x: cf.parameter_finder(names,x),p_to_exclude))
     i_exclude=np.concatenate(np.array(i_exclude))
+    
 
     return np.int(i_exclude)
 
@@ -67,11 +68,16 @@ def fast_averager(input_file ,min_limit):
 
 
     #Excluding some data that does not need to be analysed
-    exclude=["time", "Chunk", "Coord1"]
+    exclude=["time", "Chunk", "Coord1","step"]
     if isinstance(names[0],basestring)==True:
-        i_delete=exclude_parameters(names, exclude)
-        data_to_analyse=np.delete(data1,i_delete,axis=1)
-        names_to_analyse=np.delete(names,i_delete)
+        try:
+            i_delete=exclude_parameters(names, exclude)
+            data_to_analyse=np.delete(data1,i_delete,axis=1)
+            names_to_analyse=np.delete(names,i_delete)
+        except:
+            print "No columns to skip"
+            data_to_analyse=data1
+            names_to_analyse=names
     else: #If the data does not have header
         data_to_analyse=data1
         names_to_analyse=names
@@ -128,4 +134,4 @@ if __name__ == "__main__":
     min_limit=args.min
     input_file=args.filename
 
-    main(input_file ,min_limit)
+    fast_averager(input_file ,min_limit)

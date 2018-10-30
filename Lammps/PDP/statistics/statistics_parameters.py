@@ -143,7 +143,7 @@ def plot_force_individuals(interactions):
         palette=sns.color_palette(palette= "bright" , n_colors = len(interactions))
         
     #This Dict is going to be compared with the variable file_name
-    dic_yaxis={'conc_bulk':r'$C_s^B [\sigma^{-3}]$','vx_poly':r'$V_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
+    dic_yaxis={'conc_bulk':r'$c_s^B [\sigma^{-3}]$','vx_poly':r'$v_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
     dic_fit={'vx_poly':1}
     print "\nGenerating Plots..."
     directory="plots/individual"
@@ -235,8 +235,8 @@ def plot_force_individuals(interactions):
         ncols=int(np.ceil(len(interactions)/4))
 #        plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
 #           frameon=True, fancybox=False, edgecolor='k')
-        plt.legend(fontsize=legend_font,loc='upper center',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
-           frameon=True, fancybox=False, edgecolor='k',bbox_to_anchor=(0.5, 1.2),ncol=ncols)
+        plt.legend(fontsize=legend_font/ncols,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+           frameon=True, fancybox=False, edgecolor='k',ncol=ncols)
 
 
 
