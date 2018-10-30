@@ -84,11 +84,16 @@ Box,L=pa.Box_limits(input_files[0])
 Data_init=pd.read_csv(input_files[0],sep=" ",skiprows=9,dtype=np.float64,header=None).sort_values(0).values[:,:-1]
 pos_init=pa.real_position(Data_init,L) #Real positions of all the atoms
 
-#results=Parallel(n_jobs=num_cores,verbose=10)(delayed(compute_one_configuration)(fil) for fil in input_files)
 
-results=[]
-for i,fil in enumerate(input_files):
-    results.append(compute_one_time(pos_init,fil))
+
+num_cores = multiprocessing.cpu_count()
+results=Parallel(n_jobs=num_cores,verbose=10)(delayed(compute_one_time)(pos_init,fil) for fil in input_files)
+
+
+#SERIAL solution
+#results=[]
+#for i,fil in enumerate(input_files):
+#    results.append(compute_one_time(pos_init,fil))
     
 results=np.array(results)
 #plt.plot(times_l,msd_l,label="lammps")
