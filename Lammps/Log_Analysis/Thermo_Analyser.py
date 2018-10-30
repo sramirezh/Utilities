@@ -6,10 +6,9 @@ import os
 import sys
 import linecache
 import argparse
-import Others.Statistics.FastAverager as stat
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-
+import Others.Statistics.FastAverager as stat
 """
 Initialisation and controling inputs
 """
