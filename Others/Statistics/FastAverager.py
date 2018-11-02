@@ -127,7 +127,7 @@ if __name__ == "__main__":
     parser.add_argument('filename', metavar='InputFile', type=str,
                         help='Input filename')
 
-    parser.add_argument('--min', help='Number of samples to be discarded', default=1000, type=int)
+    parser.add_argument('--min', help='Number of samples to be discarded', default=0, type=int)
 
 
     args = parser.parse_args()
