@@ -12,15 +12,39 @@ rm -r $name
 cp -r Template $name
 
 cd $name
-
+if grep "Epsilon" in.interaction;then
+	echo "************************************************"
+	echo "The interaction file in the Template is correct"
+	echo "************************************************"
+else
+	echo "************************************************"
+	echo "in.interaction does not contain the flags!!!"
+	echo "************************************************"
+	exit
+fi
 #Creating the interaction file
 sed 's/$Epsilon/'$Epsilon'/g' in.interaction>output
 sed 's/$Sigma/'$Sigma'/g' output>in.interaction
 rm output
 
 
-#Creating the relax interaction file
+#This is for the frenkel simulations
+if [-a in.relax_interaction]; then
+	echo "The file exists"
 
+	if grep "Epsilon" in.interaction;then
+		echo "************************************************"
+		echo "in.relaxinteraction file in the Template is correct"
+		echo "************************************************"
+	else
+		echo "************************************************"
+		echo "in.relax_interaction does not contain the flags!!!"
+		echo "************************************************"
+		exit
+	fi
+else
+	echo "in.relax_interaction does not exist"
+fi
 sed 's/$Epsilon/'$Epsilon'/g' in.relax_interaction>output
 sed 's/$Sigma/'$Sigma'/g' output>in.relax_interaction
 rm output
