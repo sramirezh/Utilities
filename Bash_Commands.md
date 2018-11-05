@@ -36,3 +36,7 @@ sshfs dexter:/frenkelscratch/sr802 dexter_scratch
 list=\`find . -name "run.qsub"\`
 
 for file in $list; do sed -i '3s/.*/#PBS -l walltime=24:00:00/' $file;done 
+
+
+# Delete all the tasks for a user
+qselect -u <username> | xargs qdel
