@@ -41,7 +41,7 @@ for file in $list; do sed -i '3s/.*/#PBS -l walltime=24:00:00/' $file;done
 # Delete all the tasks for a user
 qselect -u \<username> | xargs qdel
 
-# Change the bridgthness
+# Change the bridghtness
 
 xrandr -q | grep " connected" #Shows the connected monitors
 
