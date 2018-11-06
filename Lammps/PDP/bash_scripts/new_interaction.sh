@@ -29,12 +29,12 @@ rm output
 
 
 #This is for the frenkel simulations
-if [-a in.relax_interaction]; then
+if [ -e "in.relax_interaction" ]; then
 	echo "The file exists"
 
-	if grep "Epsilon" in.interaction;then
+	if grep "Epsilon" in.relax_interaction;then
 		echo "************************************************"
-		echo "in.relaxinteraction file in the Template is correct"
+		echo "in.relax_interaction file in the Template is correct"
 		echo "************************************************"
 	else
 		echo "************************************************"
