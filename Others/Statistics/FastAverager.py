@@ -36,9 +36,9 @@ def exclude_parameters(names, p_to_exclude):
     """
     i_exclude=list(map(lambda x: cf.parameter_finder(names,x),p_to_exclude))
     i_exclude=np.concatenate(np.array(i_exclude))
-    
+    i_exclude=np.unique(np.array(i_exclude,dtype=int))
 
-    return np.int(i_exclude)
+    return i_exclude
 
 
 
@@ -73,6 +73,9 @@ def fast_averager(input_file ,min_limit):
         try:
             i_delete=exclude_parameters(names, exclude)
             data_to_analyse=np.delete(data1,i_delete,axis=1)
+            print "skipped the next parameters from the analysis:"
+            for j,i in enumerate(i_delete):
+                print "%s. %s"%(j,names[i])
             names_to_analyse=np.delete(names,i_delete)
         except:
             print "No columns to skip"

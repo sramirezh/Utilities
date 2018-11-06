@@ -42,10 +42,11 @@ def is_valid_file(parser, arg):
         return arg
 
 
-def parameter_finder(List, String):
+def parameter_finder(List, String,msgflag=False):
     """
     Finds a string on a List and returns the position on the list
     It is case insensitive
+    msg is True to tell that there were occurrences or not.
     """
     List=map(lambda x:x.lower(),List)
     String=String.lower()
@@ -56,8 +57,9 @@ def parameter_finder(List, String):
             indexes.append(cont)
         cont+=1
     length=len(indexes)
-    if length>1: print "There were several ocurrences"
-    if length==0: print "No ocurrences found"
+    if msgflag==True:
+        if length>1: print "There were several ocurrences"
+        if length==0: print "No ocurrences found"
 
     return indexes
 

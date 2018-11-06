@@ -31,7 +31,8 @@ def generate_points(epsilon, sigma,n,rc,n_points,rmin):
     generates the points for the potential
     """
     data=np.zeros((n_points,3))
-    data[:,0]=-(rc-rmin)*np.cos(np.linspace(0,np.pi/2,num=n_points))+rc
+    data[:,0]=-(rc-rmin)*np.cos(np.linspace(0,np.pi/2,num=n_points))+rc  #Harmonic dist
+    #data[:,0]=np.linspace(rmin,rc,n_points) #Linear dist
     data[:,1]=ljplot.frenkel(data[:,0],epsilon,sigma,rc,4)
     data[:,2]=ljplot.force_frenkel(data[:,0],epsilon,sigma,rc,4)
     
@@ -58,7 +59,7 @@ def write_potential(f,epsilon, sigma,n,rc,n_points,rmin):
       
 
 
-def run_lammps(rmin,rc):
+def run_lammps(rmin,rc,n_points):
     """
     Short lammps test cheking the table
     """
@@ -77,7 +78,7 @@ def run_lammps(rmin,rc):
     L.create_atoms(2, "single 3 1.12 0")
     L.mass('*', 1.0)
     L.neighbor(0.3, "bin")
-    L.command("pair_style table linear 1000")
+    L.command("pair_style table linear %s" %n_points)
     L.pair_coeff(" 1 1 frenkel.dat FRENKEL_N_4_E_2.5")
     L.pair_coeff(" 1 2 frenkel.dat FRENKEL_N_4_E_1.0")
     L.pair_coeff("2 2 frenkel.dat FRENKEL_N_4_E_1.0")
@@ -90,7 +91,7 @@ def run_lammps(rmin,rc):
     L.run(0)
     
     
-def run_lammps_hybrid(rmin,rc):
+def run_lammps_hybrid(rmin,rc, n_points):
     """
     Test with 3 types of particles and two potentials: LJ and frenkel
     """
@@ -111,7 +112,7 @@ def run_lammps_hybrid(rmin,rc):
     L.neighbor(0.3, "bin")
     L.command("pair_style lj/cut 2.5")
     L.command("pair_coeff * * 1.0 1.0 2.5")
-    L.command("pair_style hybrid table linear 1000 lj/cut 2.5")
+    L.command("pair_style hybrid table linear %s lj/cut 2.5" %n_points)
     L.pair_coeff(" 1 1 table frenkel.dat FRENKEL_N_4_E_2.5")
     L.pair_coeff(" 1 2 table frenkel.dat FRENKEL_N_4_E_1.0")
     L.pair_coeff("2 2 table frenkel.dat FRENKEL_N_4_E_1.0")
@@ -167,7 +168,7 @@ def main():
     
     rmin=0.85
     rc=1.6
-    n_points=1000
+    n_points=2000
     n=4
     
     f=open("frenkel.dat",'w')
@@ -175,11 +176,11 @@ def main():
     f,data2=write_potential(f,1.0,1.0,n,rc,n_points,rmin)
     f.close()
     
-    run_lammps(rmin,rc)
+    run_lammps(rmin,rc,n_points)
     
     plot_test(data1,data2)
     
-    run_lammps_hybrid(rmin,rc)
+    run_lammps_hybrid(rmin,rc,n_points)
     print ("\n****************************************************************")
     print ("Always check that the generated potential in Lammps is accurate!")
     print ("****************************************************************")
