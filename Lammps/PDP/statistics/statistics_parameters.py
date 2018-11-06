@@ -11,7 +11,7 @@ Returns:
 
 @author: simon
 """
-
+from __future__ import division
 import os
 import sys
 import pandas as pd
@@ -22,6 +22,7 @@ from scipy import optimize
 import glob
 import warnings
 import seaborn as sns
+
 warnings.filterwarnings("ignore")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
@@ -141,7 +142,7 @@ def plot_force_individuals(interactions):
     colors=['r','b','k','g', sns.xkcd_rgb['tangerine'], sns.xkcd_rgb['dark red']]
     if len(interactions)>len(colors):
         palette=sns.color_palette(palette= "bright" , n_colors = len(interactions))
-        
+
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$c_s^B [\sigma^{-3}]$','vx_poly':r'$v_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
     dic_fit={'vx_poly':1}
@@ -167,7 +168,7 @@ def plot_force_individuals(interactions):
 
 
         interactions.sort() #sorts using the method __lt__
-        
+
         fig,ax=plt.subplots()
         for i,ljpair in enumerate(interactions):
             yvalue=np.empty(0)
@@ -183,12 +184,12 @@ def plot_force_individuals(interactions):
                     yvalue=np.append(yvalue,ljpair.properties[n][property_index])
                 force_list.append(force)
 
-            
+
             #Defining the first colors from array and the rest by random numbers
             if i<len(colors):color=colors[i]
-            else: 
+            else:
                 color=palette[i]
-    
+
 
             plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=color,capsize=error_cap)
@@ -215,7 +216,7 @@ def plot_force_individuals(interactions):
                         ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=color,linestyle='--')
                     else:
                         ax.plot(np.unique(x),fitfunc1(pfinal,np.unique(x)),color=color,linestyle='--')
-                else: 
+                else:
                     # This is for not vx_poly"
                     pinit=[1.0,-1.0]
                     out = optimize.leastsq(errfunc2, pinit, args=(x, y, yerror), full_output=1)
@@ -229,7 +230,7 @@ def plot_force_individuals(interactions):
                 pass
 
         file_name=name.replace(" ","_")
-        
+
 
         """Legend"""
         ncols=int(np.ceil(len(interactions)/4))
@@ -384,7 +385,7 @@ class LJInteraction(object):
             count+=1
 
         return prop
-    
+
     def __lt__(self,other):
         """
         In order to sort the interactions by the epsilon
