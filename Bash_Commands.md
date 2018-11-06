@@ -40,3 +40,15 @@ for file in $list; do sed -i '3s/.*/#PBS -l walltime=24:00:00/' $file;done
 
 # Delete all the tasks for a user
 qselect -u \<username> | xargs qdel
+
+# Change the bridgthness
+
+xrandr -q | grep " connected" #Shows the connected monitors
+
+generates this output:
+DVI-I-0 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis) 480mm x 270mm
+DVI-D-0 connected 1680x1050+1920+0 (normal left inverted right x axis y axis) 459mm x 296mm
+
+xrandr --output DVI-I-0 --brightness 0.5 #Changes DVI-I-0 to 50%
+
+
