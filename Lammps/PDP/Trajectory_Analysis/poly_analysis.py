@@ -28,14 +28,14 @@ import linecache
 import os
 import sys
 import gzip
-
+from scipy.spatial.distance import pdist,squareform
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
 
-# %% 
+
 """
 *******************************************************************************
 Functions
@@ -138,6 +138,7 @@ def relative_position(pos):
         pos is a vector with [xi,yi,zi]
     """
     v_cm=cm(pos)
+    n,m=np.shape(pos)
     pos_rel=np.zeros((n,3))
     for i in range(3):
         pos_rel[:,i]=pos[:,i]-v_cm[i]
@@ -182,6 +183,28 @@ def gyration_radious_squared(pos):
 
     return gr2
 
+def hydrodynamic_radius(pos):
+    """
+    Computes the hydrodynamic radius
+    
+    Args:
+        Pos, vector with the positions of the monomers
+    Returns the inverse of the hydrodynamic radius
+    """
+    n,m=np.shape(pos)
+    dist=squareform(pdist(pos))
+    inv_r=0
+    for i in xrange(n):
+        for j in xrange(i+1,n):
+            inv_r += 1./dist[i,j]
+    
+    inv_rh=inv_r/n**2
+    
+    return inv_rh
+    
+    
+    
+
 def trajectory_analysis(nbins,imin):
 
     #Reading the initial data
@@ -199,7 +222,8 @@ def trajectory_analysis(nbins,imin):
     av_rd_negative=np.zeros((nbins,2))
     #r_gyration_2=[]
     cm_disp=[] #Cm displacement
-
+    inv_Rh=[]
+    
     counter=0
     for k in xrange(imin,x): #Runs over the sampled times.
         print("Reading configuration %d of %d" %(k,x-1))
@@ -207,15 +231,20 @@ def trajectory_analysis(nbins,imin):
         # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
         Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
         n,m=Data.shape
-        pos=real_position(Data) #Real positions of all the atoms
+        pos=real_position(Data,L) #Real positions of all the atoms
+        
+        "Getting the inverse of the Hydrodynamic radius"
+        
+        inv_Rh.append(hydrodynamic_radius(pos))
+        
         cm_disp.append(np.hstack([times[k]-times[imin,0],cm(pos)]))
-        pos_relative=relative_position(pos) #
-        #Evaluating the positions of the head and the tail respect to v_cm
+        pos_relative=relative_position(pos) 
+        "Evaluating the positions of the head and the tail respect to v_cm"
         i_head=np.where((Data[:,0]==1))[0][0]
         i_tail=np.where((Data[:,0]==n))[0][0]
         rel_tail.append(pos_relative[i_tail,0])
         rel_head.append(pos_relative[i_head,0])
-
+        
         "Getting the points in front and in the back"
         #First i get the indexes of the points in front and then I delete those indexes to get the points in the back
         pos_sphere=spherical_coordinates(pos_relative)
@@ -229,6 +258,8 @@ def trajectory_analysis(nbins,imin):
         av_rd_positive+=rd_positive[:,1:]
         av_rd_negative+=rd_negative[:,1:]
         rd_negative[:,0]=rd_negative[:,0]*-1
+        
+        
 
 
         """Other properties"""
@@ -252,6 +283,8 @@ def trajectory_analysis(nbins,imin):
     #To add altogether
 
     rd=np.concatenate((rd_negative[::-1,:],rd_positive),axis=0)
+    
+    
 
     """
     ###############################################################################
@@ -259,8 +292,8 @@ def trajectory_analysis(nbins,imin):
     ###############################################################################
     """
     #r_gyration=np.sqrt(r_gyration_2)
-
-
+    av_inv_rh=np.average(np.array(inv_Rh))
+    print  av_inv_rh
     """
     ###############################################################################
     Plots
@@ -361,9 +394,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     InputFile=args.FileName
-
-
-
 
 
     if args.split==True:

@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Oct 30 15:15:12 2018
-This scripts reads the MSD generated from lammps and extracts
+This scripts reads the MSD generated from lammps and also computes it from the trajectories
+to find the diffusion coefficient for both cases and validating the approach.
 @author: sr802
 """
 
@@ -25,40 +26,40 @@ from joblib import Parallel, delayed
 import multiprocessing
 
 def lammps_MSD(delta_t):
-    
-    
+
+
     data=pd.read_csv("Parameters.dat",sep=" ",dtype=np.float64).values[:,:-1]
-    
+
     times=data[:,0]-data[0,0]
     times=times*delta_t
     msd=data[:,-1]
-    
+
     fig,ax=plt.subplots()
-    
+
     ax.plot(times,msd,label="LAMMPS")
-    
+
     out=np.polyfit(times,msd,1)
-    
+
     ax.plot(times,out[0]*times,label="fit")
-    
+
     D=out[0]/(2*3)
-    
+
     print "The diffusion coefficient from Lammps MSD is %s"%D
     return times,msd
 
 def compute_one_time(pos_init,fil):
     """
-    Computes the g(r) of the polymer particles with other particle types, so only 3 
+    Computes the g(r) of the polymer particles with other particle types, so only 3
     three distri
     """
-    
+
 
     Data=pd.read_csv(fil,sep=" ",skiprows=9,dtype=np.float64,header=None).sort_values(0).values[:,:-1]
     pos=pa.real_position(Data,L) #Real positions of all the atoms
-    
+
     delta_sqr_components=(pos-pos_init)**2
     delta_sqr=np.sum(delta_sqr_components,axis=1)
-    
+
     msd_comp=np.average(delta_sqr_components,axis=0)
     msd=np.average(delta_sqr)
 
@@ -94,7 +95,7 @@ results=Parallel(n_jobs=num_cores,verbose=10)(delayed(compute_one_time)(pos_init
 #results=[]
 #for i,fil in enumerate(input_files):
 #    results.append(compute_one_time(pos_init,fil))
-    
+
 results=np.array(results)
 #plt.plot(times_l,msd_l,label="lammps")
 #plt.plot(times,results[:,3],label="My_algorithm")
@@ -102,5 +103,5 @@ results=np.array(results)
 out=np.polyfit(times,results[:,3],1)
 
 D=out[0]/(2*3)
-    
+
 print "The diffusion coefficient from My calculations is %s"%D

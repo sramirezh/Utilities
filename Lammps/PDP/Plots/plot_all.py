@@ -121,29 +121,29 @@ for j,interaction in enumerate(interactions):
     yerror=error_mobility
     pinit = [1.0,-1.0]
     out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
-    cov=out[1] #Covariance in the 
+    cov=out[1] #Covariance in the
     pfinal = out[0] #fitting coefficients
     #print "for %s The slope is %f error is %f" %(interaction,pfinal,np.sqrt(cov))
-    
+
     epsilon=float(cf.extract_digits(interaction)[0])
     sigma=float(cf.extract_digits(interaction)[1])
-    
+
     if epsilon==1.0 and sigma==1.0:
         ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=colors[j],linestyle='--')
-    else:    
+    else:
         ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=colors[j],linestyle='--')
     color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
     ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o',capsize=error_cap)
-    
+
     """
     Printing the fitting factors and their errors
     """
-    
+
     print "For epsilon=%s and sigma=%s" %(epsilon,sigma)
     print "The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1]))
     print "The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0]))
-    
-    
+
+
 
 
 
@@ -165,7 +165,7 @@ xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 
 plt.xticks(np.arange(len(lengths)+1)*30)
-ax.set_xlim(20,130)
+ax.set_xlim(0,130)
 
 
 ymin,ymax=plt.ylim()
