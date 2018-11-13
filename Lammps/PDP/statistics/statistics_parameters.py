@@ -299,18 +299,37 @@ def extract_digits(string):
 def compute_statistics_param(dpolymin):
     """
     Gets the parameters for the dpolymin that should be used to call the compute_statistics.sh
+    It reads them from the firs input.lmp that finds.
+
+    Parameters
+    ----------
+    dpolymin :  int
+                Number of samples to be discarded in DPpoly
+
+    Returns
+    -------
+    s : int
+        Minimum time step for the dp_poly analysis
+    d : int
+        time step between samples
+    n : int
+        Total number of steps to analyse
+
     """
     tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -print -quit""")#Assuming all the input files have the same parameters.
     print tfile
     out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
-    d=int(extract_digits(out)[0]) #sampling Interval
-
-    out2,err=cf.bash_command("""grep -m 1 "myStepsEach equal"  %s"""%tfile)
-    n1=int(extract_digits(out2)[0])
-    out3,err=cf.bash_command("""grep -m 1 "myLoop loop"  %s"""%tfile)
-    n2=int(extract_digits(out3)[0])
-
-    n=n1*n2    #total number of steps
+    d=int(extract_digits(out)[0])
+    
+    try: #For the old version of the simulations
+        out2,err=cf.bash_command("""grep -m 1 "myStepsEach equal"  %s"""%tfile)
+        n1=int(extract_digits(out2)[0])
+        out3,err=cf.bash_command("""grep -m 1 "myLoop loop"  %s"""%tfile)
+        n2=int(extract_digits(out3)[0])
+        n = n1 * n2
+    except: #New version without loop
+        out4,err = cf.bash_command("""grep -m 1 "myRun equal" %s"""%tfile)
+        n = n1=int(extract_digits(out4)[0])
 
     s=d*dpolymin
     return [s,d,n]

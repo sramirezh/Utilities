@@ -184,7 +184,7 @@ plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["text.usetex"] =True
 plt.tight_layout()
-fig.savefig("Mobility_N.pdf",transparent=False)
+fig.savefig("Mobility_N.pdf",transparent=True)
 plt.close()
 
 
