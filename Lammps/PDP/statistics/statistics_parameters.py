@@ -292,9 +292,14 @@ def is_valid_file(parser,arg):
 
 def extract_digits(string):
     """
-    Returns an array of all the digits in a string
+    Returns an array of all the digits in a string,
+    works for scientific notation, with exponent or caret,
+    for example 10e10, 10E10,10^10.
     """
-    return re.findall(r"[-+]?\d*\.?\d+",string)
+    #return re.findall(r"[-+]?\d*\.?\d+",string)
+    match_number = re.compile('-?\ *[0-9]+\.?[0-9]*(?:[Ee/\^]\ *-?\ *[0-9]+)?')
+    final_list = [float(x.replace("^","e")) for x in re.findall(match_number, string)]
+    return final_list
 
 def compute_statistics_param(dpolymin):
     """
@@ -320,7 +325,7 @@ def compute_statistics_param(dpolymin):
     print tfile
     out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
     d=int(extract_digits(out)[0])
-    
+
     try: #For the old version of the simulations
         out2,err=cf.bash_command("""grep -m 1 "myStepsEach equal"  %s"""%tfile)
         n1=int(extract_digits(out2)[0])
