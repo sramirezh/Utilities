@@ -186,7 +186,7 @@ def gyration_radious_squared(pos):
 def hydrodynamic_radius(pos):
     """
     Computes the hydrodynamic radius
-    
+
     Args:
         Pos, vector with the positions of the monomers
     Returns the inverse of the hydrodynamic radius
@@ -197,13 +197,13 @@ def hydrodynamic_radius(pos):
     for i in xrange(n):
         for j in xrange(i+1,n):
             inv_r += 1./dist[i,j]
-    
+
     inv_rh=inv_r/n**2
-    
+
     return inv_rh
-    
-    
-    
+
+
+
 
 def trajectory_analysis(nbins,imin):
 
@@ -223,7 +223,7 @@ def trajectory_analysis(nbins,imin):
     #r_gyration_2=[]
     cm_disp=[] #Cm displacement
     inv_Rh=[]
-    
+
     counter=0
     for k in xrange(imin,x): #Runs over the sampled times.
         print("Reading configuration %d of %d" %(k,x-1))
@@ -232,19 +232,19 @@ def trajectory_analysis(nbins,imin):
         Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
         n,m=Data.shape
         pos=real_position(Data,L) #Real positions of all the atoms
-        
+
         "Getting the inverse of the Hydrodynamic radius"
-        
+
         inv_Rh.append(hydrodynamic_radius(pos))
-        
+
         cm_disp.append(np.hstack([times[k]-times[imin,0],cm(pos)]))
-        pos_relative=relative_position(pos) 
+        pos_relative=relative_position(pos)
         "Evaluating the positions of the head and the tail respect to v_cm"
         i_head=np.where((Data[:,0]==1))[0][0]
         i_tail=np.where((Data[:,0]==n))[0][0]
         rel_tail.append(pos_relative[i_tail,0])
         rel_head.append(pos_relative[i_head,0])
-        
+
         "Getting the points in front and in the back"
         #First i get the indexes of the points in front and then I delete those indexes to get the points in the back
         pos_sphere=spherical_coordinates(pos_relative)
@@ -258,8 +258,8 @@ def trajectory_analysis(nbins,imin):
         av_rd_positive+=rd_positive[:,1:]
         av_rd_negative+=rd_negative[:,1:]
         rd_negative[:,0]=rd_negative[:,0]*-1
-        
-        
+
+
 
 
         """Other properties"""
@@ -283,8 +283,8 @@ def trajectory_analysis(nbins,imin):
     #To add altogether
 
     rd=np.concatenate((rd_negative[::-1,:],rd_positive),axis=0)
-    
-    
+
+
 
     """
     ###############################################################################
@@ -388,9 +388,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
-    parser.add_argument('--split', help='True if trajectory file need to be splitter', default=False, type=bool)
-    parser.add_argument('--Nbins', help='Number of bins in one direction, i,e positive', default=10, type=float)
-    parser.add_argument('--Nmin', help='Number of timesteps to be discarded', default=300, type=int)
+    parser.add_argument('-split', help='True if trajectory file need to be splitter', default=False, type=bool)
+    parser.add_argument('-Nbins', help='Number of bins in one direction, i,e positive', default=10, type=float)
+    parser.add_argument('-Nmin', help='Number of timesteps to be discarded', default=300, type=int)
 
     args = parser.parse_args()
     InputFile=args.FileName

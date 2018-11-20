@@ -48,7 +48,7 @@ Main
 *******************************************************************************
 """
 
-def fast_averager(input_file ,min_limit):
+def fast_averager(input_file ,min_limit,output_file):
     """
     This script evaluates the average of a quantity
 
@@ -112,14 +112,14 @@ def fast_averager(input_file ,min_limit):
 
     print "The Results are:\n"
     print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple"
-    file=open("statistics.dat",'w')
+    file=open(output_file,'w')
     file.write("#print Property    Average    Error_autocorrelation    Error_blocking    Error_simple\n")
     for i in xrange(size):
         print "%s = %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i])
         file.write("%s = %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i]))
     file.close()
 
-    print "\nCreated a file statistics.dat with the averages"
+    print "\nCreated a file %s with the averages"%output_file
 
 
 
@@ -131,10 +131,10 @@ if __name__ == "__main__":
                         help='Input filename')
 
     parser.add_argument('--min', help='Number of samples to be discarded', default=0, type=int)
-
+    parser.add_argument('--output',help='Name of the output file',default='statistics.dat',type=str)
 
     args = parser.parse_args()
     min_limit=args.min
     input_file=args.filename
 
-    fast_averager(input_file ,min_limit)
+    fast_averager(input_file ,min_limit,output_file)

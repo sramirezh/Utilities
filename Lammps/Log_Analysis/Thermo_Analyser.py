@@ -1,5 +1,5 @@
 """
-This script reads the log file and gets the 
+This script reads the log file and gets the
 """
 import numpy as np
 import os
@@ -12,8 +12,8 @@ import Others.Statistics.FastAverager as stat
 """
 Initialisation and controling inputs
 """
-    
-    
+
+
 def read_chunk(i_line,f_line):
     data=[]
     for i in range(i_line,f_line):
@@ -32,12 +32,12 @@ def save_file(data,header):
 
 def data_extract(file_name,discard):
     """
-    This function extracts the data from the timesteps after discarding the defined amount 
+    This function extracts the data from the timesteps after discarding the defined amount
     """
-    
+
     out,err=cf.bash_command("""grep -n "Per MPI" %s| awk -F":" '{print $1}'"""%file_name )
-    initial_line=np.array(out.split(),dtype=int)+1 
-    
+    initial_line=np.array(out.split(),dtype=int)+1
+
     out2,err=cf.bash_command("""grep -n "Loop time" %s| awk -F":" '{print $1}'"""%file_name)
     final_line=np.array(out2.split(),dtype=int)-1
     #Check if there was minimization
@@ -46,7 +46,7 @@ def data_extract(file_name,discard):
     if out3:
         initial_line=np.delete(initial_line,0)
         final_line=np.delete(final_line,0)
-    
+
     """Checking if the simulation did not finish"""
     if np.size(initial_line)>np.size(final_line):
         print "\nThe log file is incomplete!, lets analyse it in anycase \n"
@@ -54,7 +54,7 @@ def data_extract(file_name,discard):
         line=int(out3.split()[0])
         final_line=np.append(final_line,line)
 
-    
+
     header=linecache.getline(file_name, initial_line[0]).strip('\n').split()
     header_string=" ".join(header)
     number_chunks=np.size(initial_line)
@@ -66,13 +66,13 @@ def data_extract(file_name,discard):
             data=read_chunk(initial_line[i],final_line[i])
             total=np.delete(total,-1,axis=0) #As there are repeated timesteps, I choose to keep the last version of the variables
             total=np.vstack([total,data])
-    
-    total=total[discard:]
-    
-    return total, header_string
-    
 
-    
+    total=total[discard:]
+
+    return total, header_string
+
+
+
 
 
 if __name__=="__main__":
@@ -81,7 +81,7 @@ if __name__=="__main__":
     parser.add_argument('--discard', help='Number of initial steps to discard', default=0, type=int)
     args = parser.parse_args()
     file_name=args.FileName
-    
+
     data,header=data_extract(file_name,args.discard)
     save_file(data,header)
-    stat.fast_averager("Parameters.dat",0)
+    stat.fast_averager("Parameters.dat",0,"thermo.dat")
