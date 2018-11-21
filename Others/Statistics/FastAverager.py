@@ -48,7 +48,7 @@ Main
 *******************************************************************************
 """
 
-def fast_averager(input_file ,min_limit,output_file):
+def fast_averager(input_file ,min_limit,output_file="statistics.dat"):
     """
     This script evaluates the average of a quantity
 
