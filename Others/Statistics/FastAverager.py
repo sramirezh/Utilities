@@ -137,4 +137,4 @@ if __name__ == "__main__":
     min_limit=args.min
     input_file=args.filename
 
-    fast_averager(input_file ,min_limit,output_file)
+    fast_averager(input_file ,min_limit,output_file,args.output)
