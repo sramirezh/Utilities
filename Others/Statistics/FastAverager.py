@@ -126,15 +126,16 @@ def fast_averager(input_file ,min_limit,output_file):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='This script evaluates the average of a quantity')
+    parser = argparse.ArgumentParser(description='This script evaluates the average of a quantity',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('filename', metavar='InputFile', type=str,
                         help='Input filename')
 
     parser.add_argument('--min', help='Number of samples to be discarded', default=0, type=int)
-    parser.add_argument('--output',help='Name of the output file',default='statistics.dat',type=str)
+    parser.add_argument('--output',help='Name of the output file',default="statistics.dat",type=str)
 
     args = parser.parse_args()
     min_limit=args.min
     input_file=args.filename
+    output_file=args.output
 
-    fast_averager(input_file ,min_limit,output_file,args.output)
+    fast_averager(input_file ,min_limit,output_file)
