@@ -32,27 +32,25 @@ fi
 
 
 #This is for the frenkel simulations
-if [ -e "in.relax_interaction" ]; then
-	echo "The file exists"
-
-	if grep "Epsilon" in.relax_interaction;then
-		echo "************************************************"
-		echo "in.relax_interaction file in the Template is correct"
-		echo "************************************************"
-		sed 's/$Epsilon/'$Epsilon'/g' in.relax_interaction>output
-		sed 's/$Sigma/'$Sigma'/g' output>in.relax_interaction
-		rm output
-	else
-		echo "************************************************"
-		echo "in.relax_interaction does not contain the flags!!!"
-		echo "************************************************"
-		exit
-	fi
-else
-	echo "in.relax_interaction does not exist"
-fi
-
-
+# if [ -e "in.relax_interaction" ]; then
+# 	echo "The file exists"
+#
+# 	if grep "Epsilon" in.relax_interaction;then
+# 		echo "************************************************"
+# 		echo "in.relax_interaction file in the Template is correct"
+# 		echo "************************************************"
+# 		sed 's/$Epsilon/'$Epsilon'/g' in.relax_interaction>output
+# 		sed 's/$Sigma/'$Sigma'/g' output>in.relax_interaction
+# 		rm output
+# 	else
+# 		echo "************************************************"
+# 		echo "in.relax_interaction does not contain the flags!!!"
+# 		echo "************************************************"
+# 		exit
+# 	fi
+# else
+# 	echo "in.relax_interaction does not exist"
+# fi
 
 #Modifying all the qsub
 files=`find . -name "*.qsub"`
