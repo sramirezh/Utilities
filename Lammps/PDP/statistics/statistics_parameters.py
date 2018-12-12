@@ -589,8 +589,8 @@ ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 #ax.set_xlim(0,xmax+deltax*xoffset)
-ax.set_xlim(0,30)
-plt.xticks(np.arange(0,31,5))
+ax.set_xlim(0,10)
+plt.xticks(np.arange(0,11,1))
 
 
 

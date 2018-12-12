@@ -12,15 +12,17 @@ csplit --digits=4 -z --quiet --prefix=outfile $name "/^ITEM: TIMESTEP/" "{*}" #S
 for f in outfile*
 do
 var=`sed -n '2p' $f` #gets the time
-echo $var>>Times.dat
 tail -n +10 $f>tmp
 mv tmp $var.cxyz
 rm $f
 done
+
+ls *.cxyz | sort -n -t . -k 1 | awk -F  "." '/1/ {print $1}' > Times.dat
+
 }
 
 PartialSplit(){
-  
+
   NAtoms=`sed -n '4p' $name` #Number of atoms
   Nlines=$(($NAtoms+9))
   head -$Nlines $name > 0.cxyz
@@ -62,4 +64,4 @@ if [ -z "${s}" ]  ; then  #If there is no value in the arguments
     TotalSplit
 fi
 
-rm tmp 2>/dev/null 
+rm tmp 2>/dev/null
