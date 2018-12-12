@@ -403,7 +403,7 @@ if __name__ == "__main__":
     else:
         print "The Trajectory file was not splitted"
 
-        trajectory_analysis(args.Nbins,args.Nmin)
+    trajectory_analysis(args.Nbins,args.Nmin)
 
 
 #"""
