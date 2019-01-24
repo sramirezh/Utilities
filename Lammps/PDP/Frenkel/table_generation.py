@@ -166,7 +166,7 @@ def plot_test(data11,data22):
     
 def main():
     
-    rmin=0.85
+    rmin=0.1
     rc=1.6
     n_points=2000
     n=4
