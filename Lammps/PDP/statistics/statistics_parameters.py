@@ -77,12 +77,13 @@ def build_data():
     count=0
 
     while i<len(lines):
-        if re.search("\AE_*",lines[i] ): #Finding the LJ parameters
+        if re.search("E_*",lines[i] ): #Finding the LJ parameters
             interactions.append(LJInteraction(re.findall(r"[-+]?\d*\.?\d+", lines[i])))
             print "\nReading data from  %s"%lines[i]
             i=i+1
             count+=1
         else:
+            print lines[i]
             if re.search("\AdDP*",lines[i] ):
                 interactions[-1].addforce(lines[i])
                 i+=1
