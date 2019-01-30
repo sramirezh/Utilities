@@ -4,6 +4,8 @@
 Created on Thu Jun  7 12:00:01 2018
 Script to plot all the results from different polymer number,
 in the options you can decide to plot all the dat files or just the ones you decide
+
+Still have to add the interactions by hand in the interactions array
 @author: sr802
 """
 from __future__ import division
@@ -105,7 +107,7 @@ Mobility vs N
 """
 fig,ax=plt.subplots()
 interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
-
+interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 for j,interaction in enumerate(interactions):
     mobility=[]
     error_mobility=[]

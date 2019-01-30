@@ -78,7 +78,7 @@ def build_data():
 
     while i<len(lines):
         if re.search("E_*",lines[i] ): #Finding the LJ parameters
-            interactions.append(LJInteraction(re.findall(r"[-+]?\d*\.?\d+", lines[i])))
+            interactions.append(LJInteraction(cf.extract_digits(lines[i])[-2::]))
             print "\nReading data from  %s"%lines[i]
             i=i+1
             count+=1
@@ -291,17 +291,6 @@ def is_valid_file(parser,arg):
         parser.error("The file %s does not exist!, see source options" % arg)
 
 
-def extract_digits(string):
-    """
-    Returns an array of all the digits in a string,
-    works for scientific notation, with exponent or caret,
-    for example 10e10, 10E10,10^10.
-    """
-    #return re.findall(r"[-+]?\d*\.?\d+",string)
-    match_number = re.compile('-?\ *[0-9]+\.?[0-9]*(?:[Ee/\^]\ *-?\ *[0-9]+)?')
-    final_list = [float(x.replace("^","e")) for x in re.findall(match_number, string)]
-    return final_list
-
 def compute_statistics_param(dpolymin):
     """
     Gets the parameters for the dpolymin that should be used to call the compute_statistics.sh
@@ -325,17 +314,17 @@ def compute_statistics_param(dpolymin):
     tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -print -quit""")#Assuming all the input files have the same parameters.
     print tfile
     out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
-    d=int(extract_digits(out)[0])
+    d=int(cf.extract_digits(out)[0])
 
     try: #For the old version of the simulations
         out2,err=cf.bash_command("""grep -m 1 "myStepsEach equal"  %s"""%tfile)
-        n1=int(extract_digits(out2)[0])
+        n1=int(cf.extract_digits(out2)[0])
         out3,err=cf.bash_command("""grep -m 1 "myLoop loop"  %s"""%tfile)
-        n2=int(extract_digits(out3)[0])
+        n2=int(cf.extract_digits(out3)[0])
         n = n1 * n2
     except: #New version without loop
         out4,err = cf.bash_command("""grep -m 1 "myRun equal" %s"""%tfile)
-        n = n1=int(extract_digits(out4)[0])
+        n = n1=int(cf.extract_digits(out4)[0])
 
     s=d*dpolymin
     return [s,d,n]
@@ -516,49 +505,11 @@ error_cap=4
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
-
-"""
-###############################################################################
-Mobility vs Delta Cs
-###############################################################################
-"""
-fig,ax=plt.subplots()
+    
+    
 
 ave_data=np.array(ave_data[:,1::],dtype=float) #Avoiding the first column which contains the interactions.
-ax.errorbar(ave_data[:,-4],ave_data[:,0],yerr=ave_data[:,1],fmt='o',capsize=error_cap)
-x=np.array(ave_data[:,-4])
-y=np.array(ave_data[:,0])
 
-
-for i in xrange(len(interactions)):
-    txt="%.2lf,%.2lf"%(interactions[i].epsilon,interactions[i].sigma)
-    ax.annotate(txt, (x[i]+0.002,y[i]),horizontalalignment='left',verticalalignment='center',fontsize=annotate_size)
-
-"""Axis"""
-ax.set_xlabel(r'$\Delta c_s [1/\sigma^3] $',fontsize=axis_font)
-ax.grid(False)
-ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font,direction='in')
-
-ymin,ymax=plt.ylim()
-deltay=ymax-ymin
-ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
-
-
-xmin,xmax=plt.xlim()
-deltax=xmax-xmin
-ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-
-"""Lines"""
-ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-ax.axvline(x=0, ymin=0, ymax=1,ls='--',c='black')
-
-"""General"""
-plt.rcParams["mathtext.fontset"] = "cm"
-plt.rcParams["text.usetex"] =True
-plt.tight_layout()
-fig.savefig("plots/all/Mobility_Delta_Cs.pdf")
-plt.close()
 
 """
 ###############################################################################
