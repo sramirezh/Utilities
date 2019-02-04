@@ -58,5 +58,5 @@ find . -type f -regextype sed -regex ".*.[0-9]$"   This was to delete the output
 
 # Find the 5 largest files
 
-find -type f -name  -exec du -Sh {} + | sort -rh | head -n 5
+find -type f -exec du -Sh {} + | sort -rh | head -n 5
 
