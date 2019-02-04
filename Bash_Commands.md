@@ -56,5 +56,7 @@ xrandr --output DVI-I-0 --brightness 0.5 #Changes DVI-I-0 to 50%
 
 find . -type f -regextype sed -regex ".*.[0-9]$"   This was to delete the output from old simulations
 
+# Find the 5 largest files
 
+find -type f -name  -exec du -Sh {} + | sort -rh | head -n 5
 
