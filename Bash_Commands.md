@@ -52,4 +52,11 @@ DVI-D-0 connected 1680x1050+1920+0 (normal left inverted right x axis y axis) 45
 
 xrandr --output DVI-I-0 --brightness 0.5 #Changes DVI-I-0 to 50%
 
+# Find files with regex
+
+find . -type f -regextype sed -regex ".*.[0-9]$"   This was to delete the output from old simulations
+
+# Find the 5 largest files
+
+find -type f -exec du -Sh {} + | sort -rh | head -n 5
 
