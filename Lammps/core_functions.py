@@ -124,6 +124,9 @@ def extract_digits(strings):
 
 
 def blockPrint():
+    """
+    Redirecting stdout to nothing
+    """
     sys.stdout = open(os.devnull, 'w')
 
 # Restore

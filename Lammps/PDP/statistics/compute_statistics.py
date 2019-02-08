@@ -51,10 +51,6 @@ def gather_statistics(directories):
             print force
             f.write("\n"+force+"\n")
             os.chdir(force)
-            
-            #Results from dp_poly
-            with open("average_info.dat",'r') as ave_info:
-                f.writelines(ave_info.readlines())
                 
             #Results from Fast averager    
             with open("statistics.dat",'r') as ave_info:
@@ -66,19 +62,21 @@ def gather_statistics(directories):
             
     f.close()
     return
+
+def check_terminated_simulation(interaction,force):
+    """
+    """
+    os.chdir("%s/%s"%(interaction,force))
+
+    
     
 
-def run_analysis(interaction,force,path_dp_poly,s,d,n,dmin):
+def run_analysis(interaction,force,dmin):
     
     initial_directory=os.getcwd()
     
     os.chdir("%s/%s"%(interaction,force))
-    files=glob.glob('conf/*.gz')
-    
-    n=int(cf.extract_digits(files)[-1])
-
-    #Results from dp_poly
-    out,error=cf.bash_command("%s -s %s -d %s -n %s" %(path_dp_poly,s,d,n))        
+     
     #Results from Fast averager    
     stat.fast_averager("vdata.dat",dmin)
     os.chdir(initial_directory)
@@ -101,7 +99,6 @@ def compute_statistics(directories,s, d, n, dmin):
     
     os.chdir(cwd)
 
-    path_dp_poly=make_dp_poly()
     
     num_cores = multiprocessing.cpu_count()
     
@@ -116,7 +113,7 @@ def compute_statistics(directories,s, d, n, dmin):
     t=time.time()
     
     #Parallel analysis
-    Parallel(n_jobs=num_cores,verbose=10)(delayed(run_analysis)(param[0], param[1] ,path_dp_poly,s,d,n,dmin) for param in parameters)
+    Parallel(n_jobs=num_cores,verbose=10)(delayed(run_analysis)(param[0], param[1],dmin) for param in parameters)
     
 
     print "This is the time in paralell %f" %(time.time()-t)

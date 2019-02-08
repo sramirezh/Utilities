@@ -339,6 +339,13 @@ class LJInteraction(object):
     """
     Every pair of LJ interactions has its own
     """
+    total = 0 #This is a class atribute
+
+    @staticmethod  #Does not have self as is intended to be used by the class and not an object. 
+    def number_interactions():
+        "Return the number of instances created in the class"
+        return LJInteraction.total
+
 
     def __init__(self,lj_parameters):
         self.epsilon=float(lj_parameters[0])
@@ -346,6 +353,18 @@ class LJInteraction(object):
         self.forces=[]
         self.properties=[]
         self.property_names=[]
+        LJInteraction.total += 1
+
+    def __str__(self):
+        self.name=("E=%s S=%s" %(self.epsilon,self.sigma))
+        return self.name
+
+    def __lt__(self,other):
+        """
+        In order to sort the interactions by the epsilon
+        """
+        return self.epsilon < other.epsilon
+
 
     def addforce(self,new_force):
         force=float(new_force.strip('\n/dDP'))/1000
@@ -400,11 +419,7 @@ class LJInteraction(object):
 
         return prop
 
-    def __lt__(self,other):
-        """
-        In order to sort the interactions by the epsilon
-        """
-        return self.epsilon < other.epsilon
+
 
 
 
@@ -505,8 +520,8 @@ error_cap=4
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
-    
-    
+
+
 
 ave_data=np.array(ave_data[:,1::],dtype=float) #Avoiding the first column which contains the interactions.
 
@@ -555,6 +570,54 @@ plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["text.usetex"] =True
 plt.tight_layout()
 fig.savefig("plots/all/Mobility_vs_epsilon.pdf")
+plt.close()
+
+
+
+"""
+###############################################################################
+Rg vs epsilon ms
+###############################################################################
+"""
+
+
+
+
+fig,ax=plt.subplots()
+
+ax.scatter(epsilon_vect,ave_data[:,5],color='b')
+x=np.array(epsilon_vect)
+y=np.array(ave_data[:,5])
+
+
+
+"""Axis"""
+ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
+ax.grid(False)
+ax.set_ylabel(r'$R_g [\sigma]$',fontsize=axis_font)
+ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+
+ymin,ymax=plt.ylim()
+deltay=ymax-ymin
+ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+
+xmin,xmax=plt.xlim()
+deltax=xmax-xmin
+#ax.set_xlim(0,xmax+deltax*xoffset)
+ax.set_xlim(0,10)
+plt.xticks(np.arange(0,11,1))
+
+
+
+
+"""Lines"""
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+
+"""General"""
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams["text.usetex"] =True
+plt.tight_layout()
+fig.savefig("plots/all/R_g_vs_epsilon.pdf")
 plt.close()
 
 pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)

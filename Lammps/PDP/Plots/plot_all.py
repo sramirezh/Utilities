@@ -106,7 +106,7 @@ error_cap=4
 Mobility vs N
 """
 fig,ax=plt.subplots()
-interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
+#interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 for j,interaction in enumerate(interactions):
     mobility=[]
@@ -167,14 +167,14 @@ xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 
 plt.xticks(np.arange(len(lengths)+1)*30)
-ax.set_xlim(0,130)
+ax.set_xlim(0,70)
 
 
 ymin,ymax=plt.ylim()
 deltay=ymax-ymin
 
 ax.set_ylim(ymin,ymax+deltay*yoffset)
-plt.yticks(np.arange(-0.1,0.2,0.1))
+plt.yticks(np.arange(-0.2,0.4,0.1))
 #ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
 
 """Legend"""
@@ -188,6 +188,9 @@ plt.rcParams["text.usetex"] =True
 plt.tight_layout()
 fig.savefig("Mobility_N.pdf",transparent=True)
 plt.close()
+
+
+
 
 
 
