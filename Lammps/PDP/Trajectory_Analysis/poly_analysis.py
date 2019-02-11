@@ -294,7 +294,7 @@ def trajectory_analysis(nbins,imin):
     Other properties
     ###############################################################################
     """
-    radius=np.concatenate((r_hydro,r_gyration),axis=1)
+    radius=np.stack((r_hydro,r_gyration),axis=1)
     np.savetxt("poly_analysis.out",radius,header="r_hydro   r_gyration")
     """
     ###############################################################################
