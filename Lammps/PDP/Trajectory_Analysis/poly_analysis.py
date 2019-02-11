@@ -222,6 +222,7 @@ def trajectory_analysis(nbins,imin):
     av_rd_positive=np.zeros((nbins,2))
     av_rd_negative=np.zeros((nbins,2))
     r_gyration=[]
+    r_hydro=[]
     cm_disp=[] #Cm displacement
 
 
@@ -264,7 +265,7 @@ def trajectory_analysis(nbins,imin):
 
 
         """Other properties"""
-        Rh.append(hydrodynamic_radius(pos))
+        r_hydro.append(hydrodynamic_radius(pos))
         r_gyration.append(gyration_radious(pos_relative))
         counter+=1
 
@@ -293,9 +294,8 @@ def trajectory_analysis(nbins,imin):
     Other properties
     ###############################################################################
     """
-    #r_gyration=np.sqrt(r_gyration_2)
-    av_inv_rh=np.average(np.array(inv_Rh))
-    print  av_inv_rh
+    radius=np.concatenate((r_hydro,r_gyration),axis=0)
+    np.savetxt("poly_analysis.out",radius,header="r_hydro,r_gyration")
     """
     ###############################################################################
     Plots
