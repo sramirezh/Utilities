@@ -295,7 +295,7 @@ def trajectory_analysis(nbins,imin):
     ###############################################################################
     """
     radius=np.stack((r_hydro,r_gyration),axis=1)
-    np.savetxt("poly_analysis.out",radius,header="r_hydro   r_gyration")
+    np.savetxt("poly_analysis.dat",radius,header="r_hydro   r_gyration")
     """
     ###############################################################################
     Plots
@@ -406,6 +406,8 @@ if __name__ == "__main__":
         print "The Trajectory file was not splitted"
 
     trajectory_analysis(args.Nbins,args.Nmin)
+    
+    out,err=cf.bash_command("""rm *.cxyz""")
 
 
 #"""
