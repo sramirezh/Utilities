@@ -211,7 +211,7 @@ def hydrodynamic_radius(pos):
     return rh
 
 
-def poly_analysis(file_name, split, n_bins, n_min):
+def poly_analysis(file_name, split, n_bins=10, n_min=0):
 
     if split==True:
         print "\nSplitting the trajectory file"
@@ -221,11 +221,11 @@ def poly_analysis(file_name, split, n_bins, n_min):
 
     trajectory_analysis(file_name,n_bins,n_min)
     
-    #out,err=cf.bash_command("""rm *.cxyz""")
+    out,err=cf.bash_command("""rm *.cxyz""")
 
 
 
-def trajectory_analysis(file_name,n_bins=10,n_min=0):
+def trajectory_analysis(file_name,n_bins,n_min):
 
     #Reading the initial data
     Box,L=Box_limits(file_name)

@@ -56,7 +56,7 @@ def read_from_file(input_file):
     """
     data=cf.read_data_file(input_file)
     names= list(data.columns.values)
-    data1=data.to_numpy()
+    data1=data.values
 
     return data1,names
 
@@ -67,6 +67,9 @@ def fast_averager(input_file,min_limit,output_file):
     data,names=read_from_file(input_file)
 
     calculations(data,min_limit,output_file,names)
+    
+    return 
+    
 
 def calculations(data, min_limit,output_file, names=None):
     """
@@ -141,7 +144,7 @@ def calculations(data, min_limit,output_file, names=None):
 
     print "\nCreated a file %s with the averages"%output_file
 
-
+    return
 
 
 if __name__ == "__main__":
