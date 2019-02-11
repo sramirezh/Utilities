@@ -21,6 +21,9 @@ cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
 def make_dp_poly():
+    """
+    Compiles dp_poly with fortran
+    """
     
     path_dp_poly=Utilities_path+"Lammps/PDP/f_programs/"
     out, error = cf.bash_command("""make -C %s -f Makefile""" %path_dp_poly)
@@ -35,6 +38,9 @@ def gather_statistics(directories):
     """
     
     os.chdir(cwd)
+    
+    directories=filter_directories(directories)
+    
     f=open(cwd+"/Statistic_summary.dat",'w')
     
     for directory in directories:
@@ -63,12 +69,49 @@ def gather_statistics(directories):
     f.close()
     return
 
-def check_terminated_simulation(interaction,force):
+def check_terminated_simulation(force):
     """
+    First checks if the simulation started
+    then checks if it finished or the last step
+    Returns a counter that is 0 if the simulation chrashed before starting.
     """
-    os.chdir("%s/%s"%(interaction,force))
-
+    counter=1
+    os.chdir("%s"%(force))
+    if os.path.isfile("vdata.dat")==False:
+        print "The simulation crashed before starting"
+        counter=0
+    else:
+        tail=cf.bash_command("""tail -1 vdata.dat""")
+        if "Total wall" in tail:
+            print"This simulation terminated"
+        else:
+            last_step=cf.extract_digits(tail[0])[0]
+            print "This simulation stoped at %s" %last_step
+    os.chdir("../")
+    return counter
     
+def filter_directories(directories):
+    """
+    checks if all the simulations inside all the directories finished, if not, deletes the directory from the analysis
+    """
+    os.chdir(cwd)
+    
+    for directory in directories:
+        print directory
+        os.chdir(directory)
+        forces=glob.glob("dDP*")
+        forces_finished=1
+        for force in forces:
+            print force
+            forces_finished*=check_terminated_simulation(force)
+        if forces_finished==0:
+            directories.remove(directory)
+        os.chdir("../")
+        
+    
+    
+    
+    return directories
     
 
 def run_analysis(interaction,force,dmin):
@@ -82,7 +125,9 @@ def run_analysis(interaction,force,dmin):
     os.chdir(initial_directory)
     return
 
-def compute_statistics(directories,s, d, n, dmin):
+
+
+def compute_statistics(directories, dmin):
     
     """
     runs the statistics anaylisis with dp_poly and fast_averager
@@ -99,8 +144,8 @@ def compute_statistics(directories,s, d, n, dmin):
     
     os.chdir(cwd)
 
+    directories=filter_directories(directories)
     
-    num_cores = multiprocessing.cpu_count()
     
     parameters=[]
     for directory in directories:
@@ -111,7 +156,7 @@ def compute_statistics(directories,s, d, n, dmin):
         os.chdir("../")
     
     t=time.time()
-    
+    num_cores = multiprocessing.cpu_count()
     #Parallel analysis
     Parallel(n_jobs=num_cores,verbose=10)(delayed(run_analysis)(param[0], param[1],dmin) for param in parameters)
     

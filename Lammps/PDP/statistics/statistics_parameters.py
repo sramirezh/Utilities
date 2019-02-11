@@ -71,9 +71,13 @@ def build_data():
     with open("Statistic_summary.dat", 'r') as f:
       lines = f.readlines()
 
+    
+    #Finding the number of properties
+    indexes=cf.parameter_finder(lines,"dDP")
+    nproperties=indexes[1]-indexes[0]-2
+    print "\nFound %d properties in Statistic_summary.dat\n" %nproperties
+
     i=0
-    nproperties=10 #The number of properties per force in the input file (TO IMPROVE)
-    #Getting the number of properties
     count=0
 
     while i<len(lines):
@@ -392,17 +396,17 @@ class LJInteraction(object):
         self.mob_rg=[] #Mobility over Rg
         count=0
         index_vx=parameter_finder(self.property_names[count],"vx_relative")[0]
-        index_rg=parameter_finder(self.property_names[count],"rg_ave")[0]
+#        index_rg=parameter_finder(self.property_names[count],"rg_ave")[0]
         for force in self.forces:
             if force!=0:
                 velocity=ufloat(self.properties[count][index_vx][0],self.properties[count][index_vx][1])
-                rg=self.properties[count][index_rg]
+#                rg=self.properties[count][index_rg]
                 mobility=-velocity/force
                 self.mobility.append(mobility)
-                if rg==0:
-                    self.mob_rg.append(10**8) #To avoid division by 0
-                else:
-                    self.mob_rg.append(mobility/rg)
+#                if rg==0:
+#                    self.mob_rg.append(10**8) #To avoid division by 0
+#                else:
+#                    self.mob_rg.append(mobility/rg)
             count+=1
 
     def get_property(self,name):
@@ -455,7 +459,7 @@ if source=="run":
     print "Final dp_poly step=%d"%dppoly_params[2]
     print "vdata discarded steps =%d"%args.vdatamin
     print " "
-    cstat.compute_statistics(directories, dppoly_params[0],dppoly_params[1],dppoly_params[2],args.vdatamin)
+    cstat.compute_statistics(directories,args.vdatamin)
 
 
 elif source=="gather":
@@ -486,19 +490,18 @@ for interaction in interactions:
     mobilities=np.array((interaction.mobility))
     ave_mobility=sum(mobilities)/len(mobilities)
 
-    ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
+#    ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
     ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration in the bulk
-    delta_cs=ave_concentration_rg-ave_concentration_bulk
-    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
-    ave_rg=ave_rg+10**-10 #Avoid dividing by zero
-    mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
+#    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
+#    ave_rg=ave_rg+10**-10 #Avoid dividing by zero
+#    mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
 
 
-    data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_rg, ave_concentration_bulk, delta_cs, ave_rg, mobility_rg.n, mobility_rg.s ]
+    data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_bulk ]
     ave_data.append(data_interaction)
 
 ave_data=np.array(ave_data)
-pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility','mobility_error', 'ave_concentration_rg','ave_concentration_bulk','delta_cs','ave_rg','mobility_rg','mobility_rg_error'])
+pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility','mobility_error','ave_concentration_bulk'])
 
 
 pd_data.to_csv("Results.dat",sep=' ',index=False)
@@ -574,52 +577,52 @@ plt.close()
 
 
 
-"""
-###############################################################################
-Rg vs epsilon ms
-###############################################################################
-"""
-
-
-
-
-fig,ax=plt.subplots()
-
-ax.scatter(epsilon_vect,ave_data[:,5],color='b')
-x=np.array(epsilon_vect)
-y=np.array(ave_data[:,5])
-
-
-
-"""Axis"""
-ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
-ax.grid(False)
-ax.set_ylabel(r'$R_g [\sigma]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
-
-ymin,ymax=plt.ylim()
-deltay=ymax-ymin
-ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
-
-xmin,xmax=plt.xlim()
-deltax=xmax-xmin
-#ax.set_xlim(0,xmax+deltax*xoffset)
-ax.set_xlim(0,10)
-plt.xticks(np.arange(0,11,1))
-
-
-
-
-"""Lines"""
-ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-
-"""General"""
-plt.rcParams["mathtext.fontset"] = "cm"
-plt.rcParams["text.usetex"] =True
-plt.tight_layout()
-fig.savefig("plots/all/R_g_vs_epsilon.pdf")
-plt.close()
-
-pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
-
-print "\nGenerated average results Results.dat and plots in '%s'"%directory
+#"""
+################################################################################
+#Rg vs epsilon ms
+################################################################################
+#"""
+#
+#
+#
+#
+#fig,ax=plt.subplots()
+#
+#ax.scatter(epsilon_vect,ave_data[:,5],color='b')
+#x=np.array(epsilon_vect)
+#y=np.array(ave_data[:,5])
+#
+#
+#
+#"""Axis"""
+#ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
+#ax.grid(False)
+#ax.set_ylabel(r'$R_g [\sigma]$',fontsize=axis_font)
+#ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+#
+#ymin,ymax=plt.ylim()
+#deltay=ymax-ymin
+#ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+#
+#xmin,xmax=plt.xlim()
+#deltax=xmax-xmin
+##ax.set_xlim(0,xmax+deltax*xoffset)
+#ax.set_xlim(0,10)
+#plt.xticks(np.arange(0,11,1))
+#
+#
+#
+#
+#"""Lines"""
+#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+#
+#"""General"""
+#plt.rcParams["mathtext.fontset"] = "cm"
+#plt.rcParams["text.usetex"] =True
+#plt.tight_layout()
+#fig.savefig("plots/all/R_g_vs_epsilon.pdf")
+#plt.close()
+#
+#pd_data.to_csv("plots/all/Results.dat",sep=' ',index=False)
+#
+#print "\nGenerated average results Results.dat and plots in '%s'"%directory
