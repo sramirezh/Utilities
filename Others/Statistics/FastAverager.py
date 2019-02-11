@@ -60,7 +60,15 @@ def read_from_file(input_file):
 
     return data1,names
 
-def fast_averager(data, names=[],min_limit,output_file="statistics.dat"):
+def fast_averager(input_file,min_limit,output_file):
+    """
+    Function to call from another python script
+    """
+    data,names=read_from_file(input_file)
+
+    calculations(data,names,min_limit,output_file)
+
+def calculations(data, names=[],min_limit,output_file="statistics.dat"):
     """
     This script evaluates the average of a quantity
 
@@ -141,12 +149,9 @@ if __name__ == "__main__":
 
     parser.add_argument('--min', help='Number of samples to be discarded', default=0, type=int)
     parser.add_argument('--output',help='Name of the output file',default="statistics.dat",type=str)
-
     args = parser.parse_args()
     min_limit=args.min
     input_file=args.filename
     output_file=args.output
 
-    data,names=read_from_file(input_file)
-
-    fast_averager(data,names,min_limit,output_file)
+    fast_averager(input_file,min_limit,output_file)
