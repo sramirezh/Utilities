@@ -34,6 +34,13 @@ from scipy.spatial.distance import pdist,squareform
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+#    from matplotlib.backends.backend_pdf import PdfPages
+except ImportError as err:
+    print err
 
 
 """
@@ -78,7 +85,7 @@ def Box_limits(input_file):
 
     return limits,L
 
-def number_of_monomers():
+def number_of_monomers(file_name):
     """
     reads the number of particles
     Args:
@@ -87,9 +94,9 @@ def number_of_monomers():
         The number of monomers
 
     """
-    out,err=cf.bash_command('grep -n -m1 "NUMBER OF ATOMS" '+InputFile)
+    out,err=cf.bash_command('grep -n -m1 "NUMBER OF ATOMS" '+file_name)
     line_number=int(out.split(":")[0])
-    number_part=int(linecache.getline(InputFile, line_number+1))
+    number_part=int(linecache.getline(file_name, line_number+1))
 
 
     return number_part
@@ -204,30 +211,40 @@ def hydrodynamic_radius(pos):
     return rh
 
 
+def poly_analysis(file_name, split, n_bins, n_min):
+
+    if split==True:
+        print "\nSplitting the trajectory file"
+        out,err=cf.bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,file_name))
+    else:
+        print "The Trajectory file was not splitted"
+
+    trajectory_analysis(file_name,n_bins,n_min)
+    
+    #out,err=cf.bash_command("""rm *.cxyz""")
 
 
-def trajectory_analysis(nbins,imin):
+
+def trajectory_analysis(file_name,n_bins=10,n_min=0):
 
     #Reading the initial data
-    Box,L=Box_limits(InputFile)
+    Box,L=Box_limits(file_name)
     times=pd.read_csv("Times.dat",header=None).as_matrix()
     x=np.size(times)
 
-    nbins=args.Nbins
-    rmax=number_of_monomers()**(3/5) #Assumes the maximum radius is number_particles/2
-    imin=args.Nmin
+    rmax=number_of_monomers(file_name)**(3/5) #Assumes the maximum radius is number_particles/2
 
     rel_tail=[]
     rel_head=[]
-    av_rd_positive=np.zeros((nbins,2))
-    av_rd_negative=np.zeros((nbins,2))
+    av_rd_positive=np.zeros((n_bins,2))
+    av_rd_negative=np.zeros((n_bins,2))
     r_gyration=[]
     r_hydro=[]
     cm_disp=[] #Cm displacement
 
 
     counter=0
-    for k in xrange(imin,x): #Runs over the sampled times.
+    for k in xrange(n_min,x): #Runs over the sampled times.
         print("Reading configuration %d of %d" %(k,x-1))
         File_Name=str(int(times[k]))+".cxyz"
         # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
@@ -239,7 +256,7 @@ def trajectory_analysis(nbins,imin):
 
 
 
-        cm_disp.append(np.hstack([times[k]-times[imin,0],cm(pos)]))
+        cm_disp.append(np.hstack([times[k]-times[n_min,0],cm(pos)]))
         pos_relative=relative_position(pos)
         "Evaluating the positions of the head and the tail respect to v_cm"
         i_head=np.where((Data[:,0]==1))[0][0]
@@ -255,8 +272,8 @@ def trajectory_analysis(nbins,imin):
         pos_semi_negative=np.delete(pos_sphere,i_front,axis=0)
 
         """Computing the polymeric distribution"""
-        rd_positive=radial_distribution(nbins,rmax,pos_semi_positive)
-        rd_negative=radial_distribution(nbins,rmax,pos_semi_negative)
+        rd_positive=radial_distribution(n_bins,rmax,pos_semi_positive)
+        rd_negative=radial_distribution(n_bins,rmax,pos_semi_negative)
         av_rd_positive+=rd_positive[:,1:]
         av_rd_negative+=rd_negative[:,1:]
         rd_negative[:,0]=rd_negative[:,0]*-1
@@ -270,7 +287,7 @@ def trajectory_analysis(nbins,imin):
         counter+=1
 
     #time translation due to discarded trajectories
-    times=times[imin::,0]-times[imin,0]
+    times=times[n_min::,0]-times[n_min,0]
 
     cm_disp=np.array(cm_disp)
 
@@ -295,7 +312,9 @@ def trajectory_analysis(nbins,imin):
     ###############################################################################
     """
     radius=np.stack((r_hydro,r_gyration),axis=1)
-    np.savetxt("poly_analysis.dat",radius,header="r_hydro   r_gyration")
+    np.savetxt("radius.dat",radius,header="r_hydro   r_gyration")
+    
+
     """
     ###############################################################################
     Plots
@@ -395,19 +414,11 @@ if __name__ == "__main__":
     parser.add_argument('-Nmin', help='Number of timesteps to be discarded', default=300, type=int)
 
     args = parser.parse_args()
-    InputFile=args.FileName
-
-
-    if args.split==True:
-        InputFile=InputFile
-        print "\nSplitting the trajectory file"
-        out,err=cf.bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,InputFile))
-    else:
-        print "The Trajectory file was not splitted"
-
-    trajectory_analysis(args.Nbins,args.Nmin)
     
-    out,err=cf.bash_command("""rm *.cxyz""")
+    poly_analysis(args.FileName,args.split, args.Nbins,args.Nmin)
+
+
+
 
 
 #"""

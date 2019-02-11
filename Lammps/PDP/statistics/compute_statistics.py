@@ -16,6 +16,7 @@ Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
+import Lammps.PDP.trajectory_analysis.poly_analysis as ta
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
@@ -61,6 +62,13 @@ def gather_statistics(directories):
             #Results from Fast averager    
             with open("statistics.dat",'r') as ave_info:
                 f.writelines(ave_info.readlines()[1:])
+            ave_info.close()
+            
+            #Results from Trajectory analysis
+            
+            with open("stat_strajectory.dat",'r') as ave_info:
+                f.writelines(ave_info.readlines()[1:])
+            ave_info.close()
             
             os.chdir("../")
     
@@ -120,8 +128,14 @@ def run_analysis(interaction,force,dmin):
     
     os.chdir("%s/%s"%(interaction,force))
      
-    #Results from Fast averager    
+    #Results from Fast averager   
+    
     stat.fast_averager("vdata.dat",dmin)
+    
+    #Results from Poly Analysis
+    
+    ta.trajectory_analysis("poly.atom")
+    stat.fast_averager("radius.dat",dmin, "stat_strajectory.dat" )
     os.chdir(initial_directory)
     return
 
