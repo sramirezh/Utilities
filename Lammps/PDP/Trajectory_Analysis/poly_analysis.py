@@ -171,17 +171,17 @@ def radial_distribution(nbins,rmax,pos_sphere):
 
     return bin_count
 
-def gyration_radious_squared(pos):
+def gyration_radious(pos):
     """
     Computes the gyration radious, assuming all the particles have the same mass=1
     Args:
         Pos, vector with the positions with measured from the cm
-    Returns: The scalar gyration radious squared
+    Returns: The scalar gyration radious
     """
     gr2=np.sum(np.average(np.square(pos),axis=0))
 
 
-    return gr2
+    return np.sqrt(gr2)
 
 def hydrodynamic_radius(pos):
     """
@@ -200,7 +200,8 @@ def hydrodynamic_radius(pos):
 
     inv_rh=inv_r/n**2
 
-    return inv_rh
+    rh=1/inv_rh
+    return rh
 
 
 
@@ -220,9 +221,9 @@ def trajectory_analysis(nbins,imin):
     rel_head=[]
     av_rd_positive=np.zeros((nbins,2))
     av_rd_negative=np.zeros((nbins,2))
-    #r_gyration_2=[]
+    r_gyration=[]
     cm_disp=[] #Cm displacement
-    inv_Rh=[]
+
 
     counter=0
     for k in xrange(imin,x): #Runs over the sampled times.
@@ -233,9 +234,9 @@ def trajectory_analysis(nbins,imin):
         n,m=Data.shape
         pos=real_position(Data,L) #Real positions of all the atoms
 
-        "Getting the inverse of the Hydrodynamic radius"
+        "Getting the Hydrodynamic radius"
 
-        inv_Rh.append(hydrodynamic_radius(pos))
+
 
         cm_disp.append(np.hstack([times[k]-times[imin,0],cm(pos)]))
         pos_relative=relative_position(pos)
@@ -263,7 +264,8 @@ def trajectory_analysis(nbins,imin):
 
 
         """Other properties"""
-        #r_gyration_2.append(gyration_radious_squared(pos_relative))
+        Rh.append(hydrodynamic_radius(pos))
+        r_gyration.append(gyration_radious(pos_relative))
         counter+=1
 
     #time translation due to discarded trajectories
