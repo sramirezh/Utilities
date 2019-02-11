@@ -47,24 +47,33 @@ def exclude_parameters(names, p_to_exclude):
 Main
 *******************************************************************************
 """
+def read_from_file(input_file):
+    """
+    Reads the input file and returns the data to be evaluates
+    Args:
+        input_file that contains the data
+        returns the data
+    """
+        data=cf.read_data_file(input_file)
+        names= list(data.columns.values)
+        data1=data.to_numpy()
 
-def fast_averager(input_file ,min_limit,output_file="statistics.dat"):
+    return data1,names
+
+def fast_averager(data, names=[],min_limit,output_file="statistics.dat"):
     """
     This script evaluates the average of a quantity
 
     Args:
-        input_file that contains the data
+        names list containing the column names
+        data is a numpy array containing the data
         min_limit Number of samples to be discarded
 
     It creates a file statistics.dat with the averages, containing the valiable name,
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
     """
 
-    data=cf.read_data_file(input_file)
-
-
-    names= list(data.columns.values)
-    data1=data.values[min_limit::]
+    data1=data[min_limit::]
 
 
     #Excluding some data that does not need to be analysed
@@ -138,4 +147,6 @@ if __name__ == "__main__":
     input_file=args.filename
     output_file=args.output
 
-    fast_averager(input_file ,min_limit,output_file)
+    data,names=read_from_file(input_file)
+
+    fast_averager(data,names,min_limit,output_file)
