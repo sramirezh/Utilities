@@ -396,17 +396,17 @@ class LJInteraction(object):
         self.mob_rg=[] #Mobility over Rg
         count=0
         index_vx=parameter_finder(self.property_names[count],"vx_relative")[0]
-#        index_rg=parameter_finder(self.property_names[count],"rg_ave")[0]
+        index_rg=parameter_finder(self.property_names[count],"r_gyration")[0]
         for force in self.forces:
             if force!=0:
                 velocity=ufloat(self.properties[count][index_vx][0],self.properties[count][index_vx][1])
-#                rg=self.properties[count][index_rg]
+                rg=self.properties[count][index_rg]
                 mobility=-velocity/force
                 self.mobility.append(mobility)
-#                if rg==0:
-#                    self.mob_rg.append(10**8) #To avoid division by 0
-#                else:
-#                    self.mob_rg.append(mobility/rg)
+                if rg==0:
+                   self.mob_rg.append(10**8) #To avoid division by 0
+                else:
+                    self.mob_rg.append(mobility/rg)
             count+=1
 
     def get_property(self,name):
@@ -492,9 +492,9 @@ for interaction in interactions:
 
 #    ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
     ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration in the bulk
-#    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
-#    ave_rg=ave_rg+10**-10 #Avoid dividing by zero
-#    mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
+    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
+    ave_rg=ave_rg+10**-10 #Avoid dividing by zero
+    mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
 
 
     data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_bulk ]

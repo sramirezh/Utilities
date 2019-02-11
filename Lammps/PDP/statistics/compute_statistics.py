@@ -130,7 +130,7 @@ def run_analysis(interaction,force,dmin):
      
     #Results from Fast averager   
     
-    stat.fast_averager("vdata.dat",dmin)
+    stat.fast_averager("vdata.dat",dmin, "statistics.dat")
     
     #Results from Poly Analysis
     

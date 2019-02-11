@@ -66,9 +66,9 @@ def fast_averager(input_file,min_limit,output_file):
     """
     data,names=read_from_file(input_file)
 
-    calculations(data,names,min_limit,output_file)
+    calculations(data,min_limit,output_file,names)
 
-def calculations(data, names=[],min_limit,output_file="statistics.dat"):
+def calculations(data, min_limit,output_file, names=None):
     """
     This script evaluates the average of a quantity
 
@@ -80,7 +80,10 @@ def calculations(data, names=[],min_limit,output_file="statistics.dat"):
     It creates a file statistics.dat with the averages, containing the valiable name,
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
     """
-
+    
+    if names is None:
+        names=[]
+    
     data1=data[min_limit::]
 
 
