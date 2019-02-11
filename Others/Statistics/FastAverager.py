@@ -54,9 +54,9 @@ def read_from_file(input_file):
         input_file that contains the data
         returns the data
     """
-        data=cf.read_data_file(input_file)
-        names= list(data.columns.values)
-        data1=data.to_numpy()
+    data=cf.read_data_file(input_file)
+    names= list(data.columns.values)
+    data1=data.to_numpy()
 
     return data1,names
 
