@@ -4,6 +4,7 @@
 This script gets the results created by dp_poly and the averages of vdata.dat
 and computes relevant quantities and generates plots, It has to be run inside every N_X
 
+The parameters that have error measurements are taken as ufloats
 Args:
     Input filen name
 Returns:
@@ -38,7 +39,7 @@ except ImportError as err:
 
 
 try:
-    from uncertainties import ufloat
+    from uncertainties import ufloat,unumpy
 except ImportError as err2:
     print err2
 
@@ -149,7 +150,7 @@ def plot_force_individuals(interactions):
         palette=sns.color_palette(palette= "bright" , n_colors = len(interactions))
 
     #This Dict is going to be compared with the variable file_name
-    dic_yaxis={'conc_bulk':r'$c_s^B [\sigma^{-3}]$','vx_poly':r'$v_p^x[\sigma/\tau]$','rg_ave':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
+    dic_yaxis={'conc_bulk':r'$c_s^B [\sigma^{-3}]$','vx_poly':r'$v_p^x[\sigma/\tau]$','r_gyration':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
     dic_fit={'vx_poly':1}
     print "\nGenerating Plots..."
     directory="plots/individual"
@@ -334,6 +335,64 @@ def compute_statistics_param(dpolymin):
     return [s,d,n]
 
 
+
+
+def plot_parameter_vs_epsilon(y_label,name_key,file_name):
+    """
+    Plots any parameter in ave_data as a function of the epsilon
+    Args:
+        y_label is a latex type expression for the y axis label for example r'$\Gamma_{ps} [\tau/m]$'
+        name_key is a key string that could be found in the column names to identify the column number.
+        file name is the name of the including the extension.
+    
+    """
+    
+    axis_font=24
+    tick_font=20
+    xoffset=0.16
+    yoffset=0.1
+    error_cap=4
+    ave_data_index=cf.parameter_finder(column_names,name_key)[0]-1
+    epsilon_vect=[]
+    for i in xrange(len(interactions)):
+        epsilon_vect.append(interactions[i].epsilon)
+    
+    fig,ax=plt.subplots()
+    ax.errorbar(epsilon_vect,ave_data[:,ave_data_index],yerr=ave_data[:,ave_data_index+1],fmt='o',capsize=error_cap,color='b')
+    
+#    x=np.array(epsilon_vect)
+#    y=np.array(ave_data[:,0])
+    
+    
+    """Axis"""
+    ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
+    ax.grid(False)
+    ax.set_ylabel(y_label,fontsize=axis_font)
+    ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+    
+    ymin,ymax=plt.ylim()
+    deltay=ymax-ymin
+    ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
+    
+    xmin,xmax=plt.xlim()
+    #ax.set_xlim(0,xmax+deltax*xoffset)
+    ax.set_xlim(0,10)
+    plt.xticks(np.arange(0,11,1))
+    
+    
+    
+    
+    """Lines"""
+    ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+    
+    """General"""
+    plt.rcParams["mathtext.fontset"] = "cm"
+    plt.rcParams["text.usetex"] =True
+    plt.tight_layout()
+    fig.savefig("plots/all/%s"%file_name)
+    plt.close()
+
+
 """
 *******************************************************************************
 CLASS DEFINITION
@@ -400,10 +459,10 @@ class LJInteraction(object):
         for force in self.forces:
             if force!=0:
                 velocity=ufloat(self.properties[count][index_vx][0],self.properties[count][index_vx][1])
-                rg=self.properties[count][index_rg]
+                rg=ufloat(self.properties[count][index_rg][0],self.properties[count][index_rg][1])
                 mobility=-velocity/force
                 self.mobility.append(mobility)
-                if rg==0:
+                if rg.n==0:
                    self.mob_rg.append(10**8) #To avoid division by 0
                 else:
                     self.mob_rg.append(mobility/rg)
@@ -482,6 +541,22 @@ Building the averaged data, excluding force equal=0
 *******************************************************************************
 """
 
+def average_uncertainties(A):
+    """
+    Returns the average of an array with uncertainties
+    Args:
+        A is a nx2 array where the first colum is the mean, the second contains the std deviation
+        
+    Returns:
+        ave is the average as a ufloat
+    """
+    array=unumpy.uarray(A[:,0],A[:,1])
+    ave=sum(array)/len(array)
+    
+    return ave
+    
+
+
 ave_data=[]
 for interaction in interactions:
     name='E_%s_S_%s '%(interaction.epsilon,interaction.sigma)
@@ -490,18 +565,19 @@ for interaction in interactions:
     mobilities=np.array((interaction.mobility))
     ave_mobility=sum(mobilities)/len(mobilities)
 
-#    ave_concentration_rg=np.average(interaction.get_property("concentration")[1:]) #Solute concentration inside rg,In order to exlude f=0
-    ave_concentration_bulk=np.average(interaction.get_property("conc_bulk")[1:]) #Solute concentration in the bulk
-    ave_rg=np.average(interaction.get_property("rg_ave")[1:]) #Average Rg
-    ave_rg=ave_rg+10**-10 #Avoid dividing by zero
-    mobility_rg=ave_mobility/ave_rg #Mobility divided by Rg
-
-
-    data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_bulk ]
+    #For non uarrays
+    ave_concentration_bulk=average_uncertainties(np.array(interaction.get_property("conc_bulk"))[:,:2]) #Solute concentration in the bulk
+    ave_rg=average_uncertainties(np.array(interaction.get_property("r_gyration"))[:,:2])
+    
+    #For uarrays
+    mobility_rg=sum(interaction.mob_rg)/len(interaction.mob_rg) #Using the properties of uarrays
+    
+    data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_bulk.n, ave_concentration_bulk.s,ave_rg.n,ave_rg.s ] #the n=nominal, s standard deviation from ufloat
+    column_names=['LJ_interaction','ave_mobility','mobility_error','ave_concentration_bulk', 'concentration_bulk_error','ave_rg','rg_error']
     ave_data.append(data_interaction)
 
 ave_data=np.array(ave_data)
-pd_data=pd.DataFrame(ave_data,columns=['LJ_interaction','ave_mobility','mobility_error','ave_concentration_bulk'])
+pd_data=pd.DataFrame(ave_data,columns=column_names)
 
 
 pd_data.to_csv("Results.dat",sep=' ',index=False)
@@ -512,69 +588,20 @@ pd_data.to_csv("Results.dat",sep=' ',index=False)
 Starting the plot
 ###############################################################################
 """
-axis_font=24
-tick_font=20
-legend_font=18
-annotate_size=12
-xoffset=0.16
-yoffset=0.1
-error_cap=4
+
 
 directory="plots/all"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
 
-
 ave_data=np.array(ave_data[:,1::],dtype=float) #Avoiding the first column which contains the interactions.
 
 
-"""
-###############################################################################
-Mobility vs epsilon ms
-###############################################################################
-"""
-epsilon_vect=[]
-for i in xrange(len(interactions)):
-    epsilon_vect.append(interactions[i].epsilon)
+#Mobility vs epsilon
+plot_parameter_vs_epsilon(r'$\Gamma_{ps} [\tau/m]$','mobility','Mobility_vs_epsilon.pdf')
 
-fig,ax=plt.subplots()
+#Rg vs epsilon ms
+plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rg','R_g_vs_epsilon.pdf') 
 
-ax.errorbar(epsilon_vect,ave_data[:,0],yerr=ave_data[:,1],fmt='o',capsize=error_cap,color='b')
-x=np.array(epsilon_vect)
-y=np.array(ave_data[:,0])
-
-
-
-"""Axis"""
-ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
-ax.grid(False)
-ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
-
-ymin,ymax=plt.ylim()
-deltay=ymax-ymin
-ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
-
-xmin,xmax=plt.xlim()
-deltax=xmax-xmin
-#ax.set_xlim(0,xmax+deltax*xoffset)
-ax.set_xlim(0,10)
-plt.xticks(np.arange(0,11,1))
-
-
-
-
-"""Lines"""
-ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-
-"""General"""
-plt.rcParams["mathtext.fontset"] = "cm"
-plt.rcParams["text.usetex"] =True
-plt.tight_layout()
-fig.savefig("plots/all/Mobility_vs_epsilon.pdf")
-plt.close()
-
-
-
-1
+print "\nGenerated average results Results.dat and plots in '%s'"%directory
