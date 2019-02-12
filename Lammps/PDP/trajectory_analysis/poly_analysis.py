@@ -221,7 +221,7 @@ def poly_analysis(file_name, split, n_bins=10, n_min=0):
 
     trajectory_analysis(file_name,n_bins,n_min)
     
-    out,err=cf.bash_command("""rm %s*.cxyz""",dir_path)
+    
 
 
 
