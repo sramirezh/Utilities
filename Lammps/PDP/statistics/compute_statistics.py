@@ -139,8 +139,6 @@ def run_analysis(interaction,force,dmin):
     ta.poly_analysis("poly.atom",True)
     cf.enablePrint()
     
-    cf.bash_command("""rm *.cxyz""")
-    
     stat.fast_averager("radius.dat",dmin, "stat_strajectory.dat" )
     os.chdir(initial_directory)
     return
