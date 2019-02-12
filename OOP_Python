@@ -1,0 +1,1 @@
+to see the __str__() method from one of the objects, use print(object_name)
