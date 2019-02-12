@@ -127,10 +127,8 @@ def run_analysis(interaction,force,dmin):
     initial_directory=os.getcwd()
     
     os.chdir("%s/%s"%(interaction,force))
-     
+    
     #Results from Fast averager   
-    
-    
     stat.fast_averager("vdata.dat",dmin, "statistics.dat")
     
     #Results from Poly Analysis
@@ -141,7 +139,10 @@ def run_analysis(interaction,force,dmin):
     
     stat.fast_averager("radius.dat",dmin, "stat_strajectory.dat" )
     
-    out,err=cf.bash_command("""rm *.cxyz""")
+    #To delete all trajectory chunks
+    #The bash command did not work 
+    for f in glob.glob("*.cxyz"):
+        os.remove(f)
     
     os.chdir(initial_directory)
     return
