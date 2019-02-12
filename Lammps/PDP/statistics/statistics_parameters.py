@@ -568,12 +568,13 @@ for interaction in interactions:
     #For non uarrays
     ave_concentration_bulk=average_uncertainties(np.array(interaction.get_property("conc_bulk"))[:,:2]) #Solute concentration in the bulk
     ave_rg=average_uncertainties(np.array(interaction.get_property("r_gyration"))[:,:2])
+    ave_rhyd=average_uncertainties(np.array(interaction.get_property("r_hyd"))[:,:2])
     
     #For uarrays
     mobility_rg=sum(interaction.mob_rg)/len(interaction.mob_rg) #Using the properties of uarrays
     
-    data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_bulk.n, ave_concentration_bulk.s,ave_rg.n,ave_rg.s ] #the n=nominal, s standard deviation from ufloat
-    column_names=['LJ_interaction','ave_mobility','mobility_error','ave_concentration_bulk', 'concentration_bulk_error','ave_rg','rg_error']
+    data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_bulk.n, ave_concentration_bulk.s,ave_rg.n,ave_rg.s, ave_rhyd.n,ave_rhyd.s ] #the n=nominal, s standard deviation from ufloat
+    column_names=['LJ_interaction','ave_mobility','mobility_error','ave_concentration_bulk', 'concentration_bulk_error','ave_rg','rg_error','ave_rhyd','rhyd_error']
     ave_data.append(data_interaction)
 
 ave_data=np.array(ave_data)
@@ -603,5 +604,8 @@ plot_parameter_vs_epsilon(r'$\Gamma_{ps} [\tau/m]$','mobility','Mobility_vs_epsi
 
 #Rg vs epsilon ms
 plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rg','R_g_vs_epsilon.pdf') 
+
+#Rhyd vs epsilon ms
+plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rhyd','R_hyd_vs_epsilon.pdf') 
 
 print "\nGenerated average results Results.dat and plots in '%s'"%directory
