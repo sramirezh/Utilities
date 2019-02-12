@@ -130,12 +130,17 @@ def run_analysis(interaction,force,dmin):
      
     #Results from Fast averager   
     
+    
     stat.fast_averager("vdata.dat",dmin, "statistics.dat")
     
     #Results from Poly Analysis
     
+    cf.blockPrint()
     ta.poly_analysis("poly.atom",True)
+    cf.enablePrint()
+    
     cf.bash_command("""rm *.cxyz""")
+    
     stat.fast_averager("radius.dat",dmin, "stat_strajectory.dat" )
     os.chdir(initial_directory)
     return
