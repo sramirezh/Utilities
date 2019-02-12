@@ -134,7 +134,7 @@ def run_analysis(interaction,force,dmin):
     #Results from Poly Analysis
     
     cf.blockPrint()
-    ta.poly_analysis("poly.atom",False)
+    ta.poly_analysis("poly.atom",True)
     cf.enablePrint()
     
     stat.fast_averager("radius.dat",dmin, "stat_strajectory.dat" )
