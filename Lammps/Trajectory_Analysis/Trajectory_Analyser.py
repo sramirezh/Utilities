@@ -2,7 +2,7 @@
 This script analyzes the trajectory files splitted with Trajectory_Splitter.sh.
 The trajectory can have a variable Number of particles
 
-The analysis is performed for a given volume otherwise in the simulation box 
+The analysis is performed for a given volume otherwise in the simulation box
 
 It generates two files "Sconcentration.dat" and "FConcentration.dat" that has average the concentration for the Solutes and Solvents
 
@@ -42,14 +42,14 @@ def solid_surface(data,atom_type):
         atom_type atom type in the trajectory file of the solid surface.
     Returns:
         Characteristics of the solid surface
-        Writes a file Zshift.dat with the maximun height to be used by other codes. 
+        Writes a file Zshift.dat with the maximun height to be used by other codes.
     """
-    
+
     #Getting the maximum position of the surface.
     indexes=np.where(data[:,0]==atom_type)[0]
     Maxz=np.max(data[indexes,3])
     Minz=np.min(data[indexes,3])
-    
+
     print "The maximum height of the solid surface is %lf" %Maxz
     print "The minimum height of the solid surface is %lf" %Minz
     print "The height of the solid surface is %lf" %(Maxz-Minz)
@@ -59,7 +59,7 @@ def solid_surface(data,atom_type):
     f.writelines("%lf \n" %Maxz)
     f.close
 
-    
+
 def read_box_limits(log_name):
     """
     Reads the box limits from log.lammps
@@ -68,8 +68,8 @@ def read_box_limits(log_name):
         None: log_name name of the log file
     returns:
         volume
-        limits 
-    
+        limits
+
     """
     out,err=bash_command("""grep -n "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
     line=int(out.split()[0])
@@ -106,8 +106,8 @@ def check_analysis_box(cv_limits,simulation_limits):
                     continue
                 else:
                     sys.exit("There is an error with the limit of the analysis box in the %d-th direction"%i)
-                    break  
-    
+                    break
+
     return cv_limits
 
 def read_times():
@@ -116,9 +116,9 @@ def read_times():
     Retuns:
         x number of timesteps
         Times an array with all the timesteps
-        
+
     """
-    times=pd.read_csv("Times.dat",header=None).as_matrix()
+    times=pd.read_csv("Times.dat",header=None).values
     x=np.size(times)
     times=np.reshape(times,(x,1))
     return x,times
@@ -133,9 +133,9 @@ def one_dim_slicer(data,limits,index):
         index indicates the index for the given direction
     """
     indexes=np.where(np.logical_and(data[:,index]>=limits[0],data[:,index]<=limits[1]))[0]
-    s_data=data[indexes,:]    
+    s_data=data[indexes,:]
     return s_data
-    
+
 def particles_cv(data,cv_limits,box_limits):
     """
     returns the particles inside the cv
@@ -202,7 +202,7 @@ box_volume,box_limits=read_box_limits(log_name)
 #For the analysis box
 cv_limits=check_analysis_box(cv_limits,box_limits)
 cv_length=np.diff(cv_limits,axis=0)[0]
-cv_volume=np.prod(cv_length) 
+cv_volume=np.prod(cv_length)
 number_bins=int(cv_length[0]/bin_size)
 
 n_tsteps,times=read_times()
@@ -228,7 +228,7 @@ Nf=np.zeros(number_bins)
 for k in xrange(n_tsteps): #Runs over the sampled times.
     print("Reading configuration %d of %d" %(k,n_tsteps-1))
     file_name=str(int(times[k]))+".cxyz"
-    data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).as_matrix()
+    data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
 
     """
     Getting the position of the surface
@@ -239,10 +239,10 @@ for k in xrange(n_tsteps): #Runs over the sampled times.
         else:
             print "Analysing the solid surface"
             solid_surface(data,3)
-    
+
     data=particles_cv(data,cv_limits,box_limits)
     n,m=data.shape
-    
+
     for i in xrange(n):
         if data[i,0]==1:
             errorv=np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins)
@@ -270,4 +270,3 @@ Nf=np.column_stack((bin_centers,Nf))
 header=str(np.resize(np.transpose(cv_limits),6))
 np.savetxt("SConcentration.dat",Ns,header=header)
 np.savetxt("FConcentration.dat",Nf,header=header)
-

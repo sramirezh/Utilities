@@ -42,7 +42,7 @@ def bulk_concentration(Positions,Densities,bulk_min):
     return bulk_c
 
 file_name="prof_u.dat"
-Data=pd.read_csv(file_name,sep=" ",dtype=np.float64,header=3).as_matrix() #3 Columns, Position, Count, Density
+Data=pd.read_csv(file_name,sep=" ",dtype=np.float64,header=3).values #3 Columns, Position, Count, Density
 bulk_min=5
 bc=bulk_concentration(Data[:,0],Data[:,2],bulk_min)
 

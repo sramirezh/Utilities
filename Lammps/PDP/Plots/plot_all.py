@@ -83,7 +83,7 @@ for f in dat_files:
     length=int(cf.extract_digits(f)[0])
     position=bisect.bisect(lengths,length)
     lengths.insert(position,length)
-    data=pd.read_csv(f,sep=" ").as_matrix()
+    data=pd.read_csv(f,sep=" ").values
     all_data.insert(position,np.array(data[:,1:],dtype=float))
     data_pd.insert(position,data)
 

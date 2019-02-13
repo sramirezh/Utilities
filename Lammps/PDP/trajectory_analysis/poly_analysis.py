@@ -220,8 +220,8 @@ def poly_analysis(file_name, split, n_bins=10, n_min=0):
         print "The Trajectory file was not splitted"
 
     trajectory_analysis(file_name,n_bins,n_min)
-    
-    
+
+
 
 
 
@@ -229,7 +229,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
 
     #Reading the initial data
     Box,L=Box_limits(file_name)
-    times=pd.read_csv("Times.dat",header=None).as_matrix()
+    times=pd.read_csv("Times.dat",header=None).values
     x=np.size(times)
 
     rmax=number_of_monomers(file_name)**(3/5) #Assumes the maximum radius is number_particles/2
@@ -248,7 +248,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
         print("Reading configuration %d of %d" %(k,x-1))
         File_Name=str(int(times[k]))+".cxyz"
         # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
-        Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).as_matrix()[:,:-1]
+        Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).values()[:,:-1]
         n,m=Data.shape
         pos=real_position(Data,L) #Real positions of all the atoms
 
@@ -313,7 +313,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
     """
     radius=np.stack((r_hydro,r_gyration),axis=1)
     np.savetxt("radius.dat",radius,header="r_hydro   r_gyration")
-    
+
 
     """
     ###############################################################################
@@ -414,7 +414,7 @@ if __name__ == "__main__":
     parser.add_argument('-Nmin', help='Number of timesteps to be discarded', default=300, type=int)
 
     args = parser.parse_args()
-    
+
     poly_analysis(args.FileName,args.split, args.Nbins,args.Nmin)
 
 
