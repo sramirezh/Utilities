@@ -376,8 +376,8 @@ def plot_parameter_vs_epsilon(y_label,name_key,file_name):
 
     xmin,xmax=plt.xlim()
     #ax.set_xlim(0,xmax+deltax*xoffset)
-    ax.set_xlim(0,10)
-    plt.xticks(np.arange(0,11,1))
+    ax.set_xlim(0,xmax+1)
+    plt.xticks(np.arange(0,xmax+1,1))
 
 
 
@@ -606,6 +606,6 @@ plot_parameter_vs_epsilon(r'$\Gamma_{ps} [\tau/m]$','mobility','Mobility_vs_epsi
 plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rg','R_g_vs_epsilon.pdf')
 
 #Rhyd vs epsilon ms
-plot_parameter_vs_epsilon(r'$R_{hyd} [\sigma]$','rhyd','R_hyd_vs_epsilon.pdf') 
+plot_parameter_vs_epsilon(r'$R_{hyd} [\sigma]$','rhyd','R_hyd_vs_epsilon.pdf')
 
 print "\nGenerated average results Results.dat and plots in '%s'"%directory

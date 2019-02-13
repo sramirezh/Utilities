@@ -40,12 +40,13 @@ def gather_statistics(directories):
     
     os.chdir(cwd)
     
+    
     directories=filter_directories(directories)
     
     f=open(cwd+"/Statistic_summary.dat",'w')
     
     for directory in directories:
-        
+        os.chdir(cwd)
         f.write( "############################################################################\n")
         f.write(directory+"\n")        
         
@@ -70,8 +71,7 @@ def gather_statistics(directories):
                 f.writelines(ave_info.readlines()[1:])
             ave_info.close()
             
-            os.chdir("../")
-    
+            os.chdir("../")   
         os.chdir(cwd)
             
     f.close()
