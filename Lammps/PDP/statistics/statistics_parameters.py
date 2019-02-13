@@ -72,7 +72,7 @@ def build_data():
     with open("Statistic_summary.dat", 'r') as f:
       lines = f.readlines()
 
-    
+
     #Finding the number of properties
     indexes=cf.parameter_finder(lines,"dDP")
     nproperties=indexes[1]-indexes[0]-2
@@ -344,9 +344,9 @@ def plot_parameter_vs_epsilon(y_label,name_key,file_name):
         y_label is a latex type expression for the y axis label for example r'$\Gamma_{ps} [\tau/m]$'
         name_key is a key string that could be found in the column names to identify the column number.
         file name is the name of the including the extension.
-    
+
     """
-    
+
     axis_font=24
     tick_font=20
     xoffset=0.16
@@ -356,35 +356,35 @@ def plot_parameter_vs_epsilon(y_label,name_key,file_name):
     epsilon_vect=[]
     for i in xrange(len(interactions)):
         epsilon_vect.append(interactions[i].epsilon)
-    
+
     fig,ax=plt.subplots()
     ax.errorbar(epsilon_vect,ave_data[:,ave_data_index],yerr=ave_data[:,ave_data_index+1],fmt='o',capsize=error_cap,color='b')
-    
+
 #    x=np.array(epsilon_vect)
 #    y=np.array(ave_data[:,0])
-    
-    
+
+
     """Axis"""
     ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
     ax.grid(False)
     ax.set_ylabel(y_label,fontsize=axis_font)
     ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
-    
+
     ymin,ymax=plt.ylim()
     deltay=ymax-ymin
     ax.set_ylim(ymin-deltay*yoffset,ymax+deltay*yoffset)
-    
+
     xmin,xmax=plt.xlim()
     #ax.set_xlim(0,xmax+deltax*xoffset)
     ax.set_xlim(0,10)
     plt.xticks(np.arange(0,11,1))
-    
-    
-    
-    
+
+
+
+
     """Lines"""
     ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-    
+
     """General"""
     plt.rcParams["mathtext.fontset"] = "cm"
     plt.rcParams["text.usetex"] =True
@@ -404,7 +404,7 @@ class LJInteraction(object):
     """
     total = 0 #This is a class atribute
 
-    @staticmethod  #Does not have self as is intended to be used by the class and not an object. 
+    @staticmethod  #Does not have self as is intended to be used by the class and not an object.
     def number_interactions():
         "Return the number of instances created in the class"
         return LJInteraction.total
@@ -546,15 +546,15 @@ def average_uncertainties(A):
     Returns the average of an array with uncertainties
     Args:
         A is a nx2 array where the first colum is the mean, the second contains the std deviation
-        
+
     Returns:
         ave is the average as a ufloat
     """
     array=unumpy.uarray(A[:,0],A[:,1])
     ave=sum(array)/len(array)
-    
+
     return ave
-    
+
 
 
 ave_data=[]
@@ -569,10 +569,10 @@ for interaction in interactions:
     ave_concentration_bulk=average_uncertainties(np.array(interaction.get_property("conc_bulk"))[:,:2]) #Solute concentration in the bulk
     ave_rg=average_uncertainties(np.array(interaction.get_property("r_gyration"))[:,:2])
     ave_rhyd=average_uncertainties(np.array(interaction.get_property("r_hyd"))[:,:2])
-    
+
     #For uarrays
     mobility_rg=sum(interaction.mob_rg)/len(interaction.mob_rg) #Using the properties of uarrays
-    
+
     data_interaction=[name,ave_mobility.n,ave_mobility.s, ave_concentration_bulk.n, ave_concentration_bulk.s,ave_rg.n,ave_rg.s, ave_rhyd.n,ave_rhyd.s ] #the n=nominal, s standard deviation from ufloat
     column_names=['LJ_interaction','ave_mobility','mobility_error','ave_concentration_bulk', 'concentration_bulk_error','ave_rg','rg_error','ave_rhyd','rhyd_error']
     ave_data.append(data_interaction)
@@ -603,9 +603,9 @@ ave_data=np.array(ave_data[:,1::],dtype=float) #Avoiding the first column which 
 plot_parameter_vs_epsilon(r'$\Gamma_{ps} [\tau/m]$','mobility','Mobility_vs_epsilon.pdf')
 
 #Rg vs epsilon ms
-plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rg','R_g_vs_epsilon.pdf') 
+plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rg','R_g_vs_epsilon.pdf')
 
 #Rhyd vs epsilon ms
-plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rhyd','R_hyd_vs_epsilon.pdf') 
+plot_parameter_vs_epsilon(r'$R_{hyd} [\sigma]$','rhyd','R_hyd_vs_epsilon.pdf') 
 
 print "\nGenerated average results Results.dat and plots in '%s'"%directory
