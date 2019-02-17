@@ -246,9 +246,9 @@ def trajectory_analysis(file_name,n_bins,n_min):
     counter=0
     for k in xrange(n_min,x): #Runs over the sampled times.
         print("Reading configuration %d of %d" %(k,x-1))
-        File_Name=str(int(times[k]))+".cxyz"
-        # As there is a space after the las column, pandas read it as a column of nan, then we need to avoid it
-        Data=pd.read_csv(File_Name,sep=" ",dtype=np.float64,header=None).values()[:,:-1]
+        file_name=str(int(times[k]))+".cxyz"
+        print file_name
+        Data=cf.read_data_file(file_name).values
         n,m=Data.shape
         pos=real_position(Data,L) #Real positions of all the atoms
 
