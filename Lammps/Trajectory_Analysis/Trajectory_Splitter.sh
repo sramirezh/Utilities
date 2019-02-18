@@ -11,14 +11,15 @@ csplit --digits=4 -z --quiet --prefix=outfile $name "/^[0-9]*$/" "{*}" #Splits b
 #Now change all the filenames and create the file Times.dat
 for f in outfile*
 do
-var=`head -2 $f|tail -1|awk {'print $3'}` #gets the time
+echo $f
+var=`head -2 $f|tail -1|awk {'print $NF'}` #gets the time
 echo $var>>Times.dat
 mv $f $var.cxyz
 done
 }
 
 PartialSplit(){
-  
+
   NAtoms=`head -1 $name` #Number of atoms
   Nlines=$(($NAtoms+2))
   head -$Nlines trajectory.xyz > 0.cxyz
