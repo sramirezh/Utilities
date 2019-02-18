@@ -199,16 +199,21 @@ def hydrodynamic_radius(pos):
     Returns the inverse of the hydrodynamic radius
     """
     n,m=np.shape(pos)
-    dist=squareform(pdist(pos))
-    inv_r=0
-    for i in xrange(n):
-        for j in xrange(i+1,n):
-            inv_r += 1./dist[i,j]
-
-    inv_rh=inv_r/n**2
-
-    rh=1/inv_rh
-    return rh
+    print n
+    if n==1: # For a monomer
+        
+        return 0
+    else:
+        dist=squareform(pdist(pos))
+        inv_r=0
+        for i in xrange(n):
+            for j in xrange(i+1,n):
+                inv_r += 1./dist[i,j]
+    
+        inv_rh=inv_r/n**2
+    
+        rh=1/inv_rh
+        return rh
 
 
 def poly_analysis(file_name, split, n_bins=10, n_min=0):
