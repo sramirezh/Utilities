@@ -5,6 +5,9 @@ Created on Mon Feb 18 16:23:44 2019
 
 Reads the xyz taken from VMD and prepares a trajectory file that centers the cm of the polymer and leaves the new trajectory ready for a video
 also analyses the distances between the nearest neighbors to the polymer monomers
+
+
+I could do a direct analysis of the g(r) without taking into account the 
 @author: sr802
 """
 from __future__ import division
@@ -19,6 +22,9 @@ import re
 import glob 
 import warnings
 import itertools
+
+
+
 
 warnings.filterwarnings("ignore")
 
@@ -135,9 +141,11 @@ def write_trajectory(file_name,frame,data):
     f.close()
     
 
-def nearest_per_type(data):
+
+def nnb_one_file(data):
     """
     Evaluates what is the nearest particle to each monomer per type,
+    also calls the gr
     types as in the trajectory file from LAMMMPS [1-solvent, 2-solute, 3-polymer]
     
     Args:
@@ -161,15 +169,15 @@ def nearest_per_type(data):
     nearest_solute=[]
     nearest_solvent=[]
     if 1 in p_types_frame:
-        nearest_solvent=computation(particles,p_types,dist,3,1)
+        nearest_solvent=computation_first_n(particles,p_types,dist,3,1)
     if 2 in p_types_frame:
-        nearest_solute=computation(particles,p_types,dist,3,2)
-
+        nearest_solute=computation_first_n(particles,p_types,dist,3,2)
+        
+    
     return nearest_solvent,nearest_solute
 
-    
 
-def computation(particles,p_types,dist,i,j):
+def computation_first_n(particles,p_types,dist,i,j):
     """
     
     computes the distance of the closest particle of type j around type i
@@ -206,6 +214,97 @@ def computation(particles,p_types,dist,i,j):
 
 
 
+def computation_gr(data):
+    """
+    Computes the histogram for the g(r) for all the particles
+    types as in the trajectory file from LAMMMPS [1-solvent, 2-solute, 3-polymer]
+    
+    Args:
+        data: Contains the [Type X Y Z]
+        
+    Returns:
+        nearest_solvent a list with the distances of the nearest solvents to monomers 
+        nearest_solute a list with the distances of the nearest solutes to monomers
+    """
+
+    n,m=data.shape
+    #Particle indexes
+    p_types=np.array([1,2,3])
+    particles=[np.where(data[:,0]==j)[0] for j in p_types]
+    pos=data[:,1::]
+
+    dist=squareform(pdist(pos))
+    np.fill_diagonal(dist, 1000) #To avoid self contributions
+
+        
+    #Values to compare with vmd
+    delta_r=0.1
+    rmax=10
+    nbins=int(rmax/delta_r)
+    gr=g_r(particles,p_types,dist,2,3,nbins,rmax)
+    
+    return gr
+
+
+
+def g_r(particles,p_types,dist,i,j,nbins, rmax):
+    """
+    computes the gr for particles type j around type i
+    
+    args:
+        i,j particles types as in the trajectory file from LAMMMPS [1-solvent, 2-solute, 3-polymer]
+        
+    Returns:
+        bin_count contains
+        -the position of the center of the bin.
+        -The number of j particles in the shell. 
+        -The density of particles j in the bin
+    """
+    i=np.where(p_types == i)[0][0]
+    j=np.where(p_types == j)[0][0]
+    
+    
+    if len(p_types)>1:
+        #indexes to delete if there is more than one type of particles
+        i_axis0=[]
+        i_axis1=[]
+        for k in xrange(len(p_types)):
+            if k!=i:
+                i_axis0.append(particles[k])
+            if k!=j:
+                i_axis1.append(particles[k])
+        dist = np.delete(dist,np.hstack(i_axis0), axis=0)
+        dist = np.delete(dist,np.hstack(i_axis1), axis=1)
+    
+    
+    
+    bin_count = np.zeros((nbins,3))
+    #bin_ends = -rmax*np.cos(np.linspace(np.pi/2,np.pi,num=nbins+1))
+    bin_ends=np.linspace(0,rmax,num=nbins+1)
+
+    for i in xrange(nbins):
+        bin_count[i,0]=0.5*(bin_ends[i+1]+bin_ends[i]) #Count position in the middle of the bin only needed in the first
+        rmax_bin=bin_ends[i+1]  
+        indexes=np.where(dist<=rmax_bin)
+        dist[indexes]=1000
+        bin_count[i,1]=len(indexes[0])/len(particles[j])
+    print sum(bin_count[:,1])
+        
+    
+
+    delta_r=rmax/(nbins)       
+    vol_total=(4/3*np.pi*rmax**3)
+    n_total=np.sum(bin_count[:,1])
+    
+    return bin_count
+
+
+
+
+
+###############################################################################
+# Main    
+###############################################################################
 
 parser = argparse.ArgumentParser(description='This script evaluates the trajectory file',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
@@ -232,8 +331,10 @@ files.sort(key=lambda f: int(filter(str.isdigit, f)))
 
 nearest_solvent=[]
 nearest_solute=[]
+h_r=[] #as defined by allen and Tindsley
 
-for file_name in files:    
+for file_name in files:
+    print file_name
     data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
 
     volume,limits=read_box_limits(args.log)
@@ -259,25 +360,44 @@ for file_name in files:
     
     #Building the Histogram
     
-    solvent,solute=nearest_per_type(data)
-    
+    solvent,solute=nnb_one_file(data)
     nearest_solvent.append(solvent)
     nearest_solute.append(solute)
+    
+    
+    #Building the g(r)
+    #Make this self contained
+    
+    result_gr=computation_gr(data)
+    h_r.append(result_gr)
+
+
+# =============================================================================
+# Normalizing the g(r)
+# Using the procedure in Allen Ch 8.2
+# =============================================================================
+
+n_average=np.sum(np.average(h_r,axis=0),axis=0) #Average number of particles as the trajectory has it variable
+gr=h_r/1
     
 
 nearest_solvent=list(itertools.chain(*nearest_solvent))    
 nearest_solute=list(itertools.chain(*nearest_solute))  
-    
+
 
 
 # Creating the histogram
-
+plt.close('all')
 plt.hist(nearest_solvent,bins='auto')
 plt.hist(nearest_solute,bins='auto')
+plt.figure()
+plt.plot(g_r[:,0],g_r[:,2],label="poly-solute")
+plt.show()
 
 
-#
-#
+
+
+
 #file_name="14.cxyz"
 #data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
 #
@@ -317,12 +437,12 @@ plt.hist(nearest_solute,bins='auto')
 
 #
 #
-#plt.close('all')
+
 #plt.plot(poly_coords[:,0],poly_coords[:,1],'o')
 #plt.plot(new_pos[:,0],new_pos[:,1],'or')
 ##plt.xlim(limits[:,0])
 ##plt.ylim(limits[:,1])
-plt.show()
+#plt.show()
 
     
     
