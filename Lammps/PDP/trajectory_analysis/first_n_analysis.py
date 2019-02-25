@@ -286,15 +286,9 @@ def g_r(particles,p_types,dist,i,j,nbins, rmax):
         bin_count[i,0]=0.5*(bin_ends[i+1]+bin_ends[i]) #Count position in the middle of the bin only needed in the first
         rmax_bin=bin_ends[i+1]  
         indexes=np.where(dist<=rmax_bin)
-        dist[indexes]=1000
+        dist[indexes]=1000 #To take this indexes from the analyisis
         bin_count[i,1]=len(indexes[0])/len(particles[j])
     print sum(bin_count[:,1])
-        
-    
-
-    delta_r=rmax/(nbins)       
-    vol_total=(4/3*np.pi*rmax**3)
-    n_total=np.sum(bin_count[:,1])
     
     return bin_count
 
@@ -377,8 +371,25 @@ for file_name in files:
 # Using the procedure in Allen Ch 8.2
 # =============================================================================
 
-n_average=np.sum(np.average(h_r,axis=0),axis=0) #Average number of particles as the trajectory has it variable
-gr=h_r/1
+n_average=np.sum(np.average(h_r,axis=0),axis=0)[1] #Average number of particles as the trajectory has is variable
+
+h_r=np.average(h_r,axis=0)  
+gr=h_r[:,1]/n_average
+nbins=len(gr)
+# =============================================================================
+# #Normalizing to the ideal gas
+# =============================================================================
+
+vol_old=0
+for i in xrange(nbins):
+    rmax_bin=h_r[i,0]  
+    n_part=h_r[i,1]
+    vol_new=4/3*np.pi*rmax_bin**3
+    rho_ideal=n_part/(vol_new-vol_old)
+    if rho_ideal==0:
+        gr[i]=0
+    else:
+        gr[i]=gr[i]/rho_ideal
     
 
 nearest_solvent=list(itertools.chain(*nearest_solvent))    
@@ -391,7 +402,7 @@ plt.close('all')
 plt.hist(nearest_solvent,bins='auto')
 plt.hist(nearest_solute,bins='auto')
 plt.figure()
-plt.plot(g_r[:,0],g_r[:,2],label="poly-solute")
+plt.plot(h_r[:,0],gr,label="poly-solute")
 plt.show()
 
 
