@@ -35,11 +35,7 @@ def computation_gr(particles,p_types,dist,i,j,nbins, rmax):
 
     args:
         i,j particles types as in the trajectory file from LAMMMPS [1-solvent, 2-solute, 3-polymer]
-        particles vector with each particle particle p_types
-        p_tyoes vector with the particle types i,e [1,2,3]
-        dist is a squareform of the distances between the particles
-        rmax is the maximum radius of analysis
-        
+
     Returns:
         bin_count contains
         -the position of the center of the bin.
