@@ -10,6 +10,14 @@ import sys
 from cycler import cycler
 
 
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+#    from matplotlib.backends.backend_pdf import PdfPages
+except ImportError as err:
+    print err
+
 def bash_command(cmd):
     """
     function that evaluates simple bash commands with pipes,
