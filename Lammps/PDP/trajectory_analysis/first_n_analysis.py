@@ -24,17 +24,17 @@ import re
 import glob 
 import warnings
 import itertools
-import Lammps.PDP.Plots.LJ_plotter as ljplot
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 
 
 
 
 warnings.filterwarnings("ignore")
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
-import Lammps.core_functions as cf
 
+import Lammps.core_functions as cf
+import Lammps.PDP.Plots.LJ_plotter as ljplot
 
 try:
     import matplotlib
@@ -337,7 +337,106 @@ def g_r_restricted(h_r):
         vol_old=vol_new
         
     
-    return g_r
+    return g_r,rho_id
+
+
+def get_potentials(rmin,rmax,rc_frenkel=1.6,rc_LJ=2.5,):
+    """
+    generates the points for LJ and frenkel potentials.
+    Returns:
+        data [position, V_frenkel, V_LJ]
+    """
+    n_points=1000
+    n=4
+    epsilon_frenkel = 1
+    sigma_frenkel = 1
+    sigma_lj = 1 
+    epsilon_lj = 8
+    data=np.zeros((n_points,3))
+    data[:,0]=-(rmax-rmin)*np.cos(np.linspace(0,np.pi/2,num=n_points))+rmax  #Harmonic dist
+    data[:,1]=ljplot.frenkel(data[:,0],epsilon_frenkel,sigma_frenkel,rc_frenkel,n)
+    data[:,2]=ljplot.LJ(data[:,0],epsilon_lj,sigma_lj,12,6)-ljplot.LJ(rc_LJ,epsilon_lj,sigma_lj,12,6)
+    indexes=np.where(data[:,0]>rc_LJ)[0]
+    data[indexes,2]=0
+    
+    return data
+
+def plot_results(nearest_solvent,nearest_solute,g_r):
+    
+    cf.set_plot_appearance()
+    
+    
+    
+    plt.close('all')
+    
+    
+    r_min=0.975   #Just to see the behavior of the potential in the repulsive region
+    
+    #Histogram results
+    
+    fig,(ax1,ax2,ax3)=plt.subplots(3,1,sharex='col')
+    ax1.set_ylabel(r'$NNB$')
+    ax1.hist(nearest_solvent,bins='auto',label='Solvents')
+    ax1.hist(nearest_solute,bins='auto',label='Solutes')
+    ax1.legend(loc='upper_left')
+    
+    
+    ax1.set_xlim(r_min,ax1.get_xlim()[1])
+    xlimits = ax1.get_xlim()
+    
+    #pair correlation function
+    ax2.set_ylabel(r'$g_{sm}(r)$')
+    ax2.plot(g_r[:,0],g_r[:,1])
+    
+    ax2.set_xlim(xlimits)
+    ax2.set_ylim(0,ax2.get_ylim()[1])
+    
+    #Potentials
+    
+    potentials=get_potentials(xlimits[0],xlimits[1])
+    ax3.set_ylabel(r'$V(r)$')
+    ax3.set_xlabel(r'$r$')
+    ax3.plot(potentials[:,0],potentials[:,1],label="Solvents")
+    ax3.plot(potentials[:,0],potentials[:,2],label="Solutes")
+    ax3.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+    ax3.legend(loc='bottom_left')
+    
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0, hspace=0.1)
+    
+    fig.savefig("nnb.pdf",transparent=True)
+
+def energy_from_gr(rmin,rmax,rho_id,gr):
+    """
+    computes the energy per atom in a range between rmin and rmax.
+    
+    TO IMPROVE, gr and ur are evaluated at the same r
+    
+    Args:
+        rmin, rmax integration limits
+        gr pair correlation function has to be defined at rmin and rmax
+        
+    Return:
+        
+    """
+    
+    sigma_lj = 1 
+    epsilon_lj = 8
+    rc_LJ=2.5
+    r=gr[:,0]
+
+    
+    ur=ljplot.LJ(r,epsilon_lj,sigma_lj,12,6)-ljplot.LJ(rc_LJ,epsilon_lj,sigma_lj,12,6)
+    indexes=np.where(r>rc_LJ)[0]
+    ur[indexes]=0
+    
+    
+
+    integrand=gr[:,1]*ur*r**2
+    integral=cf.integrate(r,integrand,rmin,rmax)
+    e_particle=2.0*np.pi*rho_id*integral
+    
+    return e_particle
 
 ###############################################################################
 # Main    
@@ -416,83 +515,18 @@ def main():
     
     h_r=np.average(h_r,axis=0)  
     
-    g_r=g_r_restricted(h_r)
+    g_r,rho_id = g_r_restricted(h_r)
+    
+    energy_particle=energy_from_gr(0,1.16,rho_id,g_r)
+    
+    print "The energy per solute particle is: %f" %energy_particle
+
     
     nearest_solvent=list(itertools.chain(*nearest_solvent))    
     nearest_solute=list(itertools.chain(*nearest_solute))  
     
     plot_results(nearest_solvent,nearest_solute,g_r)
     
-
-def get_potentials(rmin,rmax,rc_frenkel=1.6,rc_LJ=2.5,):
-    """
-    generates the points for LJ and frenkel potentials.
-    Returns:
-        data [position, V_frenkel, V_LJ]
-    """
-    n_points=1000
-    n=4
-    epsilon_frenkel = 1
-    sigma_frenkel = 1
-    sigma_lj = 1 
-    epsilon_lj = 8
-    data=np.zeros((n_points,3))
-    data[:,0]=-(rmax-rmin)*np.cos(np.linspace(0,np.pi/2,num=n_points))+rmax  #Harmonic dist
-    data[:,1]=ljplot.frenkel(data[:,0],epsilon_frenkel,sigma_frenkel,rc_frenkel,n)
-    data[:,2]=ljplot.LJ(data[:,0],epsilon_lj,sigma_lj,12,6)-ljplot.LJ(rc_LJ,epsilon_lj,sigma_lj,12,6)
-    
-    return data
-
-def plot_results(nearest_solvent,nearest_solute,g_r):
-    
-    cf.set_plot_appearance()
-    
-    
-    
-    plt.close('all')
-    
-    
-    r_min=0.975   #Just to see the behavior of the potential in the repulsive region
-    
-    #Histogram results
-    
-    fig,(ax1,ax2,ax3)=plt.subplots(3,1,sharex='col')
-    ax1.set_ylabel(r'$NNB$')
-    ax1.hist(nearest_solvent,bins='auto',label='Solvents')
-    ax1.hist(nearest_solute,bins='auto',label='Solutes')
-    ax1.legend(loc='upper_left')
-    
-    
-    ax1.set_xlim(r_min,ax1.get_xlim()[1])
-    xlimits = ax1.get_xlim()
-    
-    #pair correlation function
-    ax2.set_ylabel(r'$g_{sm}(r)$')
-    ax2.plot(g_r[:,0],g_r[:,1])
-    
-    ax2.set_xlim(xlimits)
-    ax2.set_ylim(0,ax2.get_ylim()[1])
-    
-    #Potentials
-    
-    potentials=get_potentials(xlimits[0],xlimits[1])
-    ax3.set_ylabel(r'$V(r)$')
-    ax3.set_xlabel(r'$r$')
-    ax3.plot(potentials[:,0],potentials[:,1],label="Solvents")
-    ax3.plot(potentials[:,0],potentials[:,2],label="Solutes")
-    ax3.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-    ax3.legend(loc='bottom_left')
-    
-    plt.tight_layout()
-    plt.subplots_adjust(wspace=0, hspace=0.1)
-    
-    fig.savefig("nnb.pdf",transparent=True)
-    
-    plt.show()
-
-
-    
-        
 
 if __name__ == '__main__':
     main()
