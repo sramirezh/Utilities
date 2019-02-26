@@ -205,7 +205,7 @@ def set_plot_appearance():
     # Errorbar plots
     plt.rcParams['errorbar.capsize'] = 4
 
-def Integrate(x,y,xmin,xmax):
+def integrate(x,y,xmin,xmax):
     """
     Integrate the data in x and y from xmin to xmax
     """
