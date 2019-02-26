@@ -6,8 +6,10 @@ Created on Mon Feb 18 16:23:44 2019
 Reads the xyz taken from VMD and prepares a trajectory file that centers the cm of the polymer and leaves the new trajectory ready for a video
 also analyses the distances between the nearest neighbors to the polymer monomers
 
+Computes the g(r) for the selected particles in a box that is not completelly filled. If you want to compute it for the entire simulation, use the lammps based g(r)
 
-I could do a direct analysis of the g(r) without taking into account the 
+
+
 @author: sr802
 """
 from __future__ import division
@@ -42,6 +44,7 @@ except ImportError as err:
 
 
 utilities_path=str(os.path.join(os.path.dirname(__file__), '../../../') )
+
 """
 *******************************************************************************
 Functions
@@ -214,13 +217,15 @@ def computation_first_n(particles,p_types,dist,i,j):
 
 
 
-def computation_gr(data):
+def computate_histogram(data,delta,rmax):
     """
     Computes the histogram for the g(r) for all the particles
     types as in the trajectory file from LAMMMPS [1-solvent, 2-solute, 3-polymer]
     
     Args:
         data: Contains the [Type X Y Z]
+        delta: Bin spacing
+        rmax maximum radius
         
     Returns:
         nearest_solvent a list with the distances of the nearest solvents to monomers 
@@ -238,18 +243,16 @@ def computation_gr(data):
 
         
     #Values to compare with vmd
-    delta_r=0.1
-    rmax=10
-    nbins=int(rmax/delta_r)
-    gr=g_r(particles,p_types,dist,2,3,nbins,rmax)
+
+    hr=histogram_types(particles,p_types,dist,2,3,delta,rmax)
     
-    return gr
+    return hr
 
 
 
-def g_r(particles,p_types,dist,i,j,nbins, rmax):
+def histogram_types(particles,p_types,dist,i,j,delta, rmax):
     """
-    computes the gr for particles type j around type i
+    computes the histogram of the number of particles type j around type i
     
     args:
         i,j particles types as in the trajectory file from LAMMMPS [1-solvent, 2-solute, 3-polymer]
@@ -260,6 +263,8 @@ def g_r(particles,p_types,dist,i,j,nbins, rmax):
         -The number of j particles in the shell. 
         -The density of particles j in the bin
     """
+    
+    nbins=int(np.rint(rmax/delta))
     i=np.where(p_types == i)[0][0]
     j=np.where(p_types == j)[0][0]
     
@@ -277,20 +282,60 @@ def g_r(particles,p_types,dist,i,j,nbins, rmax):
         dist = np.delete(dist,np.hstack(i_axis1), axis=1)
     
     
-    
-    bin_count = np.zeros((nbins,3))
+    bin_count = np.zeros((nbins,2))
     #bin_ends = -rmax*np.cos(np.linspace(np.pi/2,np.pi,num=nbins+1))
     bin_ends=np.linspace(0,rmax,num=nbins+1)
-
+    
     for i in xrange(nbins):
         bin_count[i,0]=0.5*(bin_ends[i+1]+bin_ends[i]) #Count position in the middle of the bin only needed in the first
         rmax_bin=bin_ends[i+1]  
         indexes=np.where(dist<=rmax_bin)
         dist[indexes]=1000 #To take this indexes from the analyisis
         bin_count[i,1]=len(indexes[0])/len(particles[j])
-    print sum(bin_count[:,1])
     
     return bin_count
+
+def g_r_restricted(h_r):
+    """
+    Takes the histogram with a distribution of particles that do not fill the entire volume.
+    
+    Args:
+        h_r histogram containing the center of the bins and the particle count.
+        
+    Returns:
+        g_r containing the center of the bins and the pair correlation.
+        
+    The computation of the rcut assumes that it is positioned when there is the last bin with more than 0.5 particles on average, thus
+    rint=1.
+    rcut is then used to infer the density of the ideal gas, which is the total number of particles divided by the volume of a sphere with
+    r=rcut
+    """
+    
+    int_histogram=np.rint(h_r[:,1]) #On average there is less than one particle when there is zero.
+    flipped=np.flip(int_histogram,axis=0) #assuming that once it reaches zero at the tail it does not recover
+    reverse_index=np.min(np.where(flipped>0)[0])
+    rcut=h_r[-reverse_index-1,0]# cut_off radius
+    
+    n_particles=np.sum(h_r[:-reverse_index,1])
+    
+    rho_id=n_particles/(4/3*np.pi*(rcut**3))
+    
+    
+    nbins=np.size(h_r[:,0]) #number of bins
+    delta=h_r[1,0]-h_r[0,0] #bin size
+    g_r=np.copy(h_r)
+    
+    vol_old=0
+    for i in xrange(nbins):
+        radius=h_r[i,0]+delta/2
+        vol_new=(4/3*np.pi*(radius**3))
+        vol=vol_new-vol_old
+        n_id=rho_id*vol
+        g_r[i,1]=h_r[i,1]/n_id
+        vol_old=vol_new
+        
+    
+    return g_r
 
 
 
@@ -299,115 +344,102 @@ def g_r(particles,p_types,dist,i,j,nbins, rmax):
 ###############################################################################
 # Main    
 ###############################################################################
-
-parser = argparse.ArgumentParser(description='This script evaluates the trajectory file',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('file_name', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
-parser.add_argument('-log', help='lammps logfile name to read the box limits', default="log.lammps", type=str)
-parser.add_argument('-split', help='True if trajectory file need to be splitter', default=False, type=bool)
-
-args = parser.parse_args()
-
-
-if args.split==True:
-    xyz_splitter(args.file_name)
-else:
-    print "The Trajectory file was not splitted"
-
-
-trajectory_name='new_trajectory.xyz'
-
-open(trajectory_name, 'w').close()
-
-
-files = glob.glob("*.cxyz")
-files.sort(key=lambda f: int(filter(str.isdigit, f)))
-
-
-nearest_solvent=[]
-nearest_solute=[]
-h_r=[] #as defined by allen and Tindsley
-
-for file_name in files:
-    print file_name
-    data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
-
-    volume,limits=read_box_limits(args.log)
-    box_length=limits[1,:]-limits[0,:]
-
-    poly_coords=data[np.where(data[:,0]==3)[0],:][:,1::]
-    all_coords=data[:,1::]
+def main():
+    parser = argparse.ArgumentParser(description='This script evaluates the trajectory file',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('file_name', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
+    parser.add_argument('-log', help='lammps logfile name to read the box limits', default="log.lammps", type=str)
+    parser.add_argument('-split', help='True if trajectory file need to be splitter', default=False, type=bool)
     
-    #Getting the image 
-
-    #Cm in x with respect to the first monomer
-    n_monomers,m=np.shape(poly_coords)
-    dist=np.zeros(n_monomers)
-    
-    #Main algorithm
-    com_vect=com_pbc(poly_coords,box_length)
-    
-    shift=com_vect-box_length*0.5
-    
-    new_pos=shift_coordinates(all_coords,box_length,shift)
-    data[:,1::]=new_pos
-    write_trajectory(trajectory_name,cf.extract_digits(file_name)[0],data)
-    
-    #Building the Histogram
-    
-    solvent,solute=nnb_one_file(data)
-    nearest_solvent.append(solvent)
-    nearest_solute.append(solute)
+    args = parser.parse_args()
     
     
-    #Building the g(r)
-    #Make this self contained
-    
-    result_gr=computation_gr(data)
-    h_r.append(result_gr)
-
-
-# =============================================================================
-# Normalizing the g(r)
-# Using the procedure in Allen Ch 8.2
-# =============================================================================
-
-n_average=np.sum(np.average(h_r,axis=0),axis=0)[1] #Average number of particles as the trajectory has is variable
-
-h_r=np.average(h_r,axis=0)  
-gr=h_r[:,1]/n_average
-nbins=len(gr)
-# =============================================================================
-# #Normalizing to the ideal gas
-# =============================================================================
-
-vol_old=0
-for i in xrange(nbins):
-    rmax_bin=h_r[i,0]  
-    n_part=h_r[i,1]
-    vol_new=4/3*np.pi*rmax_bin**3
-    rho_ideal=n_part/(vol_new-vol_old)
-    if rho_ideal==0:
-        gr[i]=0
+    if args.split==True:
+        xyz_splitter(args.file_name)
     else:
-        gr[i]=gr[i]/rho_ideal
+        print "The Trajectory file was not splitted"
     
+    
+    trajectory_name='new_trajectory.xyz'
+    
+    open(trajectory_name, 'w').close()
+    
+    
+    files = glob.glob("*.cxyz")
+    files.sort(key=lambda f: int(filter(str.isdigit, f)))
+    
+    
+    nearest_solvent=[]
+    nearest_solute=[]
+    h_r=[] 
+    
+    for file_name in files:
+        print file_name
+        data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
+    
+        volume,limits=read_box_limits(args.log)
+        box_length=limits[1,:]-limits[0,:]
+    
+        poly_coords=data[np.where(data[:,0]==3)[0],:][:,1::]
+        all_coords=data[:,1::]
+        
+        #Getting the image 
+    
+        #Cm in x with respect to the first monomer
+        n_monomers,m=np.shape(poly_coords)
+        
+        #Main algorithm
+        com_vect=com_pbc(poly_coords,box_length)
+        
+        shift=com_vect-box_length*0.5
+        
+        new_pos=shift_coordinates(all_coords,box_length,shift)
+        data[:,1::]=new_pos
+        write_trajectory(trajectory_name,cf.extract_digits(file_name)[0],data)
+        
+        #Building the Histogram
+        
+        solvent,solute=nnb_one_file(data)
+        nearest_solvent.append(solvent)
+        nearest_solute.append(solute)
+        
+        
+        #Building the g(r)
+        #Make this self contained
+        delta=0.1
+        rmax=10
+        result_hr=computate_histogram(data,delta,rmax)
+        h_r.append(result_hr)
+    
+    
+    
+    h_r=np.average(h_r,axis=0)  
+    
+    g_r=g_r_restricted(h_r)
+    
+    nearest_solvent=list(itertools.chain(*nearest_solvent))    
+    nearest_solute=list(itertools.chain(*nearest_solute))  
 
-nearest_solvent=list(itertools.chain(*nearest_solvent))    
-nearest_solute=list(itertools.chain(*nearest_solute))  
+
+    
+    cf.set_plot_appearance()
+    # Creating the histogram
+    plt.close('all')
+    
+    plt.hist(nearest_solvent,bins='auto')
+    plt.hist(nearest_solute,bins='auto')
+    plt.plot()
+    
+    fig,ax=plt.subplots()
+    ax.set_ylabel(r'$g(r)$')
+
+    ax.plot(g_r[:,0],g_r[:,1],label="poly-solute")
+
+    plt.show()
 
 
 
-# Creating the histogram
-plt.close('all')
-plt.hist(nearest_solvent,bins='auto')
-plt.hist(nearest_solute,bins='auto')
-plt.figure()
-plt.plot(h_r[:,0],gr,label="poly-solute")
-plt.show()
-
-
-
-
+if __name__ == '__main__':
+    main()
 
 #file_name="14.cxyz"
 #data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
