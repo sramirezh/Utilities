@@ -491,7 +491,7 @@ def plot_results(nearest_solvent,nearest_solute,g_r):
     plt.show()
 
 
-def energy_from_gr(r_min):
+    
         
 
 if __name__ == '__main__':
