@@ -7,6 +7,8 @@ import pandas as pd
 import re
 import numpy as np
 import sys
+from cycler import cycler
+
 
 def bash_command(cmd):
     """
