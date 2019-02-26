@@ -132,3 +132,65 @@ def blockPrint():
 # Restore
 def enablePrint():
     sys.stdout = sys.__stdout__
+
+
+
+def set_plot_appearance():
+
+    """
+    Defines the appearence of the plot
+
+    use rcParams.keys() to see the available parameters
+    """
+    axis_font=24
+    tick_font=20
+    legend_font=18
+
+
+    #plt.rcParams['lines.linewidth'] = 1.5
+    #plt.rcParams['lines.markeredgewidth'] = 1.0
+    #plt.rcParams['lines.markersize'] = 2.5
+
+    # Colors
+    plt.rcParams['axes.prop_cycle'] = cycler(color='rbkgcmy')
+
+
+    # Fonts and symbols
+    #plt.rcParams['font.family'] = 'serif'
+    #plt.rcParams['font.serif'] = 'Times New Roman'
+    #plt.rcParams['font.weight'] = 'normal'
+    plt.rcParams["mathtext.fontset"] = "cm"
+    plt.rcParams['text.usetex'] = True
+    #plt.rcParams['mathtext.rm'] = 'serif'
+    #plt.rcParams['mathtext.it'] = 'serif:italic'
+    #plt.rcParams['mathtext.fontset'] = 'stix'
+
+
+    # Axes
+    plt.rcParams['axes.edgecolor'] = (0.0, 0.0, 0.0)
+    #plt.rcParams['axes.linewidth'] = 0.8
+    plt.rcParams['axes.spines.right'] = True
+    plt.rcParams['axes.spines.top'] = True
+    plt.rcParams['axes.labelsize'] = axis_font
+    plt.rcParams['axes.grid'] = False
+
+    # Ticks
+    plt.rcParams['xtick.direction'] = "in"
+    plt.rcParams['ytick.direction'] = "in"
+    plt.rcParams['ytick.labelsize'] = tick_font
+    plt.rcParams['xtick.labelsize'] = tick_font
+
+    # Legend
+
+    plt.rcParams['legend.fontsize'] = legend_font
+    plt.rcParams['legend.loc'] ='upper left'
+    plt.rcParams['legend.labelspacing'] = 0.5
+    plt.rcParams['legend.borderpad'] =0.4
+    plt.rcParams['legend.frameon'] = True
+    plt.rcParams['legend.fancybox'] = False
+    plt.rcParams['legend.edgecolor'] = 'k'
+    # Fonts and symbols
+
+
+    # Errorbar plots
+    plt.rcParams['errorbar.capsize'] = 4
