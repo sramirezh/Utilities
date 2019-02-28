@@ -128,9 +128,14 @@ def extract_digits(strings):
         output=[]
         for element in strings:
             output.append(re.findall(r"[-+]?\d*\.?\d+",element))
-        output=np.sort(np.array(output,dtype=float).reshape((len(output))))
+            
+        if np.shape(output)[1]==1:
+            """
+            If there are several parameters it is difficult to reshape
+            """
+            output=np.sort(np.array(output,dtype=float).reshape((len(output))))
 
-    return output
+    return np.array(output,dtype=float)
 
 
 def blockPrint():
