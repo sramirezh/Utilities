@@ -365,8 +365,6 @@ def plot_results(nearest_solvent,nearest_solute,g_r):
     
     cf.set_plot_appearance()
     
-    
-    
     plt.close('all')
     
     
@@ -378,7 +376,7 @@ def plot_results(nearest_solvent,nearest_solute,g_r):
     ax1.set_ylabel(r'$NNB$')
     ax1.hist(nearest_solvent,bins='auto',label='Solvents')
     ax1.hist(nearest_solute,bins='auto',label='Solutes')
-    ax1.legend(loc='upper_left')
+    ax1.legend(loc='upper_left',fontsize=10)
     
     
     ax1.set_xlim(r_min,ax1.get_xlim()[1])
@@ -399,7 +397,7 @@ def plot_results(nearest_solvent,nearest_solute,g_r):
     ax3.plot(potentials[:,0],potentials[:,1],label="Solvents")
     ax3.plot(potentials[:,0],potentials[:,2],label="Solutes")
     ax3.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-    ax3.legend(loc='bottom_left')
+    ax3.legend(loc='upper_left',fontsize=10)
     
     plt.tight_layout()
     plt.subplots_adjust(wspace=0, hspace=0.1)
