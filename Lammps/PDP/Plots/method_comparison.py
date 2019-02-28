@@ -21,8 +21,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 
-    import warnings
-    warnings.filterwarnings("ignore")
+
 except ImportError as err:
     print err
 
