@@ -81,7 +81,7 @@ def pre_processing(files,path_name):
     Added this to have an intermediate step before plotting
     Returns:
         data The data contained in the files
-        names a reference name, that contains the file name withou extension and a reference folder 2 levels above (see -path_name)
+        names a reference name, that contains the file name without extension and a reference folder 2 levels above (see -path_name)
 
     """
     data=[]
