@@ -10,14 +10,8 @@ import os
 import sys
 from shutil import copyfile
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
-
-
-
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-
-
-utilities_path=str(os.path.join(os.path.dirname(__file__), '../../../') )
 
 cwd=os.getcwd()
 path=os.path.dirname(__file__)
