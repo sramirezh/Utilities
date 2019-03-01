@@ -22,7 +22,7 @@ try:
     import matplotlib.pyplot as plt
 except ImportError as err:
     print err
-    
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -48,7 +48,7 @@ converting into pandas df
 """
 
 for i in xrange(len(data)):
-    data[i]=pd.DataFrame(data=data[i][1:,1:],index=data[i][1:,0], columns=data[i][0,1:]) 
+    data[i]=pd.DataFrame(data=data[i][1:,1:],index=data[i][1:,0], columns=data[i][0,1:])
 
 
 
@@ -59,7 +59,7 @@ Data pre-processing
 index_mobility=cf.parameter_finder(data[0].columns,"mobility")
 
 data_to_plot=[]
-for dat in data: 
+for dat in data:
     epsilon=cf.extract_digits(list(dat.index))[:,0]
     data_to_plot.append(np.column_stack((epsilon,np.array(dat.values[:,index_mobility],dtype=float))))
 
@@ -71,14 +71,17 @@ Plotting
 """
 names=["LJ","GLJ"]
 plt.close('all')
+cf.set_plot_appearance()
 ax,fig=general_plotter(data_to_plot,yerror=2)
 
-cf.set_plot_appearance()
+
 
 ax.set_xlabel(r'$\epsilon_{ms} $')
 ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
 plt.legend(names,loc='upper_left')
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-plt.tight_layout()
+ax.set_xlim(0,ax.get_xlim()[1])
+plt.xticks(np.arange(0,14,2))
+fig.tight_layout()
 fig.savefig(args.plot_name)
 plt.show()
