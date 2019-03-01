@@ -340,7 +340,7 @@ def g_r_restricted(h_r):
     return g_r,rho_id
 
 
-def get_potentials(rmin,rmax,rc_frenkel=1.6,rc_LJ=2.5,):
+def get_potentials(rmin,rmax,rc_frenkel=1.6,rc_LJ=2.5,epsilon_lj=8,epsilon_frenkel=1):
     """
     generates the points for LJ and frenkel potentials.
     Returns:
@@ -348,10 +348,8 @@ def get_potentials(rmin,rmax,rc_frenkel=1.6,rc_LJ=2.5,):
     """
     n_points=1000
     n=4
-    epsilon_frenkel = 1
     sigma_frenkel = 1
     sigma_lj = 1 
-    epsilon_lj = 8
     data=np.zeros((n_points,3))
     data[:,0]=-(rmax-rmin)*np.cos(np.linspace(0,np.pi/2,num=n_points))+rmax  #Harmonic dist
     data[:,1]=ljplot.frenkel(data[:,0],epsilon_frenkel,sigma_frenkel,rc_frenkel,n)
@@ -403,6 +401,31 @@ def plot_results(nearest_solvent,nearest_solute,g_r):
     plt.subplots_adjust(wspace=0, hspace=0.1)
     
     fig.savefig("nnb.pdf",transparent=True)
+    
+def plot_potentials(rmin,rmax):
+    """
+    A function to plot LJ and Frenkel for epsilon 1 just to 
+    """
+    
+    cf.set_plot_appearance()
+    
+    
+    fig,ax = plt.subplots(sharex='col')
+    potentials=get_potentials(rmin,rmax,epsilon_lj=1)
+    
+    ax.set_ylabel(r'$V(r)$')
+    ax.set_xlabel(r'$r$')
+    ax.plot(potentials[:,0],potentials[:,1],label="GLJ")
+    ax.plot(potentials[:,0],potentials[:,2],label="LJ")
+    ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+    ax.legend(loc='upper_left')
+    
+    ax.set_xlim(rmin,rmax)
+    
+    plt.tight_layout()
+    fig.savefig("potentials.pdf",transparent=True)
+    
+    
 
 def energy_from_gr(rmin,rmax,rho_id,gr):
     """
