@@ -38,8 +38,10 @@ def frenkel(r, epsilon, sigma, Rc, n):
     Computes the frenkel potential, that naturally goes to zero at Rc
     """
 
+
     alpha=2*n*Rc**2*((1+2*n)/(2*n*(Rc**2-1)))**(2*n+1)
     phi = alpha*epsilon*((sigma/r)**2-1)*((Rc/r)**2-1)**(2*n)
+    phi[np.where(r>Rc)[0]]=0 #To impose the restriction that after Rc the potential is zero
 
     return phi
 
