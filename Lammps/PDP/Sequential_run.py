@@ -17,7 +17,7 @@ cwd=os.getcwd()
 path=os.path.dirname(__file__)
 
 #evaluate stopping condition
-epsilon_stop=1
+epsilon_stop=12
 epsilon_current=cf.extract_digits(cwd.split("/")[-2])[0]
 if epsilon_current>epsilon_stop:
     sys.exit("Reached the maximum epsilon")
