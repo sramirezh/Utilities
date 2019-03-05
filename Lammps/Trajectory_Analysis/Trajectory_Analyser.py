@@ -118,7 +118,7 @@ def read_times():
         Times an array with all the timesteps
 
     """
-    times=pd.read_csv("Times.dat",header=None).values
+    times=np.sort(pd.read_csv("Times.dat",header=None).values,axis=0)
     x=np.size(times)
     times=np.reshape(times,(x,1))
     return x,times
