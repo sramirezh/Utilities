@@ -52,26 +52,43 @@ def is_valid_file(parser, arg):
         return arg
 
 
-def parameter_finder(List, String,msgflag=False):
+def parameter_finder(target_list, search_list, msgflag=False):
     """
-    Finds a string on a List and returns the position on the list
-    It is case insensitive
+    Finds all the elements in the search list in the target list
+    the search is non case sensitive
     msg is True to tell that there were occurrences or not.
+
+    Returns:
+        indexes with the positions of the search_list found in the target_list
     """
-    List=map(lambda x:x.lower(),List)
-    String=String.lower()
-    cont=0
+    target_list=map(lambda x:x.lower(),target_list)
+
     indexes=[]
-    for s in List:
-        if String in s:
-            indexes.append(cont)
-        cont+=1
+
+
+    if isinstance(search_list, str):
+        cont=0
+        search_list=search_list.lower()
+        for t in target_list:
+            if search_list in t:
+                indexes.append(cont)
+            cont+=1
+
+    if isinstance(search_list,list):
+        search_list=map(lambda x:x.lower(),search_list)
+
+        for s in search_list:
+            for cont,t in enumerate(target_list):
+                if s in t:
+                    indexes.append(cont)
+
     length=len(indexes)
     if msgflag==True:
         if length>1: print "There were several ocurrences"
         if length==0: print "No ocurrences found"
 
     return indexes
+
 
 def read_data_file(input_file):
     """
@@ -128,7 +145,7 @@ def extract_digits(strings):
         output=[]
         for element in strings:
             output.append(re.findall(r"[-+]?\d*\.?\d+",element))
-            
+
         if np.shape(output)[1]==1:
             """
             If there are several parameters it is difficult to reshape
