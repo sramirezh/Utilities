@@ -21,31 +21,79 @@ import os
 import sys
 import time
 import random
+import re
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+import Lammps.core_functions as cf
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
+def print_lvar(L,var):
+    """
+    Prints a lammps variable
+    Args:
+        L pylamms instance
+        var variable name as defined in the lammps instance
+    Return:
+        x a float containing the value of the variable.
+    """
+    
+    if sys.version_info < (3, 0):
+        # In Python 2 'print' is a restricted keyword, which is why you have to use the lmp_print function instead.
+        x = float(L.lmp_print('"${%s}"'%var))
+    else:
+        # In Python 3 the print function can be redefined.
+        # x = float(L.print('"${a}"')")
+    
+        # To avoid a syntax error in Python 2 executions of this notebook, this line is packed into an eval statement
+        x = float(eval("L.print('\"${$s}\"')"%var))
+    
+    return x
 
-parser = argparse.ArgumentParser(description="This script gets the results created by dp_poly and the averages of vdata.dat, computes relevant quantities and generates plots, It has to be run inside every N_X",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-folder_names',help='Folders where the analysis is going to run i.e E_*',default=glob.glob('E_*'),nargs='+')
-    parser.add_argument('-s','--source',choices=['read','run','gather'], default="read",help='Decides if the if the file Statistics_summary.dat needs to be read, run, gather  ')
-    parser.add_argument('--vdatamin', help='Number of samples to be discarded in vdata.dat', default=1000, type=int)
-    parser.add_argument('--dpolymin', help='Number of samples to be discarded in DPpoly', default=100, type=int)
+def read_interactions(interaction_file):
+    """
+    reads the relevant lines from the in.interaction file 
+    
+    Returns:
+        interaction file lines
+    """
+    
+    f=open(interaction_file,"r")
+    #avoiding commented or blank lines
+    interactions=[]
+    for line in f:
+        if (line.startswith('#')) or (len(line.strip())==0):pass        
+        else:
+            line=line.split("#")[0].strip('\n')  #To remove and end of lines
+            interactions.append(line.replace("\t",''))
+    return interactions
 
 
-def getting_properties(file_name):
+def include_interactions(L,interacions):
+   """
+   includes the interactions in the Lammps object
+       Args:
+           L the lammps instance 
+           interactions are the lines from the interaction file
+           
+       Returns: 
+           L the lammps objects with the loaded interactions
+   """
+   for line in interactions:
+       L.command("%s"%line)
+      
+        
+   return 
+
+def getting_properties(file_name,interactions):
     """
     Returns the intial energy of the system and the box size
     """
     box=[]
     L=IPyLammps()
     L.command("read_data %s"%file_name) #Not necessary to create a new type of particles
-    L.pair_style("lj/cut", 3.0)
-    L.pair_coeff(1, 1, 1.0, 1.0)
-    L.command("pair_modify     tail no")
-#    L.command("pair_modify     shift yes")
-    L.command("mass * 1.0")
+    include_interactions(L,interactions)
     box.append(L.system.xlo)
     box.append(L.system.xhi)
     box.append(L.system.ylo)
@@ -57,8 +105,8 @@ def getting_properties(file_name):
     #This has to be per species
     natoms=L.atoms.natoms
     L.__del__()
-    
-    return ene_ini,box,natoms
+    vol=(box[1]-box[0])*(box[3]-box[2])*(box[5]-box[4])
+    return ene_ini,box,natoms,vol
 
 def random_position(box):
     """
@@ -73,77 +121,93 @@ def random_position(box):
 def mu_id(temp,rho):
     return temp*np.log(rho)
 
-# =============================================================================
-# Main
-# =============================================================================
-t=time.time()
-
-file_name="final_conf_-4.0.dat"
-ene_i,box,natoms=getting_properties(file_name)
-temperature=2.0
-beta=1/temperature
-vol=(box[1]-box[0])*(box[3]-box[2])*(box[5]-box[4])
-rho=natoms/vol    #Has to be per species
-
-mu_id=mu_id(temperature,rho )
-
-n_trials=1
-Boltzmann=np.zeros(n_trials)
-
-
-
-for i in xrange(n_trials):
-    L=IPyLammps()
+def main():
     
-    L.atom_style("atomic") #Necessary to create atom maps
-    L.command("atom_modify map yes") 
-    L.command("read_data %s"%file_name) #Not necessary to create a new type of particles
-    L.pair_style("lj/cut",3.0)
-    L.pair_coeff(1, 1, 1.0, 1.0)
-    L.command("pair_modify     tail no")
-#    L.command("pair_modify     shift yes")
-    L.command("mass * 1.0")
-    #L.command("include in.interaction")   
-    L.create_atoms(1, "single %f %f %f"%(random_position(box)))
-    L.run(0)
-    ene_f=L.eval('pe')  #Final energy
-    Boltzmann[i]=np.exp(-beta*((natoms+1)*ene_f-natoms*ene_i))
-    L.__del__()
+    # =============================================================================
+    # Main
+    # =============================================================================
+        
+    
+    parser = argparse.ArgumentParser(description="This script computes the chemical potential for a given configuration",
+                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_file', metavar='input_file',help='configuration file generated in Lammps via write_data',type=lambda x: cf.is_valid_file(parser, x))
+    parser.add_argument('interaction_file', metavar='interaction_file',help='interaction file lammps style',type=lambda x: cf.is_valid_file(parser, x))
+    parser.add_argument('-temp',help='Temperature of the simulation',default=2.0,type=float)
+    parser.add_argument('-nin',help='Number of particles insertions',default=100,type=int)
+    
+    args = parser.parse_args()
+    file_name=args.input_file
+    interaction_file=args.interaction_file
     
     
-print time.time()-t
+    interactions=read_interactions(interaction_file)
+    ene_i,box,natoms,vol=getting_properties(file_name,interactions)
+    temperature=args.temp
+    n_trials=args.nin
+    
+    #Basic computations
+    beta=1/temperature
+    rho=natoms/vol    #Has to be per species
+    mu_id=mu_id(temperature,rho )
+    
+    
+    #Particle insertion
+    
+    Boltzmann=np.zeros(n_trials)
+    for i in xrange(n_trials):
+        L=IPyLammps()
+        
+        L.atom_style("atomic") #Necessary to create atom maps
+        L.command("atom_modify map yes") 
+        L.command("read_data %s"%file_name) #Not necessary to create a new type of particles
+        include_interactions(L,interactions)  
+        L.create_atoms(1, "single %f %f %f"%(random_position(box)))
+        L.run(0)
+        ene_f=L.eval('pe')  #Final energy
+        Boltzmann[i]=np.exp(-beta*((natoms+1)*ene_f-natoms*ene_i))
+        L.__del__()
+        
+        
+    
+    
+    ave_bol=np.average(Boltzmann)
+    mu_ex=-temperature*np.log(ave_bol)
+    mu=mu_ex+mu_id
+    print mu,mu_ex,mu_id
 
 
-ave_bol=np.average(Boltzmann)
-mu_ex=-temperature*np.log(ave_bol)
-mu=mu_ex+mu_id
-print mu,mu_ex,mu_id
+
+#def test():
+
+file_name="final_conf_2.0_binary.dat"
+
+interaction_file="in.interaction_binary"
+interactions=read_interactions(interaction_file)
+#ene_i,box,natoms,vol=getting_properties(file_name,interactions)
+
 
 
 L=IPyLammps()
 L.atom_style("atomic") #Necessary to create atom maps
 L.command("atom_modify map yes") 
 L.command("read_data %s"%file_name) #Not necessary to create a new type of particles
-L.command("include in.interaction")
+include_interactions(L, interactions)
 L.run(0)
 
-ene_i=L.eval('pe')
-L.create_atoms(2, "single %f %f %f"%(random_position(box)))
-
-print "single %f %f %f"%(random_position(box))
-L.run(0)
-ene_f=L.eval('pe')
-delta_energy=ene_f-ene_i
-boltzmann=np.exp(-beta*delta_energy)
-mu_ex=-temperature*np.log(boltzmann)
-
-
-print  ene_f,ene_i,delta_energy,mu_ex
-
-print np.exp(-0.5*(ene_f-ene_i))
-
-L.image()
-
-
-#Try to paralellize
-#[x for x in dir(L.atoms[0]) if not x.startswith('__')] this tells me the properties of the atoms
+#
+#ene_i=L.eval('pe')
+#L.create_atoms(1, "single %f %f %f"%(random_position(box)))
+#
+#print "single %f %f %f"%(random_position(box))
+#L.run(0)
+#ene_f=L.eval('pe')
+#delta_energy=ene_f-ene_i
+#boltzmann=np.exp(-beta*delta_energy)
+#mu_ex=-temperature*np.log(boltzmann)
+#
+#
+#print  ene_f,ene_i,delta_energy,mu_ex
+#
+#print np.exp(-0.5*(ene_f-ene_i))
+#
+#L.image()
