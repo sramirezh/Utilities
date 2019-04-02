@@ -1,8 +1,11 @@
 """
 This algorithm is based on the LJ EOS by Johnson et al. 
-The Lennard-Jones equation of state revisited
+The Lennard-Jones equation of state revisited.
+
+Reproduces the plot 5.8 in Daan's Book
 """
 import numpy as np
+import matplotlib.pyplot as plt
 X=np.loadtxt("LJEOS.param")
 
 gamma=3.0 #Defined by historical reasons
@@ -60,29 +63,75 @@ def funcG(rho):
     G[5] = -(F*rho**10-10*G[4]) / (2.*gamma)
     return G
 
+
+
+
+def pressure(rho,T):
+    """
+    Pressure as given by equation 7
+    """
+    sum1=0
+    sum2=0
+    A=a(T)
+    B=b(T)
+    F=funcF(rho)
+    for i in xrange(8):
+        sum1=sum1+A[i]*rho**((i+1)+1)
+        if i<6:
+            sum2=sum2+B[i]*rho**(2*(i+1)+1)
+    
+    P=rho*T+sum1+F*sum2 #Pressure 
+    return P
+
+
+
+def free_energy(rho,T):
+    """
+    Residual Helmholtz free energy (excess) of the fluid equation 5
+    
+    """
+    sum1=0
+    sum2=0
+    A=a(T)
+    B=b(T)
+    G=funcG(rho)
+    for i in xrange(8):
+        sum1=sum1+A[i]*rho**((i+1))/(i+1)
+        if i<6:
+            sum2=sum2+B[i]*G[i]
+    A=sum1+sum2 #Pressure 
+    return A
+
+def mu_ex(rho,T):
+    """
+    Residual chemical potential (excess) given by equation 7
+    """
+    mu=free_energy(rho,T)+pressure(rho,T)/rho-T
+    
+    return mu
+    
+def mu_id(rho,T):
+    return T*np.log(rho)
+    
 """
 Beginning of calculations 
 """
 
-T=1.0 #Temperature
-rho=0.75 #Density 
+T=2.0 #Temperature
+rho=0.8 #Density 
 
-sum1=0
-sum2=0
-A=a(T)
-B=b(T)
-F=funcF(rho)
-G=funcG(rho)
+P=pressure(rho,T)
 
-for i in xrange(8):
-    sum1=sum1+A[i]*rho**((i+1)+1)
-    if i<6:
-        sum2=sum2+B[i]*rho**(2*(i+1)+1)
+rho_vect=np.linspace(0.1,0.75)
 
-P=rho*T+sum1+F*sum2 #Pressure 
+p_vect=[]
+mu_ex_vect=[]
+for i in xrange(np.size(rho_vect)):
+    p_vect.append(pressure(rho_vect[i],T))
+    mu_ex_vect.append(mu_ex(rho_vect[i],T))
+    
 
-print P
-
+plt.plot(rho_vect,mu_ex_vect)
 
     
 
