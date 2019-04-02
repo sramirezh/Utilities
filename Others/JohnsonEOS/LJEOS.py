@@ -6,8 +6,16 @@ Reproduces the plot 5.8 in Daan's Book
 """
 import numpy as np
 import matplotlib.pyplot as plt
-X=np.loadtxt("LJEOS.param")
+import sys
+import os
+import warnings
+warnings.filterwarnings("ignore")
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+import Lammps.core_functions as cf
+
+
+X=np.loadtxt("LJEOS.param")
 gamma=3.0 #Defined by historical reasons
 
 def a(T):
@@ -112,28 +120,44 @@ def mu_ex(rho,T):
     
 def mu_id(rho,T):
     return T*np.log(rho)
-    
-"""
-Beginning of calculations 
-"""
 
+
+def main():
+    """
+    Beginning of calculations 
+    """
+
+
+
+cf.set_plot_appearance()    
 T=2.0 #Temperature
 rho=0.8 #Density 
 
 P=pressure(rho,T)
 
-rho_vect=np.linspace(0.1,0.75)
+rho_vect=np.linspace(0.01,1)
 
 p_vect=[]
 mu_ex_vect=[]
 for i in xrange(np.size(rho_vect)):
     p_vect.append(pressure(rho_vect[i],T))
     mu_ex_vect.append(mu_ex(rho_vect[i],T))
-    
 
-plt.plot(rho_vect,mu_ex_vect)
 
-    
+names=[r'$\mu^{ex} $',r'$P $']
+fig,ax=plt.subplots()
+ax.plot(rho_vect,mu_ex_vect)
+ax.plot(rho_vect,p_vect)
+ax.set_xlabel(r'$\rho $')
+ax.set_xlim(0,1)
+ax.set_ylim(-5,10)
+plt.legend(names,loc='upper_left')
+fig.tight_layout()
+
+if   __name__=="__main__":
+    main()
+
+
 
      
      
