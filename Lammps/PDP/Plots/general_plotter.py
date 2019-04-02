@@ -8,7 +8,7 @@ General plotter for several files, it helps to analyse results fast
 import sys
 import os
 import argparse
-
+import numpy as np
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
