@@ -69,7 +69,7 @@ for dat in data:
 """
 Plotting
 """
-names=["LJ","GLJ"]
+names=["SRLJ","LJ"]
 plt.close('all')
 cf.set_plot_appearance()
 ax,fig=general_plotter(data_to_plot,yerror=2)
