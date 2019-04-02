@@ -109,21 +109,21 @@ def run_one_time(fil,p_types):
 
 def run_analysis(input_files,p_types):
 
-    input_files.sort(key=lambda f: int(filter(str.isdigit, f)))    
+    input_files.sort(key=lambda f: int(filter(str.isdigit, f)))
     t=time.time()
-    
-    
+
+
     num_cores = multiprocessing.cpu_count()
     results=Parallel(n_jobs=num_cores,verbose=10)(delayed(run_one_time)(fil,p_types) for fil in input_files)
-    
-    
+
+
     g_r=np.average(results,axis=0)
     print "The total time was %s seconds, the g(r) was saved as gr.pkl "%(time.time()-t)
-    
+
     afile = open(r'gr.pkl', 'wb')
     pickle.dump(g_r, afile)
     afile.close()
-    
+
     return g_r
 
 def load_gr(file_name):
@@ -133,7 +133,7 @@ def load_gr(file_name):
     file1 = open(file_name[0], 'rb')
     g_r = pickle.load(file1)
     file1.close()
-    
+
     return g_r
 
 
@@ -148,50 +148,50 @@ def plot_gr(g_r):
     tick_font=20
     legend_font=18
 
-    
+
     fig,ax=plt.subplots()
-    names=[r"$g_{ff}$",r"$g_{fs}$",r"$g_{pf}$",r"$g_{ss}$",r"$g_{ps}$"]
+    names=[r"$g_{ff}$",r"$g_{fs}$",r"$g_{mf}$",r"$g_{ss}$",r"$g_{ms}$"]
     markers=['.','^','v','s','D']
     markevery=[5,6,5,6,5]
-    
+
     for i in xrange(5):
         if i<len(colors):color=colors[i]
         else: color=np.random.rand(3)
-    
+
         ax.plot(g_r[i][:,1],g_r[i][:,2],label=names[i],color=color,marker=markers[i],markersize=3,markevery=markevery[i])
-    
+
     rmax=np.max(g_r[:][:,1])
-    
+
     """Axis"""
     ax.set_xlabel(r'$r[\sigma] $',fontsize=axis_font)
     ax.grid(False)
     ax.set_ylabel(r'$g(r)$',fontsize=axis_font)
     ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
-    
-    
-    
+
+
+
     #ax.axhline(y=1, xmin=0, xmax=1,ls='--',c='black')
     ax.axvline(x=2**(1/6), ymin=0, ymax=1,ls=':',c='black')
-    
-    
-    
+
+
+
     xmin,xmax=plt.xlim()
-    
+
     #plt.xticks(np.arange(len(lengths)+1)*30)
     ax.set_xlim(0,rmax)
-    
-    
+
+
     ymin,ymax=plt.ylim()
-    
+
     #ax.set_ylim(0,ymax)
     #plt.yticks(np.arange(-0.1,0.2,0.1))
     #ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
-    
+
     """Legend"""
     plt.legend(fontsize=legend_font,loc='upper right',labelspacing=0.1,borderpad=0.4,scatteryoffsets=[0.6],
                frameon=True, fancybox=False, edgecolor='k')
-    
-    
+
+
     """General"""
     plt.rcParams["mathtext.fontset"] = "cm"
     plt.rcParams["text.usetex"] =True
@@ -205,7 +205,7 @@ Main
 *******************************************************************************
 """
 parser = argparse.ArgumentParser(description='This script reads trajectory files and computes the pair distribution function',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('mode',help='Indicate if you want to run the analyisis or just read a previous computed g(r)',choices=['read','run'],default="read")
+parser.add_argument('-mode',help='Indicate if you want to run the analyisis or just read a previous computed g(r)',choices=['read','run'],default="read")
 parser.add_argument('-input_files', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
 parser.add_argument('-nbins', help='Number of bins in the radial direction', default=100, type=float)
 parser.add_argument('-nmin', help='Number of timesteps to be discarded', default=500, type=int)
@@ -215,21 +215,18 @@ args = parser.parse_args()
 input_files=args.input_files
 
 if args.mode=="run":
-    
+
     imin=args.nmin
     nbins=args.nbins
     rmax=2.5
     input_files = input_files[imin:]
     p_types=[1,2,3]
     g_r=run_analysis(input_files, p_types)
-    
+
 else:
     try:
         g_r=load_gr(input_files)
     except:
         sys.exit("There is no file to load, run the analysis first!")
-    
+
 plot_gr(g_r)
-    
-
-
