@@ -12,11 +12,17 @@ import warnings
 warnings.filterwarnings("ignore")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 import Lammps.core_functions as cf
 
 
-X=np.loadtxt("LJEOS.param")
+#Loading the the parameters for all the functions
+
 gamma=3.0 #Defined by historical reasons
+name="%s/LJEOS.param"%dir_path
+X=np.loadtxt(name)    
+
+
 
 def a(T):
     """
@@ -39,6 +45,7 @@ def b(T):
     Return a vector of the parameters b for a given 
     temperature T
     """
+
     B=np.zeros(6)
     B[0] = X[19]/T**2 + X[20]/T**3
     B[1] = X[21]/T**2 + X[22]/T**4
@@ -129,33 +136,35 @@ def main():
 
 
 
-cf.set_plot_appearance()    
-T=2.0 #Temperature
-rho=0.8 #Density 
-
-P=pressure(rho,T)
-
-rho_vect=np.linspace(0.01,1)
-
-p_vect=[]
-mu_ex_vect=[]
-for i in xrange(np.size(rho_vect)):
-    p_vect.append(pressure(rho_vect[i],T))
-    mu_ex_vect.append(mu_ex(rho_vect[i],T))
-
-
-names=[r'$\mu^{ex} $',r'$P $']
-fig,ax=plt.subplots()
-ax.plot(rho_vect,mu_ex_vect)
-ax.plot(rho_vect,p_vect)
-ax.set_xlabel(r'$\rho $')
-ax.set_xlim(0,1)
-ax.set_ylim(-5,10)
-plt.legend(names,loc='upper_left')
-fig.tight_layout()
+    cf.set_plot_appearance()    
+    T=2.0 #Temperature
+    rho=0.8 #Density 
+    
+    P=pressure(rho,T)
+    
+    rho_vect=np.linspace(0.01,1)
+    
+    p_vect=[]
+    mu_ex_vect=[]
+    for i in xrange(np.size(rho_vect)):
+        p_vect.append(pressure(rho_vect[i],T))
+        mu_ex_vect.append(mu_ex(rho_vect[i],T))
+    
+    
+    names=[r'$\mu^{ex} $',r'$P $']
+    fig,ax=plt.subplots()
+    ax.plot(rho_vect,mu_ex_vect)
+    ax.plot(rho_vect,p_vect)
+    ax.set_xlabel(r'$\rho $')
+    ax.set_xlim(0,1)
+    ax.set_ylim(-5,10)
+    plt.legend(names,loc='upper_left')
+    fig.tight_layout()
 
 if   __name__=="__main__":
     main()
+    
+
 
 
 
