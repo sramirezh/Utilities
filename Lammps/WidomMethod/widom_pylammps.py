@@ -20,7 +20,8 @@ import argparse
 import os
 import sys
 import random
-from tqdm import tqdm
+from joblib import Parallel, delayed
+import multiprocessing
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -90,22 +91,34 @@ def mu_id(temp,rho):
     return temp*np.log(rho)
 
 
-#Particle insertion
-def particle_insertion(initial,n_trials,atom_type):
-    Boltzmann=np.zeros(n_trials)
-    for i in tqdm(xrange(n_trials),file=sys.stdout):
-        L=IPyLammps()
-        
-        L.atom_style("atomic") #Necessary to create atom maps
-        L.command("atom_modify map yes") 
-        L.command("read_restart %s"%initial.file_name) #Not necessary to create a new type of particles
-        include_interactions(L,initial.interactions)  
-        L.create_atoms(atom_type, "single %f %f %f"%(random_position(initial.box)))
-        L.run(0)
-        ene_f=L.eval('pe')  #Final energy
-        Boltzmann[i]=np.exp(-initial.beta*((np.sum(initial.natoms)+1)*ene_f-np.sum(initial.natoms)*initial.ene))
-        L.__del__()
+def particle_insertion(initial,atom_type):
+    """
+    One particle insertion
+    Args:
+        initial the instance of the system to analyse
+        atom_type the atom to insert
+    """
+    L=IPyLammps()
+    L.atom_style("atomic") #Necessary to create atom maps
+    L.command("atom_modify map yes") 
+    L.command("read_restart %s"%initial.file_name) #Not necessary to create a new type of particles
+    include_interactions(L,initial.interactions)  
+    L.create_atoms(atom_type, "single %f %f %f"%(random_position(initial.box)))
+    L.run(0)
+    ene_f=L.eval('pe')  #Final energy
+    Boltzmann=np.exp(-initial.beta*((np.sum(initial.natoms)+1)*ene_f-np.sum(initial.natoms)*initial.ene))
+    L.__del__()
     return Boltzmann
+
+
+
+def widom_method(initial,n_trials,atom_type):
+    num_cores = multiprocessing.cpu_count()
+    Boltzmann=Parallel(n_jobs=num_cores,verbose=10)(delayed(particle_insertion)(initial,atom_type) for i in xrange(n_trials))
+    return Boltzmann
+
+
+    
 
 def visualise(initial, name="snapshot.png"):
     """
@@ -204,15 +217,8 @@ class system(object):
             
         self.rho=rho_vector
         self.mu_id=mu_id_vector
-
-    
-
-            
         
-
-
-
-
+        
 #def main():
     
     # =============================================================================
@@ -247,7 +253,7 @@ initial_system.get_properties()
 
 
 print "\nAnalysing the chemical potential for particles of species %d"%atom_type   
-Boltzmann=particle_insertion(initial_system,n_trials,atom_type)    
+Boltzmann=widom_method(initial_system,n_trials,atom_type)    
 
 
 ave_bol=np.average(Boltzmann)
