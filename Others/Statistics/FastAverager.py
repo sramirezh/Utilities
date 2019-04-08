@@ -60,16 +60,25 @@ def read_from_file(input_file):
 
     return data1,names
 
-def fast_averager(input_file,min_limit,output_file):
+def fast_averager(input,min_limit=0,output_file="statistics.dat"):
     """
     Function to call from another python script
+    Args:
+        input: could be a file or data(array)
+        min_limit Number of samples to be discarded (default 0)
+        output file name of the file with the analysis output (default statistics.dat)
     """
-    data,names=read_from_file(input_file)
+    if os.path.exists(input):
+        data,names=read_from_file(input)
+    else:
+        data=input
 
     calculations(data,min_limit,output_file,names)
-    
-    return 
-    
+
+    return
+
+
+
 
 def calculations(data, min_limit,output_file, names=None):
     """
@@ -83,10 +92,10 @@ def calculations(data, min_limit,output_file, names=None):
     It creates a file statistics.dat with the averages, containing the valiable name,
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
     """
-    
+
     if names is None:
         names=[]
-    
+
     data1=data[min_limit::]
 
 
