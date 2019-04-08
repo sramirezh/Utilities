@@ -68,14 +68,16 @@ def fast_averager(input,min_limit=0,output_file="statistics.dat"):
         min_limit Number of samples to be discarded (default 0)
         output file name of the file with the analysis output (default statistics.dat)
     """
-    if os.path.exists(input):
-        data,names=read_from_file(input)
-    else:
+    try:
+        if os.path.exists(input):
+            data,names=read_from_file(input)
+            calculations(data,min_limit,output_file,names)
+    except:
         data=input
 
-    calculations(data,min_limit,output_file,names)
+    output_array=calculations(data,min_limit,output_file)
 
-    return
+    return output_array
 
 
 
@@ -92,33 +94,32 @@ def calculations(data, min_limit,output_file, names=None):
     It creates a file statistics.dat with the averages, containing the valiable name,
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
     """
-
+    
+    #If the data does not have header
     if names is None:
-        names=[]
 
-    data1=data[min_limit::]
-
-
-    #Excluding some data that does not need to be analysed
-    exclude=["time", "Chunk", "Coord1","step"]
-    if isinstance(names[0],basestring)==True:
-        try:
-            i_delete=exclude_parameters(names, exclude)
-            data_to_analyse=np.delete(data1,i_delete,axis=1)
-            print "skipped the next parameters from the analysis:"
-            for j,i in enumerate(i_delete):
-                print "%s. %s"%(j,names[i])
-            names_to_analyse=np.delete(names,i_delete)
-        except:
-            print "No columns to skip"
-            data_to_analyse=data1
-            names_to_analyse=names
-    else: #If the data does not have header
+        data1=data[min_limit::]
         data_to_analyse=data1
-        names_to_analyse=names
+        n,size=np.shape(data_to_analyse)
+        names_to_analyse=np.arange(0,size)
+        
+    else:
+        #Excluding some data that does not need to be analysed
+        exclude=["time", "Chunk", "Coord1","step"]
+        if isinstance(names[0],basestring)==True:
+            try:
+                i_delete=exclude_parameters(names, exclude)
+                data_to_analyse=np.delete(data1,i_delete,axis=1)
+                print "skipped the next parameters from the analysis:"
+                for j,i in enumerate(i_delete):
+                    print "%s. %s"%(j,names[i])
+                names_to_analyse=np.delete(names,i_delete)
+            except:
+                print "No columns to skip"
+                data_to_analyse=data1
+                names_to_analyse=names
 
-
-    size=len(names_to_analyse)
+        size=len(names_to_analyse)
     averages=np.average(data_to_analyse,axis=0)
 
 
@@ -151,9 +152,13 @@ def calculations(data, min_limit,output_file, names=None):
         file.write("%s = %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i]))
     file.close()
 
+    output_array=[]
+    for i in xrange(size):
+        output_array.append([names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i]])
+
     print "\nCreated a file %s with the averages"%output_file
 
-    return
+    return output_array
 
 
 if __name__ == "__main__":
