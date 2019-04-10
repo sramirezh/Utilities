@@ -64,9 +64,11 @@ def fast_averager(input,min_limit=0,output_file="statistics.dat"):
     """
     Function to call from another python script
     Args:
-        input: could be a file or data(array)
+        input: could be a file or data(np.array)
         min_limit Number of samples to be discarded (default 0)
         output file name of the file with the analysis output (default statistics.dat)
+    Returns:
+        output_array containing the [Name_of variable, average, Error_autocorrelation, Error_blocking, Error_simple,variance simple]
     """
     try:
         if os.path.exists(input):
@@ -94,15 +96,19 @@ def calculations(data, min_limit,output_file, names=None):
     It creates a file statistics.dat with the averages, containing the valiable name,
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
     """
-    
+
     #If the data does not have header
     if names is None:
+
+        # If it is a 1-D array it will need to be reshaped
+        if len(np.shape(data))==1:
+            data=np.reshape(data,(len(data),1))
 
         data1=data[min_limit::]
         data_to_analyse=data1
         n,size=np.shape(data_to_analyse)
         names_to_analyse=np.arange(0,size)
-        
+
     else:
         #Excluding some data that does not need to be analysed
         exclude=["time", "Chunk", "Coord1","step"]
@@ -138,6 +144,7 @@ def calculations(data, min_limit,output_file, names=None):
 
     #Simple error
     error_s=stats.sem(data_to_analyse)
+    variance_s=stats.variance(data_to_analyse)
 
     #Blocking analysis
     error_b=blocking_error(data_to_analyse)
@@ -148,13 +155,13 @@ def calculations(data, min_limit,output_file, names=None):
     file=open(output_file,'w')
     file.write("#print Property    Average    Error_autocorrelation    Error_blocking    Error_simple\n")
     for i in xrange(size):
-        print "%s = %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i])
-        file.write("%s = %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i]))
+        print "%s = %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i])
+        file.write("%s = %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
     file.close()
 
     output_array=[]
     for i in xrange(size):
-        output_array.append([names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i]])
+        output_array.append([names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i]])
 
     print "\nCreated a file %s with the averages"%output_file
 
