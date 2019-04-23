@@ -22,6 +22,8 @@ import sys
 import random
 from joblib import Parallel, delayed
 import multiprocessing
+import Others.Statistics.FastAverager as stat
+from uncertainties import unumpy,ufloat
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -256,17 +258,20 @@ print "\nAnalysing the chemical potential for particles of species %d"%atom_type
 Boltzmann=widom_method(initial_system,n_trials,atom_type)    
 
 
-ave_bol=np.average(Boltzmann)
+
+ave_bol=np.array(stat.fast_averager(Boltzmann)[0])
 
 #Standard deviation as in Daan's book
-std_mu_ex=np.std(Boltzmann,ddof=1)/np.sum(Boltzmann)/initial_system.beta**2
+#std_mu_ex=np.std(Boltzmann,ddof=1)/np.sum(Boltzmann)/initial_system.beta**2
 
-mu_ex=-temperature*np.log(ave_bol)
+#computing the error propagation with ufloats [NOTICE THAT IT IS NOT THE STANDARD DEVIATION]
+
+mu_ex=-temperature*log(ufloat(ave_bol[1],ave_bol[3])) #the average and the error given by the blocking analysis
 mu=mu_ex+initial_system.mu_id[atom_type-1]
 
 
 #Creating the log file
-array=[initial_system.rho[atom_type-1],mu,mu_ex,initial_system.mu_id[atom_type-1],std_mu_ex]
+array=[initial_system.rho[atom_type-1],mu,mu_ex.n,initial_system.mu_id[atom_type-1],mu_ex.s]
 array=np.array(array).reshape((1,len(array)))
 header="Number of particle insertions %s for species %s\n"%(n_trials,atom_type) + "rho mu mu_ex mu_id std_mu_ex"
 name="widom_%s_%s.log"%(n_trials,atom_type)

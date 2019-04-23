@@ -70,16 +70,21 @@ def fast_averager(input,min_limit=0,output_file="statistics.dat"):
     Returns:
         output_array containing the [Name_of variable, average, Error_autocorrelation, Error_blocking, Error_simple,variance simple]
     """
-    try:
-        if os.path.exists(input):
+    if isinstance(input,basestring):
+        try:
+            os.path.exists(input)
             data,names=read_from_file(input)
             calculations(data,min_limit,output_file,names)
-    except:
+        except IOError:
+            print 'The input file for the statistical analysis does not exist '
+        return
+
+    else:
         data=input
 
-    output_array=calculations(data,min_limit,output_file)
+        output_array=calculations(data,min_limit,output_file)
 
-    return output_array
+        return output_array
 
 
 

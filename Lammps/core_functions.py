@@ -230,6 +230,11 @@ def set_plot_appearance():
 def integrate(x,y,xmin,xmax):
     """
     Integrate the data in x and y from xmin to xmax
+    Args:
+        x are the independent variables
+        y the integrand
+        xmin the lower limit of the integral
+        xmax the upper limit of the integral
     """
     MinIndex=np.min(np.where(x>=xmin))
     MaxIndex=np.max(np.where(x<=xmax))

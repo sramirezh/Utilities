@@ -29,7 +29,7 @@ import os
 import sys
 import gzip
 from scipy.spatial.distance import pdist,squareform
-
+import glob
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -237,6 +237,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
     #Reading the initial data
     Box,L=Box_limits(file_name)
     times=pd.read_csv("Times.dat",header=None).values
+    
     x=np.size(times)
 
     rmax=number_of_monomers(file_name)**(3/5) #Assumes the maximum radius is number_particles/2
