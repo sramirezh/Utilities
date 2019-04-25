@@ -115,6 +115,7 @@ def calculations(data, min_limit,output_file, names=None):
         names_to_analyse=np.arange(0,size)
 
     else:
+        data1=data[min_limit::]
         #Excluding some data that does not need to be analysed
         exclude=["time", "Chunk", "Coord1","step"]
         if isinstance(names[0],basestring)==True:
@@ -149,7 +150,7 @@ def calculations(data, min_limit,output_file, names=None):
 
     #Simple error
     error_s=stats.sem(data_to_analyse)
-    variance_s=stats.variance(data_to_analyse)
+    variance_s=np.var(data_to_analyse,axis=0)
 
     #Blocking analysis
     error_b=blocking_error(data_to_analyse)
@@ -158,10 +159,10 @@ def calculations(data, min_limit,output_file, names=None):
     print "The Results are:\n"
     print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple"
     file=open(output_file,'w')
-    file.write("#print Property    Average    Error_autocorrelation    Error_blocking    Error_simple\n")
+    file.write("#print Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
     for i in xrange(size):
-        print "%s = %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i])
-        file.write("%s = %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
+        print "%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i])
+        file.write("%s = %lf %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
     file.close()
 
     output_array=[]
