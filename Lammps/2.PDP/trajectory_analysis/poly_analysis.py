@@ -193,6 +193,7 @@ def gyration_radious(pos):
     return np.sqrt(gr2)
 
 def hydrodynamic_radius(pos):
+    global dist
     """
     Computes the hydrodynamic radius
 
@@ -212,8 +213,7 @@ def hydrodynamic_radius(pos):
             for j in xrange(i+1,n):
                 inv_r += 1./dist[i,j]
     
-        inv_rh=inv_r/n**2
-    
+        inv_rh=2*inv_r/n**2
         rh=1/inv_rh
         return rh
 
@@ -233,7 +233,6 @@ def poly_analysis(file_name, split, n_bins=10, n_min=0):
 
 
 def trajectory_analysis(file_name,n_bins,n_min):
-
     #Reading the initial data
     Box,L=Box_limits(file_name)
     times=pd.read_csv("Times.dat",header=None).values
@@ -250,7 +249,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
     r_hydro=[]
     cm_disp=[] #Cm displacement
 
-
+    dist_vect=[]
     counter=0
     for k in xrange(n_min,x): #Runs over the sampled times.
         print("Reading configuration %d of %d" %(k,x-1))
@@ -261,6 +260,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
         pos=real_position(Data,L) #Real positions of all the atoms
 
         "Getting the Hydrodynamic radius"
+        dist_vect.append(squareform(pdist(pos)))
 
 
 
@@ -307,6 +307,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
     #Need to multiply by two the density as I counted only on the semisphere.
     rd_positive[:,2]*=2
     rd_negative[:,2]*=2
+    
 
     #To add altogether
 
