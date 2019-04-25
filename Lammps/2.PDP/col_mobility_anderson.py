@@ -20,12 +20,14 @@ import pandas as pd
 
 grad_mu=0.1
 
-a=4 #Radius of gyration
+a=3.652945 #Hydrodynamic radius
 T=1 #They do not mention it explicitely
-mu=2.3 #Need to recompute
+
+"""Need to recompute"""
+mu=2.3 
 
 
-data_limit=6 #Where the sampling volumes are outside the box
+data_limit=9 #Where the sampling volumes are outside the box
 beta=1
 
 data_file="prof_u.dat"
@@ -44,7 +46,7 @@ integrand_k=c_excess/cs_bulk
 
 
 """There is a mistake as H << K"""
-K=cf.integrate(y,integrand_k,0,data_limit)
+K=cf.integrate(y,integrand_k,0,y[-1])
 
 integrand_1=integrand_k*y
 
@@ -57,27 +59,44 @@ H=cf.integrate(y,integrand_2,0,data_limit)/cf.integrate(y,integrand_1,0,data_lim
 
 U=U_0*(1-(H+K)/a)
 
-
-plt.close('all')
-fig,ax=plt.subplots()
-
-ax.set_xlim(0,10)
-ax.plot(data[:,1],data[:,3],label="Solute concentration")
-
-plt.legend()
-plt.show()
-
-
-fig,ax=plt.subplots()
-
-ax.set_xlim(0,10)
-ax.plot(y,c_excess,label="Excess_solute")
-ax.set_xlabel(r'$y $')
-plt.legend()
-plt.show()
-
-
 print U_0,U
+
+
+
+
+
+
+"""Plots"""
+plt.close('all')
+cf.set_plot_appearance()
+
+"""Plot Solute concentration"""
+fig,ax=plt.subplots()
+
+ax.set_xlim(0,data_limit)
+ax.plot(data[:,1],data[:,3])
+ax.set_xlabel(r'$r[\sigma] $')
+ax.set_ylabel(r'$c_s^B [\sigma^{-3}]$')
+ymin,ymax=plt.ylim()
+ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
+fig.tight_layout()
+plt.savefig("Solute_concentration.pdf")
+
+
+"""Plot Excess_solute"""
+fig,ax=plt.subplots()
+ax.plot(y,c_excess,label="Excess solute")
+ax.set_ylabel(r'$e^{-\beta\phi(y)}-1$')
+ax.set_xlabel(r'$y $')
+xmin,xmax=plt.xlim()
+ax.set_xlim(0,xmax)
+ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
+fig.tight_layout()
+plt.savefig("Solute_excess.pdf")
+
+plt.show()
+
+
 
 def r_g(N):
     """
@@ -97,44 +116,3 @@ def r_h(N):
         N the number of monomers
     """
     return 1/(3.131*N**(-0.5877)-3.04/N)
-
-#integrand=((2*a*T)/(9*mu)*((0.5/r_a)-(3/2*r_a)+(r_a)**2))*A1*d_phi_r
-
-"""
-Check that i am integrating over r and the integrand is a function of r_a
-"""
-#
-#v_x=cf.integrate(r,integrand,rmin,rmax) 
-#
-#from scipy.interpolate import splev,splrep,splint,splder
-#
-#tck=splrep(r,phi)
-#spline_x=np.linspace(rmin,rmax,2000)
-#spline_y=splev(spline_x,tck)
-
-#
-#
-#v_x_spline=cf.integrate(spline_x,spline_y,rmax,rmin) 
-#print(v_x,v_x_spline)
-
-
-#fig,ax=plt.subplots()
-#ax.set_ylabel(r'$\phi(r) $')
-#ax.set_xlabel(r'$r $')
-#ax.plot(r,phi,'o',label="Points")
-#ax.plot(spline_x,spline_y,label="Spline")
-#plt.legend()
-#
-#
-#tckder=splder(tck)
-#
-#der=splev(spline_x,tck, der=1)
-#
-#
-#fig,ax=plt.subplots()
-#ax.set_ylabel(r'$\frac{d\phi(r)}{dr} $')
-#ax.set_xlabel(r'$r $')
-#ax.plot(r,dome_ra,'o',label="Points")
-#ax.plot(spline_x,der,label="Spline")
-#plt.legend()
-#plt.tight_layout()
