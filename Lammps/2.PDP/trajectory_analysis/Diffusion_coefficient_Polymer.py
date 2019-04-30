@@ -21,16 +21,15 @@ import Lammps.core_functions as cf
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
-from joblib import Parallel, delayed
-import multiprocessing
-
-def compute_one_delta(pos):
+def compute_one_msd(pos,delta):
     """
-    Computes the g(r) of the polymer particles with other particle types, so only 3
-    three distri
+    Computes the MSD for the positions every certain delta
+    Args:
+        pos: all the positions of the cm of the polymer
+        delta: evert this number, we take the positions to compute the msd
     """
 
-
+    pos=pos[::delta]
     delta_sqr_components=(pos-np.roll(pos,-1,axis=0))**2
     delta_sqr=np.sum(delta_sqr_components,axis=1)[:-1] #The last contribution is the last-the initial msd
     msd_comp=np.average(delta_sqr_components,axis=0)
@@ -43,12 +42,7 @@ def compute_one_delta(pos):
 Main
 *******************************************************************************
 """
-axis_font=24
-tick_font=20
-legend_font=18
-xoffset=0.05
-yoffset=0.8
-error_cap=4
+cf.set_plot_appearance()
 
 delta_t= 0.005
 
@@ -64,9 +58,10 @@ pos=data1[:,1::]
 
 msd=[]
 t=[]
+max_delta=int(len(times)*0.05) #Maximum delta of time to measure the MSD
 propD=[]
-for i in xrange(3000):
-    msd_t=compute_one_delta(pos[::(i+1)])[3]
+for i in xrange(max_delta):
+    msd_t=compute_one_msd(pos,i+1)[3]
     msd.append(msd_t)
     dt=times[i]
     t.append(dt)
@@ -74,17 +69,21 @@ for i in xrange(3000):
     
 
 out=np.polyfit(t,msd,1)
+fit_line=np.polyval(out,t)
 D=out[0]/(2*3)
 print "The diffusion coefficient is %s"%D
+
+
 
 plt.close('all')
 fig1,(ax1,ax12)=plt.subplots(2,1)
 ax1.plot(t,msd)
-ax1.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
-ax1.set_ylabel(r'$MSD$',fontsize=axis_font)
+ax1.plot(t,fit_line,'--')
+ax1.set_ylabel(r'$MSD$')
 ax12.plot(t,propD)
-ax12.set_xlabel(r'$\Delta t$',fontsize=axis_font)
-ax12.set_ylabel(r'$D$',fontsize=axis_font)
-ax12.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+ax12.axhline(y=D, xmin=0, xmax=1,ls='--',c='black')
+ax12.set_xlabel(r'$\Delta t$')
+ax12.set_ylabel(r'$D$')
+plt.savefig("Diffusio_coefficient.pdf")
 plt.show()
 
