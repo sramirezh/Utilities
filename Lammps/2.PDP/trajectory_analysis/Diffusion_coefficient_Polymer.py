@@ -84,6 +84,7 @@ ax12.plot(t,propD)
 ax12.axhline(y=D, xmin=0, xmax=1,ls='--',c='black')
 ax12.set_xlabel(r'$\Delta t$')
 ax12.set_ylabel(r'$D$')
+plt.tight_layout()
 plt.savefig("Diffusio_coefficient.pdf")
 plt.show()
 
