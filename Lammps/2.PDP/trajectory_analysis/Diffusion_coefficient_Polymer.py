@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 from scipy import optimize
+import warnings
+warnings.filterwarnings("ignore")
 
 try:
     from uncertainties import unumpy,ufloat
@@ -87,13 +89,19 @@ D_inst_ave=unumpy.nominal_values(D_inst)
 
 
 
-#New fit
+# =============================================================================
+# Fitting data
+# I skipping the first initial_index, until the final_index
+# =============================================================================
 fitfunc = lambda p, x: p[0] * x + p[1] #Fitting to a line
 errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err
 
 pinit=[1,-1]
+final_index=int(0.5*len(t))
+initial_index=50
+step=10
 
-out = optimize.leastsq(errfunc, pinit, args=(t[::10],msd_average[::10],msd_error[::10]), full_output=1)
+out = optimize.leastsq(errfunc, pinit, args=(t[initial_index:final_index:step],msd_average[initial_index:final_index:step],msd_error[initial_index:final_index:step]), full_output=1)
 
 pfinal = out[0] #fitting coefficients
 cov=out[1] #Covariance
