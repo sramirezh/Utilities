@@ -6,6 +6,8 @@ Estimates the velocity only using the concentration profile.
 
 
 The file prof_u.dat contains # Chunk Coord1 Ncount density/number
+
+the file Parameters, has N R_H^K R_H^{md}
 Define Viscosity
 @author: sr802
 """
@@ -80,7 +82,7 @@ def plateau_finder(data,tol=0.0003):
     
     return plateaus
 
-def velocity_polymer(a,T,mu,box_size,grad_mu):
+def velocity_polymer(a,T,mu,box_size,grad_mu,rh_origin):
     data_limit=box_size/2 #Where the sampling volumes are outside the box
     beta=1/T
     
@@ -112,8 +114,8 @@ def velocity_polymer(a,T,mu,box_size,grad_mu):
     
     integrand_1=integrand_k*y
     
-    
-    U_0=alpha/(beta*mu)*cf.integrate(y,integrand_1,0,y[-1])
+    L=cf.integrate(y,integrand_1,0,y[-1])
+    U_0=alpha/(beta*mu)*L
     
     integrand_2=0.5*integrand_k*y**2
     
@@ -122,12 +124,20 @@ def velocity_polymer(a,T,mu,box_size,grad_mu):
     U_1=-U_0*(H+K)/a
     U=U_0+U_1
     
-    plots(indexes,data,data_limit,y,c_excess)
-    plot_plateau(data,plat_indexes,indexes_box)
-    return U_0,K,H,U_1,U
+    plots(a,indexes,data,data_limit,y,c_excess,rh_origin)
+    plot_plateau(a,data,plat_indexes,indexes_box,rh_origin)
+    return K,L,H,U_0,U_1,U
 
 
-def plots(indexes,data,data_limit,y,c_excess):
+def plots(a,indexes,data,data_limit,y,c_excess,rh_origin):
+    
+    if rh_origin=='K':
+        name1='Solute_concentration_k.pdf'
+        name2='Solute_excess_k.pdf'
+    if rh_origin=='md':
+        name1='Solute_concentration_md.pdf'
+        name2='Solute_excess_md.pdf'
+    
     """Plots"""
     plt.close('all')
     cf.set_plot_appearance()
@@ -143,7 +153,7 @@ def plots(indexes,data,data_limit,y,c_excess):
     ax.axhline(y=cs_bulk, xmin=0, xmax=1,ls='--',c='black')
     fig.tight_layout()
     ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
-    plt.savefig("Solute_concentration.pdf")
+    plt.savefig(name1)
     
     
     """Plot Excess_solute"""
@@ -155,7 +165,7 @@ def plots(indexes,data,data_limit,y,c_excess):
     ax.set_xlim(0,xmax)
     ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
     fig.tight_layout()
-    plt.savefig("Solute_excess.pdf")
+    plt.savefig(name2)
     
     plt.show()
 
@@ -208,7 +218,12 @@ def rh_analysis(rmin,rmax):
 
 
 
-def plot_plateau(data,plat_indexes,indexes_box):
+def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
+    if rh_origin=='K':
+        name='plateau_k.pdf'
+    if rh_origin=='md':
+        name='plateau_md.pdf'
+        
     cs_bulk=data[plat_indexes[-1],3]
     fig,ax=plt.subplots()
     ax.plot(data[indexes_box,1],data[indexes_box,3])
@@ -221,7 +236,7 @@ def plot_plateau(data,plat_indexes,indexes_box):
     #ax.set_xlim(6,box_size/2)
     #ax.set_ylim(0.37,0.38)
     ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
-    plt.savefig("plateau.pdf")
+    plt.savefig(name)
     plt.show()
     
     
@@ -235,25 +250,33 @@ cf.set_plot_appearance()
 
 """Polymer"""
 grad_mu=0.1
-
-
-#Automatically load the parameters
-parameters=cf.read_data_file('../data.dat').values
-N=int(cf.extract_digits(os.getcwd().split('/')[-1])[0]) #Number of monomers obtained from the path
-index_1=np.where(parameters==N)[0][0] #gets the line with the parameters of this Number of monomers
-box_size=parameters[index_1,1]
-a_k=parameters[index_1,2]
-a_md=parameters[index_1,3]
-
-
-a=a_md
 T=1
 beta=1/T
 mu=1.55639001606637 
 
+#Automatically load the parameters
+parameters=cf.read_data_file('../data.dat').values
+N=int(cf.extract_digits(os.getcwd().split('/')[-1])[0]) #Number of monomers obtained from the path
 
-results=velocity_polymer(a,T,mu, box_size,grad_mu)
+print "Running for N=%d" %N
+
+
+index_1=np.where(parameters==N)[0][0] #gets the line with the parameters of this Number of monomers
+box_size=parameters[index_1,1]
+
+print 'Using the Rh estimation from Kirkwood'
+a_k=parameters[index_1,2]
+
+results=velocity_polymer(a_k,T,mu, box_size,grad_mu,'K')
 print results
+
+print 'Using the Rh estimation from the mobility'
+a_md=parameters[index_1,3]
+
+results=velocity_polymer(a_md,T,mu, box_size,grad_mu,'md')
+print results
+
+
 
 """
 (UNCOMMENT) Rh dependence analyisis

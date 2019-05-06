@@ -82,14 +82,14 @@ def fast_averager(input,min_limit=0,output_file="statistics.dat"):
     else:
         data=input
 
-        output_array=calculations(data,min_limit,output_file)
+        output_array=calculations(data,min_limit,output_file,function='True')
 
         return output_array
 
 
 
 
-def calculations(data, min_limit,output_file, names=None):
+def calculations(data, min_limit,output_file, names=None, function='False'):
     """
     This script evaluates the average of a quantity
 
@@ -97,6 +97,7 @@ def calculations(data, min_limit,output_file, names=None):
         names list containing the column names
         data is a numpy array containing the data
         min_limit Number of samples to be discarded
+        function is a boolean, that estimates if the function was called as a function or from the main
 
     It creates a file statistics.dat with the averages, containing the valiable name,
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
@@ -155,13 +156,14 @@ def calculations(data, min_limit,output_file, names=None):
     #Blocking analysis
     error_b=blocking_error(data_to_analyse)
 
-
-    print "The Results are:\n"
-    print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple"
+    if function==False:
+        print "The Results are:\n"
+        print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance"
     file=open(output_file,'w')
     file.write("#print Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
     for i in xrange(size):
-        print "%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i])
+        if function==False:
+            print "%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i])
         file.write("%s = %lf %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
     file.close()
 
@@ -169,7 +171,8 @@ def calculations(data, min_limit,output_file, names=None):
     for i in xrange(size):
         output_array.append([names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i]])
 
-    print "\nCreated a file %s with the averages"%output_file
+    if function==False:
+        print "\nCreated a file %s with the averages"%output_file
 
     return output_array
 
