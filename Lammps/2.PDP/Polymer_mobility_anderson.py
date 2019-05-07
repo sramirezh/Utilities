@@ -252,7 +252,7 @@ cf.set_plot_appearance()
 grad_mu=0.1
 T=1
 beta=1/T
-mu=1.55639001606637 
+eta=1.55639001606637 
 
 #Automatically load the parameters
 parameters=cf.read_data_file('../data.dat').values
@@ -264,19 +264,20 @@ print "Running for N=%d" %N
 index_1=np.where(parameters==N)[0][0] #gets the line with the parameters of this Number of monomers
 box_size=parameters[index_1,1]
 
-print 'Using the Rh estimation from Kirkwood'
+print '\nUsing the Rh estimation from Kirkwood'
 
 a_k=parameters[index_1,2]
 
-results=velocity_polymer(a_k,T,mu, box_size,grad_mu,'K')
+results=velocity_polymer(a_k,T,eta, box_size,grad_mu,'K')
 print 'K,L,H,U_0,U_1,U'
 print results
 
-print 'Using the Rh estimation from the mobility'
+print '\nUsing the Rh estimation from the mobility'
 
-a_md=parameters[index_1,3]
+D=parameters[index_1,3]
+a_md=T/(6*np.pi*eta)
 
-results=velocity_polymer(a_md,T,mu, box_size,grad_mu,'md')
+results=velocity_polymer(a_md,T,eta, box_size,grad_mu,'md')
 print 'K,L,H,U_0,U_1,U'
 print results
 
