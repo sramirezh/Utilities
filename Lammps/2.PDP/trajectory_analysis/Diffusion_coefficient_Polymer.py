@@ -16,6 +16,9 @@ from scipy import optimize
 import warnings
 warnings.filterwarnings("ignore")
 import argparse
+from tqdm import tqdm  
+from joblib import Parallel, delayed
+import multiprocessing
 
 try:
     from uncertainties import unumpy,ufloat
@@ -24,12 +27,13 @@ except ImportError as err2:
 import Others.Statistics.FastAverager as stat
 
 
-def compute_one_msd(pos,delta):
+def compute_one_msd(pos,delta,out_type):
     """
     Computes the MSD for the positions every certain delta
     Args:
         pos: all the positions of the cm of the polymer
         delta: evert this number, we take the positions to compute the msd
+        out_type= "complete" to return msd_comp and msd or "single" to return only msd 
     """
     global msd_comp,msd_comp_u,msd_u
     pos=pos[::delta]
@@ -38,8 +42,13 @@ def compute_one_msd(pos,delta):
     msd_comp=np.array(stat.fast_averager(delta_sqr_components))
     msd_comp=unumpy.uarray(msd_comp[:,1],msd_comp[:,2]) #average and autocorrelation error
     msd=msd_comp[0]+msd_comp[1]+msd_comp[2]
+    if out_type=='complete':
+        
+        return np.hstack([msd_comp,msd])
 
-    return np.hstack([msd_comp,msd])
+    if out_type=='single':
+        
+        return msd
 
 
 fitfunc = lambda p, x: p[0] * x + p[1] #Fitting to a line
@@ -100,7 +109,6 @@ def compute_diffusion_coefficient(input_file,delta_t,initial_index,final_ratio,s
     Computes the diffusion coefficient
     """
     
-    
     Data=cf.read_data_file(input_file)
     data1=Data.values
     times=data1[:,0]*delta_t
@@ -111,13 +119,15 @@ def compute_diffusion_coefficient(input_file,delta_t,initial_index,final_ratio,s
     t=[]
     max_delta=int(len(times)*0.05) #Maximum delta of time to measure the MSD
     
+    
+    num_cores = multiprocessing.cpu_count()
+    msd=Parallel(n_jobs=num_cores)(delayed(compute_one_msd)(pos,i+1,"single") for i in tqdm(xrange(max_delta)))
+    
     D_inst=[] #Array with the instantaneous diffusion coefficient
     for i in xrange(max_delta):
-        msd_t=compute_one_msd(pos,i+1)[3]
-        msd.append(msd_t)
         dt=times[i]
         t.append(dt)
-        D_inst.append(msd_t/dt/(2*3))
+        D_inst.append(msd[i]/dt/(2*3))
     
     
     
