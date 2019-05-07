@@ -204,7 +204,7 @@ def hydrodynamic_radius(pos):
     n,m=np.shape(pos)
     print n
     if n==1: # For a monomer
-        
+
         return 0
     else:
         dist=squareform(pdist(pos))
@@ -212,8 +212,8 @@ def hydrodynamic_radius(pos):
         for i in xrange(n):
             for j in xrange(i+1,n):
                 inv_r += 1./dist[i,j]
-    
-        inv_rh=2*inv_r/n**2
+
+        inv_rh=2*inv_r/(n*n-1)
         rh=1/inv_rh
         return rh
 
@@ -236,7 +236,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
     #Reading the initial data
     Box,L=Box_limits(file_name)
     times=pd.read_csv("Times.dat",header=None).values
-    
+
     x=np.size(times)
 
     rmax=number_of_monomers(file_name)**(3/5) #Assumes the maximum radius is number_particles/2
@@ -307,7 +307,7 @@ def trajectory_analysis(file_name,n_bins,n_min):
     #Need to multiply by two the density as I counted only on the semisphere.
     rd_positive[:,2]*=2
     rd_negative[:,2]*=2
-    
+
 
     #To add altogether
 

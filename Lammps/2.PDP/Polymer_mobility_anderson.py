@@ -265,15 +265,19 @@ index_1=np.where(parameters==N)[0][0] #gets the line with the parameters of this
 box_size=parameters[index_1,1]
 
 print 'Using the Rh estimation from Kirkwood'
+
 a_k=parameters[index_1,2]
 
 results=velocity_polymer(a_k,T,mu, box_size,grad_mu,'K')
+print 'K,L,H,U_0,U_1,U'
 print results
 
 print 'Using the Rh estimation from the mobility'
+
 a_md=parameters[index_1,3]
 
 results=velocity_polymer(a_md,T,mu, box_size,grad_mu,'md')
+print 'K,L,H,U_0,U_1,U'
 print results
 
 
