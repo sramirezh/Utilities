@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu May  9 17:21:33 2019
-Streamlines plot 
+Plot the streamlines and the solute concentration distribution from 2d distributions of velocities obtained in cylindrical coordinates.
 
 
 compute cc1 all chunk/atom bin/cylinder x center 0.5 ${yo} ${zo} 0.0 10.0 20
@@ -49,8 +49,8 @@ def semi_circle(origin,r):
     
     return x,y
 
-data=np.loadtxt("vel_static.dat",skiprows=4)
-data_rho=np.loadtxt("con_static.dat",skiprows=4)
+data=np.loadtxt("prof2d_vel.dat",skiprows=4)
+data_rho=np.loadtxt("prof2d_con.dat",skiprows=4)
 
 R_h=4.48
 
@@ -106,7 +106,7 @@ plt.close('all')
 ax.axes.set_aspect('equal')
 cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be jet
 fig.colorbar(cntr1, cax=cax, orientation='horizontal')
-cax.set_xlabel(r'c_{s}')
+cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
 ax.quiver(x,r,vx,vr)
 ax.plot(circle[0],circle[1],color='black')
@@ -135,5 +135,6 @@ ax.set_ylabel(r'$v_x-v_x^{cm}$')
 ax.set_xlabel(r'$step $')
 plt.legend()
 fig.tight_layout()
+fig.savefig('vx.pdf')
 
 fig.show()

@@ -8,6 +8,8 @@ Created on Thu May  9 11:10:12 2019
 import numpy as np
 import argparse
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 #Lets create the known polynomial
 
@@ -34,6 +36,19 @@ def build_example(n_points=1000):
     
     header='# density Temperature property sigma_property'
     np.savetxt('input_example.dat',data, header=header)
+    
+def build_example_grid(n_points=1000):
+    x=np.linspace(1,3,n_points)
+    y=np.linspace(1,3,n_points)
+    x,y=np.meshgrid(x,y)
+    z=p_known(x,y)
+    zerr= np.random.rand(n_points)
+    
+    data=np.column_stack([x,y,z,zerr])
+    
+    header='# density Temperature property sigma_property'
+    np.savetxt('input_example.dat',data, header=header)
+    
 
 
 
@@ -152,6 +167,12 @@ def main(input_file,rho_ref,beta_ref,d):
     z_predict,error=test_prediction(popt,variables,z)
     
     outputs(popt,pcov,error)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x, y, z, zdir='z')
+    
+    
 
 
 
@@ -168,7 +189,9 @@ if __name__ == "__main__":
     
     
     
-    
+
+
+
 
 
 ##Diagonal matrix test
