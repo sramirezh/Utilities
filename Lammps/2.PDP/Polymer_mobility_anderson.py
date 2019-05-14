@@ -82,7 +82,7 @@ def plateau_finder(data,tol=0.0003):
     
     return plateaus
 
-def velocity_polymer(a,T,mu,box_size,grad_mu,rh_origin):
+def velocity_polymer(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     data_limit=box_size/2 #Where the sampling volumes are outside the box
     beta=1/T
     
@@ -115,7 +115,7 @@ def velocity_polymer(a,T,mu,box_size,grad_mu,rh_origin):
     integrand_1=integrand_k*y
     
     L=cf.integrate(y,integrand_1,0,y[-1])
-    U_0=alpha/(beta*mu)*L
+    U_0=alpha/(beta*eta)*L
     
     integrand_2=0.5*integrand_k*y**2
     
@@ -123,9 +123,10 @@ def velocity_polymer(a,T,mu,box_size,grad_mu,rh_origin):
     
     U_1=-U_0*(H+K)/a
     U=U_0+U_1
-    
-    plots(a,indexes,data,data_limit,y,c_excess,rh_origin)
-    plot_plateau(a,data,plat_indexes,indexes_box,rh_origin)
+    if plot==True:
+        plots(a,indexes,data,data_limit,y,c_excess,rh_origin)
+        plot_plateau(a,data,plat_indexes,indexes_box,rh_origin)
+        
     return K,L,H,U_0,U_1,U
 
 
@@ -180,7 +181,7 @@ def rh_analysis(rmin,rmax):
     results=[]
     for a in rh_vect:
         
-        results.append(velocity_polymer(a,T,mu, box_size,grad_mu))
+        results.append(velocity_polymer(a,T,eta, box_size,grad_mu,'K',plot=False))
     
     results=np.array(results)
     
@@ -268,14 +269,14 @@ print '\nUsing the Rh estimation from Kirkwood'
 
 a_k=parameters[index_1,2]
 
-results=velocity_polymer(a_k,T,eta, box_size,grad_mu,'K')
+results=velocity_polymer(a_k,T,eta, box_size,grad_mu,rh_origin='K')
 print 'K,L,H,U_0,U_1,U'
 print results
 
 print '\nUsing the Rh estimation from the mobility'
 
 D=parameters[index_1,3]
-a_md=T/(6*np.pi*eta)
+a_md=T/(6*np.pi*eta*D)
 
 results=velocity_polymer(a_md,T,eta, box_size,grad_mu,'md')
 print 'K,L,H,U_0,U_1,U'
@@ -286,7 +287,7 @@ print results
 """
 (UNCOMMENT) Rh dependence analyisis
 """
-#rh_analysis(2.5,7)
+rh_analysis(2.5,box_size/2-1)
 
 
 

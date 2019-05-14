@@ -146,7 +146,9 @@ def compute_diffusion_coefficient(input_file,delta_t,initial_index,final_ratio,s
     plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal,D)
     
     print "The diffusion coefficient is %s +/- %s"%(D,D_err)
-
+    f=open("Diffusion.out",'w')
+    f.write("The diffusion coefficient is %s +/- %s \n"%(D,D_err))
+    f.close
 
 
 

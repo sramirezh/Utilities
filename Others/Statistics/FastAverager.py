@@ -86,10 +86,26 @@ def fast_averager(input,min_limit=0,output_file="statistics.dat"):
 
         return output_array
 
+def discard_data(data,nmin):
+    """
+    Function to discard in number or percentage
+    Args:
+        data is a numpy array containing the data
+        nmin could be a percentage between 0-1 or an integer
+    """
+
+    if nmin<1:
+        print "Discarding %d%% of the timesteps for the analysis"%(int(nmin*100))
+        discard=int(nmin*len(data))
+        data=data[discard:]
+    else:
+        print "Discarding %d out of %d timesteps for the analysis" %(nmin,len(data))
+        data=data[int(nmin):]
+
+    return data
 
 
-
-def calculations(data, min_limit,output_file, names=None, function='False'):
+def calculations(data, min_limit,output_file, names=None, function=False):
     """
     This script evaluates the average of a quantity
 
@@ -103,6 +119,7 @@ def calculations(data, min_limit,output_file, names=None, function='False'):
     the average, the Error_autocorrelation,  the  Error_blocking  and the  Error_simple
     """
 
+
     #If the data does not have header
     if names is None:
 
@@ -110,13 +127,13 @@ def calculations(data, min_limit,output_file, names=None, function='False'):
         if len(np.shape(data))==1:
             data=np.reshape(data,(len(data),1))
 
-        data1=data[min_limit::]
+        data1=discard_data(data,min_limit)
         data_to_analyse=data1
         n,size=np.shape(data_to_analyse)
         names_to_analyse=np.arange(0,size)
 
     else:
-        data1=data[min_limit::]
+        data1=discard_data(data,min_limit)
         #Excluding some data that does not need to be analysed
         exclude=["time", "Chunk", "Coord1","step"]
         if isinstance(names[0],basestring)==True:
@@ -160,7 +177,7 @@ def calculations(data, min_limit,output_file, names=None, function='False'):
         print "The Results are:\n"
         print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance"
     file=open(output_file,'w')
-    file.write("#print Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
+    file.write("Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
     for i in xrange(size):
         if function==False:
             print "%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i])
@@ -173,7 +190,6 @@ def calculations(data, min_limit,output_file, names=None, function='False'):
 
     if function==False:
         print "\nCreated a file %s with the averages"%output_file
-
     return output_array
 
 
@@ -183,7 +199,7 @@ if __name__ == "__main__":
     parser.add_argument('filename', metavar='InputFile', type=str,
                         help='Input filename')
 
-    parser.add_argument('--min', help='Number of samples to be discarded', default=0, type=int)
+    parser.add_argument('--min', help='Number or percentage (between 0-1) of samples to be discarded', default=0, type=float)
     parser.add_argument('--output',help='Name of the output file',default="statistics.dat",type=str)
     args = parser.parse_args()
     min_limit=args.min

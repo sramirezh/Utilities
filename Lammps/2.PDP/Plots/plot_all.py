@@ -158,10 +158,12 @@ ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
 # Adding the theoretical results
 # =============================================================================
 if args.theory==True:
-    theory=cf.read_data_file("Theoretical.dat").values
-    
-    ax.scatter(theory[:,0],theory[:,1],marker='v',color="blue",label=r'$U_0$')
-    ax.scatter(theory[:,0],theory[:,2],marker='x',color="blue",label=r'$U_0+U_1$')
+    theory_ads=cf.read_data_file("Theoretical_1.5.dat").values
+    theory_dep=cf.read_data_file("Theoretical_0.5.dat").values
+    ax.scatter(theory_ads[:,0],theory_ads[:,1],marker='v',color="blue",label=r'$R_h^K$')
+    ax.scatter(theory_ads[:,0],theory_ads[:,2],marker='x',color="blue",label=r'$R_h^{\lambda}$')
+    ax.scatter(theory_dep[:,0],theory_dep[:,1],marker='v',color="red",label=r'$R_h^K$')
+    ax.scatter(theory_dep[:,0],theory_dep[:,2],marker='x',color="red",label=r'$R_h^{\lambda}$')
     
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 #ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
@@ -181,7 +183,7 @@ plt.yticks(np.arange(-0.2,0.4,0.1))
 
 """Legend"""
 plt.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
-           frameon=True, fancybox=False, edgecolor='k')
+           frameon=True, fancybox=False, edgecolor='k',ncol=2)
 
 
 """General"""
