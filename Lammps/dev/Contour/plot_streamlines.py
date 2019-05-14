@@ -37,6 +37,7 @@ For bin/cylinder, the numbering varies most rapidly in the dimension along the c
 import numpy as np
 import matplotlib.pyplot as plt
 data=np.loadtxt("prof2d_vel.dat",skiprows=4)
+data_rho=np.loadtxt("prof2d_con.dat",skiprows=4)
 import sys
 import os
 
@@ -58,7 +59,7 @@ finish=760
 
 r=data[:finish,1]
 x=data[:finish,2]
-density=data[:finish,4]
+density=data_rho[:finish,4]
 vx=data[:finish,5]
 vr=data[:finish,6]
 
@@ -77,7 +78,7 @@ Z=np.reshape(density,(40,19))
 xmesh,ymesh=np.mgrid[np.min(x):np.max(x):np.complex(0,n_x), np.min(r):np.max(r):np.complex(0,n_r)]
 xmesh=np.reshape(x,(19,40))
 ymesh=np.reshape(r,(19,40))
-vxmesh=np.reshape(vx,(19,40))
+vxmesh=np.reshape(density,(19,40))
 #
 #u = -1 - xmesh**2 + ymesh
 #v = 1 + xmesh - ymesh**2
@@ -100,9 +101,12 @@ plt.close('all')
 #ax.streamplot(ymesh,xmesh, v, u)
 
 #ax.streamplot (xreshaped,rreshaped,vxreshaped,vrreshaped)
-ax.quiver(x,r,vx,vr)
+
 ax.axes.set_aspect('equal')
-ax.contourf(xmesh,ymesh,vxmesh,alpha=0.3,cmap="RdBu_r")
+cntr1=ax.contourf(xmesh,ymesh,vxmesh,alpha=0.5,cmap="RdBu_r")
+
+fig.colorbar(cntr1, ax=ax)
+ax.quiver(x,r,vx,vr)
 ax.plot(circle[0],circle[1])
 ax.set_ylim(0,9)
 #ax.contourf(xreshaped,rreshaped,vxreshaped)
