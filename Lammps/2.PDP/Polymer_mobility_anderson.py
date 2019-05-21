@@ -97,7 +97,7 @@ def velocity_polymer(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     indexes=np.arange(0,plat_indexes[-1])
     
     cs_bulk=data[indexes[-1],3]
-    alpha=0.1  #Should be dependent on the 
+    alpha=grad_mu*cs_bulk
     
     
     
@@ -119,7 +119,7 @@ def velocity_polymer(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     
     integrand_2=0.5*integrand_k*y**2
     
-    H=cf.integrate(y,integrand_2,0,data_limit)/cf.integrate(y,integrand_1,0,y[-1])
+    H=cf.integrate(y,integrand_2,0,data_limit)/L
     
     U_1=-U_0*(H+K)/a
     U=U_0+U_1
@@ -172,7 +172,7 @@ def plots(a,indexes,data,data_limit,y,c_excess,rh_origin):
 
 
 
-def rh_analysis(rmin,rmax):
+def rh_analysis(rmin,rmax,T,eta, box_size, grad_mu):
     """
     Analyising the Change of the parameters while varyin the hydrodynamic radius between rmin and rmax
     """
@@ -237,6 +237,7 @@ def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
     #ax.set_xlim(6,box_size/2)
     #ax.set_ylim(0.37,0.38)
     ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
+
     plt.savefig(name)
     plt.show()
     
@@ -270,8 +271,9 @@ print '\nUsing the Rh estimation from Kirkwood'
 a_k=parameters[index_1,2]
 
 results=velocity_polymer(a_k,T,eta, box_size,grad_mu,rh_origin='K')
-print 'K,L,H,U_0,U_1,U'
-print results
+mobility=results[-1]/grad_mu
+print 'K,L,H,U_0,U_1,U,mobility'
+print results,mobility
 
 print '\nUsing the Rh estimation from the mobility'
 
@@ -279,15 +281,16 @@ D=parameters[index_1,3]
 a_md=T/(6*np.pi*eta*D)
 
 results=velocity_polymer(a_md,T,eta, box_size,grad_mu,'md')
-print 'K,L,H,U_0,U_1,U'
-print results
+mobility=results[-1]/grad_mu
+print 'K,L,H,U_0,U_1,U,mobility'
+print results,mobility
 
 
 
 """
 (UNCOMMENT) Rh dependence analyisis
 """
-rh_analysis(2.5,box_size/2-1)
+#rh_analysis(2.5,box_size/2-1,T,eta, box_size, grad_mu)
 
 
 
