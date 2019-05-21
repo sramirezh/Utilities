@@ -129,7 +129,7 @@ for i in xrange(1,4):
 fig,ax=plt.subplots()
 
 every=100
-ax.plot(data2[::every,0],data2[::every,1],label='Solution')
+ax.plot(data2[::every,0],data2[::every,1],label='Bulk')
 ax.plot(data2[::every,0],data2[::every,2],label='Inside')
 ax.set_ylabel(r'$v_x-v_x^{cm}$')
 ax.set_xlabel(r'$step $')
