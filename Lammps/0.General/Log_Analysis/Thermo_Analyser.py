@@ -30,7 +30,7 @@ def save_file(data,header):
 
 
 
-def data_extract(file_name,discard):
+def data_extract(file_name):
     """
     This function extracts the data from the timesteps after discarding the defined amount
     """
@@ -67,21 +67,36 @@ def data_extract(file_name,discard):
             total=np.delete(total,-1,axis=0) #As there are repeated timesteps, I choose to keep the last version of the variables
             total=np.vstack([total,data])
 
-    total=total[discard:]
 
     return total, header_string
 
+def discard_data(data,nmin):
+    """
+    Function to discard in number or percentage
+    Args:
+        data is a numpy array containing the data
+        nmin could be a percentage between 0-1 or an integer
+    """
 
+    if nmin<1:
+        print "Discarding %d%% of the timesteps for the analysis"%(int(nmin*100))
+        discard=int(nmin*len(data))
+        data=data[discard:]
+    else:
+        print "Discarding %d out of %d timesteps for the analysis" %(nmin,len(data))
+        data=data[int(nmin):]
+
+    return data
 
 
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer')
     parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
-    parser.add_argument('--discard', help='Number of initial steps to discard', default=0, type=int)
+    parser.add_argument('--min', help='Number or percentage (between 0-1) of samples to be discarded', default=0, type=float)
     args = parser.parse_args()
     file_name=args.FileName
 
-    data,header=data_extract(file_name,args.discard)
+    data,header=data_extract(file_name)
     save_file(data,header)
-    stat.fast_averager("Parameters.dat",0,"thermo.dat")
+    stat.fast_averager("Parameters.dat",args.min,"thermo.dat")
