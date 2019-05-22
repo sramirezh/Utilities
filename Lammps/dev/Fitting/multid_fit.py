@@ -37,17 +37,20 @@ def build_example(n_points=1000):
     header='# density Temperature property sigma_property'
     np.savetxt('input_example.dat',data, header=header)
     
-def build_example_grid(n_points=1000):
+def build_example_grid(n_points=20):
     x=np.linspace(1,3,n_points)
     y=np.linspace(1,3,n_points)
     x,y=np.meshgrid(x,y)
-    z=p_known(x,y)
-    zerr= np.random.rand(n_points)
     
-    data=np.column_stack([x,y,z,zerr])
+    z=p_known(x,y)
+    zerr= np.random.rand(*np.shape(x))
+    print np.shape(x),np.shape(y),np.shape(z),np.shape(zerr)
+    
+    
+    data=np.column_stack([x.flatten(),y.flatten(),z.flatten(),zerr.flatten()])
     
     header='# density Temperature property sigma_property'
-    np.savetxt('input_example.dat',data, header=header)
+    np.savetxt('input_example_grid.dat',data, header=header)
     
 
 
@@ -159,7 +162,7 @@ def fit_poly(x,y,z,zerr,d):
 def main(input_file,rho_ref,beta_ref,d):
     
     print '\nRunning the script assuming:\nrho_ref = %s\nbeta_ref = %s\ndegree = %s \n'%(rho_ref,beta_ref,d)
-
+    global x,y,z
     x,y, z, zerr=read_data(input_file,rho_ref,beta_ref)
     
     popt, pcov,variables=fit_poly(x,y,z,zerr,d)
@@ -170,7 +173,10 @@ def main(input_file,rho_ref,beta_ref,d):
     
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x, y, z, zdir='z')
+    ax.scatter(x, y, z, zdir='z',marker='.',label="Simulation",color='r')
+    ax.plot_wireframe(np.reshape(x,(30,30)),np.reshape(y,(30,30)),np.reshape(z_predict,(30,30)),color='b',label="Fitting")
+    fig.legend()
+    fig.savefig("3Dplot.pdf")
     
     
 
