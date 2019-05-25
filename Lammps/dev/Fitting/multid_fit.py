@@ -11,7 +11,19 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-#Lets create the known polynomial
+
+
+#Class polynomial
+
+#
+#class polynomial(object):
+#    
+#    
+#    def __init__(self, deg_x,deg_y):
+#        self.deg_x=deg_x
+#        self.deg_y=deg_y
+#        self.dim_x=get_dimension(deg_x)
+#        self.dim_y=get_dimension(deg_y)
 
 def p_known(x,y):
     """
@@ -19,7 +31,6 @@ def p_known(x,y):
     """
     z=3*x*y**2+4*y*x**2+5*x**2
     return z
-
 
 
 def build_example(n_points=1000):
@@ -67,15 +78,21 @@ def arbitrary_poly(data, *params):
         pijx^iy^j
     
     """
+    print "stoy adentro"
     points=data[0]
     x=points[0]
     y=points[1]
     n=data[1]
+    print n
     m=data[2]
-    params=np.reshape(params,(n+1,m+1))
+    print m
+    ndim=get_dimension(n)
+    mdim=get_dimension(m)
+    print ndim,mdim
+    params=np.reshape(params,(ndim,mdim))
     poly=0
-    for i in xrange(n+1):
-        for j in xrange(m+1):
+    for i in xrange(ndim):
+        for j in xrange(mdim):
             poly+=params[i,j]*x**i*y**j
     return poly
 
@@ -139,6 +156,21 @@ def coefficient_guide(n,m,exclude_n,exclude_m):
     """
     Prints a guide showing the coefficients lets say i=0,..,n , j=0,...n
     """
+  
+def get_dimension(n):
+    """
+    Needs all these as the curve fit turns the arrays into single parameters
+    """
+    if isinstance(n,int):
+        d=n+1
+        
+    elif len(n)==1:
+        d=n[0]+1
+        
+    else:
+        d=(n[-1]-n[0])+1
+    
+    return d #exclude
     
 
 def fit_poly(x,y,z,zerr,n,m):
@@ -156,9 +188,15 @@ def fit_poly(x,y,z,zerr,n,m):
         popt: Optimal fitting coefficients.
         pcov: Covariant matrix of the fitting.
     """
+    ndim=get_dimension(n)
+    mdim=get_dimension(m)
     variables=np.stack((x,y),axis=0)
-    popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],n,m], z, sigma=zerr,p0=[1]*(n+1)*(m+1))
-    popt_matrix=np.reshape(popt,((n+1),(m+1)))
+    print ndim,mdim
+    print [1]*ndim*mdim
+    popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],n,m], z, sigma=zerr,p0=[1]*ndim*mdim)
+    print "hola"
+    print np.shape(popt)
+    popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
     
     
@@ -207,8 +245,8 @@ if __name__ == "__main__":
     parser.add_argument('file_name', metavar='input file',help='Input filename', type=str)
     parser.add_argument('-beta_ref', metavar='beta reference',help='reference beta',default=0,type=float)
     parser.add_argument('-rho_ref',metavar='rho reference',help='reference rho',default=0,type=float )
-    parser.add_argument('-deg_x',metavar='poly degree in rho',help='Degree of the poly', default=3,type=int)
-    parser.add_argument('-deg_y',metavar='poly degree in beta',help='Degree of the poly', default=2,type=int)
+    parser.add_argument('-deg_x',metavar='poly degree in rho',help='Degree of the poly',nargs='+', default=[3],type=int)
+    parser.add_argument('-deg_y',metavar='poly degree in beta',help='Degree of the poly',nargs='+',default=[2],type=int)
     args = parser.parse_args()
     
     main(args.file_name,args.rho_ref,args.beta_ref,args.deg_x,args.deg_y)
