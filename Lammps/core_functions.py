@@ -8,6 +8,8 @@ import re
 import numpy as np
 import sys
 from cycler import cycler
+import warnings
+warnings.filterwarnings("ignore")
 
 
 try:
@@ -144,7 +146,8 @@ def extract_digits(strings):
     if isinstance(strings, list):
         output=[]
         for element in strings:
-            output.append(re.findall(r"[-+]?\d*\.?\d+",element))
+            numbers=re.findall(r"[-+]?\d*\.?\d+",element)
+            output.append([num.strip('.') for num in numbers])
 
         if np.shape(output)[1]==1:
             """
