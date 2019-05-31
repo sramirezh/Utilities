@@ -141,7 +141,9 @@ def extract_digits(strings):
 
     """
     if isinstance(strings, str):
-        output=re.findall(r"[-+]?\d*\.?\d+",strings)
+        numbers=re.findall(r"[-+]?\d*\.?\d+",strings)
+        output=([num.strip('.') for num in numbers])
+
 
     if isinstance(strings, list):
         output=[]
@@ -244,3 +246,32 @@ def integrate(x,y,xmin,xmax):
     I=np.trapz(y[MinIndex:MaxIndex],x[MinIndex:MaxIndex])
 
     return I
+
+
+    
+def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
+    """
+    Replaces the entire line of the n-th occurrence of the key in the file
+    Args:
+        file_name Path to the file to modify
+        key_word to find
+        modified_line text of the entire line
+        copy_name if the output file is going to be different from file_name
+        n_ocurrence the ocurrence of the key that is of interest
+        
+    """
+    
+    
+    if copy_name==None:
+        copy_name=file_name
+    f=open(file_name,'r')
+    
+    lines=f.readlines()
+    line_number=cf.parameter_finder(lines,key_word)[n_ocurrence]
+    lines[line_number]=modified_line
+    f.close()
+    s=open(copy_name,'w')
+    s.writelines(lines)
+    s.close()
+    
+    print "Modified the file %s"%(file_name.split('/')[-1])
