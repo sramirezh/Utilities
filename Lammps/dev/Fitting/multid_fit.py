@@ -10,7 +10,7 @@ import argparse
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
+from cycler import cycler
 
 
 # =============================================================================
@@ -155,6 +155,7 @@ def test_prediction(popt,variables,z,poly):
         popt is the fitting coefficient matrix
     """
     m,n_point=np.shape(variables)
+    print "Test prediction %s %s %s "%(m,n_point,np.shape(z))
     z_predict=[]
     popt=np.reshape(popt,(np.size(popt)))
     for i in xrange(n_point):
@@ -164,6 +165,7 @@ def test_prediction(popt,variables,z,poly):
     error=np.abs(z-z_predict)/z
     
     return z_predict,error
+    
 
 
 def arbitrary_poly(data, *params):
@@ -176,6 +178,7 @@ def arbitrary_poly(data, *params):
         data: contains the the two independent variables x and y and an instance of the polynomial class containing all the information of it
 
     """
+    
     points=data[0]
     x=points[0]
     y=points[1]
@@ -184,7 +187,7 @@ def arbitrary_poly(data, *params):
     params=np.reshape(params,(ndim,mdim))
     function=0
     
-    print np.shape(x),np.shape(y)
+#    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
     
     for i,n in enumerate(poly.exponents[0]):
         for j,m in enumerate(poly.exponents[1]):
@@ -257,12 +260,12 @@ def fit_two_poly(data_1,data_2):
     zerr=np.append(data_1[0][3],data_2[0][3])
     poly=[data_1[1],data_2[1]]
     variables=np.stack((x,y))
-    print 'the shape of variables in two'
+    print 'the shape of variables in two:'
     print np.shape(variables)
     
     ndim,mdim=poly[0].dim
     
-    popt, pcov = curve_fit(two_poly,[variables[:,:],poly_e],z,sigma=zerr,p0=[1]*ndim*mdim)
+    popt, pcov = curve_fit(two_poly,[variables[:,:],poly_e],z,sigma=zerr,p0=[0]*ndim*mdim)
     popt_matrix=np.reshape(popt,(ndim,mdim))
     
     
@@ -270,19 +273,80 @@ def fit_two_poly(data_1,data_2):
 
     
 
-def outputs(popt_matrix,pcov,error,n,m):
+def outputs(popt_matrix,pcov,error,n,m,name):
     
     print "\nCreated coefficients.dat containing all the fitting coefficients"
     np.savetxt('coefficients.dat', popt_matrix)
     print "\nCreated covariant.dat with the covariant matrix of the fitting"
     np.savetxt('covariant.dat', pcov)
     print "\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points"
-    np.savetxt('error.dat',error)
+    np.savetxt('error_%s.dat'%name,error)
 
 
 # =============================================================================
 # Things not belonging to the class (This can be adapted to the problem)
 # =============================================================================
+    
+def set_plot_appearance():
+
+    """
+    Defines the appearence of the plot
+
+    use rcParams.keys() to see the available parameters
+    """
+    axis_font=24
+    tick_font=20
+    legend_font=18
+
+
+    #plt.rcParams['lines.linewidth'] = 1.5
+    #plt.rcParams['lines.markeredgewidth'] = 1.0
+    #plt.rcParams['lines.markersize'] = 2.5
+
+    # Colors
+    plt.rcParams['axes.prop_cycle'] = cycler(color='rbkgcmy')
+
+
+    # Fonts and symbols
+    #plt.rcParams['font.family'] = 'serif'
+    #plt.rcParams['font.serif'] = 'Times New Roman'
+    #plt.rcParams['font.weight'] = 'normal'
+    plt.rcParams["mathtext.fontset"] = "cm"
+    plt.rcParams['text.usetex'] = True
+    #plt.rcParams['mathtext.rm'] = 'serif'
+    #plt.rcParams['mathtext.it'] = 'serif:italic'
+    #plt.rcParams['mathtext.fontset'] = 'stix'
+
+
+    # Axes
+    plt.rcParams['axes.edgecolor'] = (0.0, 0.0, 0.0)
+    #plt.rcParams['axes.linewidth'] = 0.8
+    plt.rcParams['axes.spines.right'] = True
+    plt.rcParams['axes.spines.top'] = True
+    plt.rcParams['axes.labelsize'] = axis_font
+    plt.rcParams['axes.grid'] = False
+
+    # Ticks
+    plt.rcParams['xtick.direction'] = "in"
+    plt.rcParams['ytick.direction'] = "in"
+    plt.rcParams['ytick.labelsize'] = tick_font
+    plt.rcParams['xtick.labelsize'] = tick_font
+
+    # Legend
+
+    plt.rcParams['legend.fontsize'] = legend_font
+    plt.rcParams['legend.loc'] ='upper left'
+    plt.rcParams['legend.labelspacing'] = 0.5
+    plt.rcParams['legend.borderpad'] =0.4
+    plt.rcParams['legend.frameon'] = True
+    plt.rcParams['legend.fancybox'] = False
+    plt.rcParams['legend.edgecolor'] = 'k'
+    # Fonts and symbols
+
+
+    # Errorbar plots
+    plt.rcParams['errorbar.capsize'] = 4
+    
     
 def p_known(x,y):
     """
@@ -359,7 +423,7 @@ def read_data(fname,rho_ref,beta_ref,prop_ref):
     
 def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     
-    global x_e,x_p,y,z,z_mesh,popt,poly_p,poly_e
+    global x_e,x_p,y,z,z_mesh,popt,poly_p,poly_e,z_predict_p
     
     
     print "Basic information about the polynomial for the Pressure"
@@ -389,33 +453,66 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     
     
     
-
+    
     popt, pcov,variables=fit_two_poly([[x_p,y_p,z_p,zerr_p],poly_p],[[x_e,y_e,z_e,zerr_e],poly_e])
-    popt, pcov,variables=fit_poly(x_p,y_p,z_p,zerr_p,poly_p)
+#    popt, pcov,variables=fit_poly(x_p,y_p,z_p,zerr_p,poly_p)
+    
+    #Testing for Pressure
+    variables_p=np.stack((x_p,y_p),axis=0)
+    z_predict_p,error_p=test_prediction(popt,variables_p,z_p,poly_p)
+#    
+    outputs(popt,pcov,error_p, deg_x, deg_y,'p')
+#    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x_p, y_p, z_p, zdir='z',marker='.',label="Simulation",color='r')
+#    ax.scatter(x, y, z_predict, zdir='z',label="Fitting",color='black')
+    
+    #Creating the surface
+    x,y=np.meshgrid(np.linspace(np.min(x_p),np.max(x_p),20),np.linspace(np.min(y_p),np.max(y_p),20))
+    
+    
+    #Becareful renaming z
+    z=np.asarray(x)
+    variables_p=np.stack((x.flatten(),y.flatten()),axis=0)
+    z_mesh,error=test_prediction(popt,variables_p,z.flatten(),poly_p)
+    z_mesh=np.reshape(z_mesh,np.shape(x))
+    ax.plot_wireframe(x,y,z_mesh,color='b')
+    ax.set_xlabel(r'$\rho-\rho^*$')
+    ax.set_ylabel(r'$\beta-\beta^*$')
+    ax.set_zlabel(r'$\Delta \beta P_{exc}$')
+    fig.legend()
+    fig.savefig("3Dplot_p.pdf")
     
     
     
-#    z_predict,error=test_prediction(popt,variables,z,poly)
+    #Testing for Energy
+    variables_e=np.stack((x_e,y_e),axis=0)
+    z_predict_e,error_e=test_prediction(popt,variables_e,z_e,poly_e)
 #    
-#    outputs(popt,pcov,error, deg_x, deg_y)
+    outputs(popt,pcov,error_e, deg_x, deg_y,'e')
 #    
-#    fig = plt.figure()
-#    ax = fig.add_subplot(111, projection='3d')
-#    ax.scatter(x, y, z, zdir='z',marker='.',label="Simulation",color='r')
-##    ax.scatter(x, y, z_predict, zdir='z',label="Fitting",color='black')
-#    
-#    #Creating the surface
-#    x,y=np.meshgrid(np.linspace(np.min(x),np.max(x),20),np.linspace(np.min(y),np.max(y),20))
-#    z=np.asarray(x)
-#    variables=np.stack((x.flatten(),y.flatten()),axis=0)
-#    z_mesh,error=test_prediction(popt,variables,z.flatten(),poly)
-#    z_mesh=np.reshape(z_mesh,np.shape(x))
-#    ax.plot_wireframe(x,y,z_mesh,color='b')
-#    ax.set_xlabel("rho-rho*")
-#    ax.set_ylabel("beta-beta*")
-#    
-#    fig.legend()
-#    fig.savefig("3Dplot.pdf")
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x_e, y_e, z_e, zdir='z',marker='.',label="Simulation",color='r')
+#    ax.scatter(x, y, z_predict, zdir='z',label="Fitting",color='black')
+    
+    #Creating the surface
+    x,y=np.meshgrid(np.linspace(np.min(x_e),np.max(x_e),20),np.linspace(np.min(y_e),np.max(y_e),20))
+    
+    
+    #Becareful renaming z
+    z=np.asarray(x)
+    variables_e=np.stack((x.flatten(),y.flatten()),axis=0)
+    z_mesh,error=test_prediction(popt,variables_e,z.flatten(),poly_e)
+    z_mesh=np.reshape(z_mesh,np.shape(x))
+    ax.plot_wireframe(x,y,z_mesh,color='b')
+    ax.set_xlabel(r'$\rho-\rho^*$')
+    ax.set_ylabel(r'$\beta-\beta^*$')
+    ax.set_zlabel(r'$\Delta \rho \ e_{exc}$')
+    
+    fig.legend()
+    fig.savefig("3Dplot_e.pdf")
     
     
 
