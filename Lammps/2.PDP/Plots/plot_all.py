@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jun  7 12:00:01 2018
-Script to plot all the results from different polymer number,
+Script to plot all the results from different monomer number,
 in the options you can decide to plot all the dat files or just the ones you decide
 
 Still have to add the interactions by hand in the interactions array
@@ -47,6 +47,63 @@ fitfunc = lambda p, x: p[1] * x+p[0]
 errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
 
 
+
+def plot_results(all_data,interactions,theory=False):
+    cf.set_plot_appearance()
+    fig,ax=plt.subplots()
+
+    for j,interaction in enumerate(interactions):
+        mobility=[]
+        error_mobility=[]
+        for i,ave_data in enumerate(all_data):
+            mobility.append(ave_data[j,0])
+            error_mobility.append(ave_data[j,1])
+        
+        if theory==True:
+            mobility=np.abs(mobility)
+        
+        
+        if j<len(colors):color=colors[j]
+        else: color=np.random.rand(3)
+    
+        x=np.array(lengths).astype(np.float)
+        y=np.array(mobility).astype(np.float)
+
+    
+        yerror=error_mobility
+        pinit = [1.0,-1.0]
+        out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
+        cov=out[1] #Covariance in the
+        pfinal = out[0] #fitting coefficients
+        #print "for %s The slope is %f error is %f" %(interaction,pfinal,np.sqrt(cov))
+    
+        epsilon=float(cf.extract_digits(interaction)[0])
+        sigma=float(cf.extract_digits(interaction)[1])
+    
+        #Plotting the fitting curve
+        if epsilon==1.0 and sigma==1.0:
+            ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=colors[j],linestyle='--')
+        else:
+            ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=colors[j],linestyle='--')
+
+        color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
+        
+
+        ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o')
+    
+        """
+        Printing the fitting factors and their errors
+        """
+    
+        print "For epsilon=%s and sigma=%s" %(epsilon,sigma)
+        print "The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1]))
+        print "The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0]))
+        
+        
+    return fig,ax
+
+
+
 """
 *******************************************************************************
 Main
@@ -69,9 +126,6 @@ else:
 
 
 #Sorting with the number of polymers
-
-
-
 all_data=[] #Every position keeps the data for one number of particles
 data_pd=[]
 lengths=[]
@@ -97,61 +151,12 @@ Starting the plot
 """
 
 
-xoffset=0.05
-yoffset=0.8
-cf.set_plot_appearance()
-
-"""
-Mobility vs N
-"""
-fig,ax=plt.subplots()
-#interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
-for j,interaction in enumerate(interactions):
-    mobility=[]
-    error_mobility=[]
-    for i,ave_data in enumerate(all_data):
-        mobility.append(ave_data[j,0])
-        error_mobility.append(ave_data[j,1])
+#interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 
-    if j<len(colors):color=colors[j]
-    else: color=np.random.rand(3)
+fig,ax=plot_results(all_data,interactions)
+fig2,ax2=plot_results(all_data,interactions,True) #Including theoretical results
 
-    x=np.array(lengths).astype(np.float)
-    y=np.array(mobility).astype(np.float)
-    yerror=error_mobility
-    pinit = [1.0,-1.0]
-    out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
-    cov=out[1] #Covariance in the
-    pfinal = out[0] #fitting coefficients
-    #print "for %s The slope is %f error is %f" %(interaction,pfinal,np.sqrt(cov))
-
-    epsilon=float(cf.extract_digits(interaction)[0])
-    sigma=float(cf.extract_digits(interaction)[1])
-
-    if epsilon==1.0 and sigma==1.0:
-        ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=colors[j],linestyle='--')
-    else:
-        ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=colors[j],linestyle='--')
-    color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
-    ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o')
-
-    """
-    Printing the fitting factors and their errors
-    """
-
-    print "For epsilon=%s and sigma=%s" %(epsilon,sigma)
-    print "The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1]))
-    print "The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0]))
-
-
-
-
-
-"""Axis"""
-ax.set_xlabel(r'$N_m $')
-ax.grid(False)
-ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
 
 
 # =============================================================================
@@ -160,37 +165,81 @@ ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
 if args.theory==True:
     theory_ads=cf.read_data_file("Theoretical_1.5.dat").values
     theory_dep=cf.read_data_file("Theoretical_0.5.dat").values
-    ax.scatter(theory_ads[:,0],theory_ads[:,1],marker='v',color="blue",label=r'$R_h^K$')
-    ax.scatter(theory_ads[:,0],theory_ads[:,2],marker='x',color="blue",label=r'$R_h^{\lambda}$')
-    ax.scatter(theory_dep[:,0],theory_dep[:,1],marker='v',color="red",label=r'$R_h^K$')
-    ax.scatter(theory_dep[:,0],theory_dep[:,2],marker='x',color="red",label=r'$R_h^{\lambda}$')
+    ax2.scatter(theory_ads[:,0],theory_ads[:,1],marker='v',color="blue",label=r'$R_h^K$')
+    ax2.scatter(theory_ads[:,0],theory_ads[:,2],marker='x',color="blue",label=r'$R_h^{\lambda}$')
+    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,1]),marker='v',color="red",label=r'$R_h^K$')
+    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,2]),marker='x',color="red",label=r'$R_h^{\lambda}$')
     
+
+
+
+
+"""Axis"""
+
+xoffset=0.05
+yoffset=0.8
+# =============================================================================
+# For the simulation results
+# =============================================================================
+ax.set_xlabel(r'$N_m $')
+ax.grid(False)
+ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
+
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 #ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
 
-plt.xticks(np.arange(len(lengths)+1)*30)
+ax.set_xticks(np.arange(len(lengths)+1)*30)
 ax.set_xlim(0,70)
 
 
-ymin,ymax=plt.ylim()
+ymin,ymax=ax.get_ylim()
 deltay=ymax-ymin
 
+
 ax.set_ylim(ymin,ymax+deltay*yoffset)
-plt.yticks(np.arange(-0.2,0.4,0.1))
+ax.set_yticks(np.arange(-0.2,0.4,0.1))
 #ax.set_xlim(xmin-deltax*xoffset,xmax+deltax*xoffset)
 
-"""Legend"""
-plt.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+ax.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+           frameon=True, fancybox=False, edgecolor='k',ncol=1)
+
+# =============================================================================
+# For the comparison
+# =============================================================================
+xoffset=0.05
+y2offset=1
+
+ax2.set_xlabel(r'$N_m $')
+ax2.grid(False)
+ax2.set_ylabel(r'$\ln |\Gamma_{ps}|$')
+
+ax2.set_yscale('log')
+ax2.set_ylim(0,1)
+ax2.set_xlim(0,70)
+
+ymin,ymax=ax2.get_ylim()
+deltay=ymax-ymin
+
+
+ax2.set_ylim(ymin,ymax+deltay*y2offset)
+
+ax2.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
            frameon=True, fancybox=False, edgecolor='k',ncol=2)
 
 
+
+
+
+
+
+
 """General"""
-plt.rcParams["mathtext.fontset"] = "cm"
-plt.rcParams["text.usetex"] =True
-plt.tight_layout()
+fig.tight_layout()
 fig.savefig("Mobility_N.pdf",transparent=True)
+fig2.tight_layout()
+fig2.savefig("Theoretical_comparison.pdf",transparent=True)
 plt.close()
 
 
