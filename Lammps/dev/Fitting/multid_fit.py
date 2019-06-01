@@ -425,11 +425,17 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     
     global x_e,x_p,y,z,z_mesh,popt,poly_p,poly_e,z_predict_p
     
-    
+# =============================================================================
+#     Here is where I define the polynomial for the pressure
+# =============================================================================
     print "Basic information about the polynomial for the Pressure"
     poly_p=polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0])
     poly_p.print_initial_msg()
     
+    
+# =============================================================================
+#     Here is where I define the polynomial for the pressure
+# =============================================================================
     print "Basic information about the polynomial for the Energy"
     poly_e=polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
     poly_e.print_initial_msg()
@@ -438,31 +444,32 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     print "rho_ref = %s"%rho_ref
     print "beta_ref = %s"%beta_ref
     
-    #Reading the data for the pressure
+# =============================================================================
+#     #Reading the data for the pressure
+# =============================================================================
     x_p,y_p,z_p,zerr_p=read_data(file_p,rho_ref,beta_ref,p_ref)
     z_p=z_p*y_p
     
     
-    #Reading the data for the energy
+# =============================================================================
+#     #Reading the data for the energy
+# =============================================================================
     x_e,y_e,z_e,zerr_e=read_data(file_e,rho_ref,beta_ref,e_ref)
     z_e=z_e*x_e
     
     
-    
-    
-    
-    
-    
-    
+    #Simultaneous Fitting
     popt, pcov,variables=fit_two_poly([[x_p,y_p,z_p,zerr_p],poly_p],[[x_e,y_e,z_e,zerr_e],poly_e])
-#    popt, pcov,variables=fit_poly(x_p,y_p,z_p,zerr_p,poly_p)
+
     
-    #Testing for Pressure
+# =============================================================================
+#     #Testing for Pressure
+# =============================================================================
     variables_p=np.stack((x_p,y_p),axis=0)
     z_predict_p,error_p=test_prediction(popt,variables_p,z_p,poly_p)
-#    
+    
     outputs(popt,pcov,error_p, deg_x, deg_y,'p')
-#    
+    
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(x_p, y_p, z_p, zdir='z',marker='.',label="Simulation",color='r')
@@ -472,7 +479,7 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     x,y=np.meshgrid(np.linspace(np.min(x_p),np.max(x_p),20),np.linspace(np.min(y_p),np.max(y_p),20))
     
     
-    #Becareful renaming z
+
     z=np.asarray(x)
     variables_p=np.stack((x.flatten(),y.flatten()),axis=0)
     z_mesh,error=test_prediction(popt,variables_p,z.flatten(),poly_p)
@@ -485,8 +492,9 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     fig.savefig("3Dplot_p.pdf")
     
     
-    
-    #Testing for Energy
+# =============================================================================
+#     #Testing for Energy
+# =============================================================================
     variables_e=np.stack((x_e,y_e),axis=0)
     z_predict_e,error_e=test_prediction(popt,variables_e,z_e,poly_e)
 #    
@@ -501,7 +509,7 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     x,y=np.meshgrid(np.linspace(np.min(x_e),np.max(x_e),20),np.linspace(np.min(y_e),np.max(y_e),20))
     
     
-    #Becareful renaming z
+
     z=np.asarray(x)
     variables_e=np.stack((x.flatten(),y.flatten()),axis=0)
     z_mesh,error=test_prediction(popt,variables_e,z.flatten(),poly_e)
@@ -514,9 +522,6 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
     fig.legend()
     fig.savefig("3Dplot_e.pdf")
     
-    
-
-
 
 
 if __name__ == "__main__":
@@ -537,19 +542,4 @@ if __name__ == "__main__":
     main(args.rho_ref,args.beta_ref,args.deg_x,args.deg_y,args.P_ref,args.E_ref,args.file_p,args.file_e)
     
     
-    
-
-
-
-
-
-##Diagonal matrix test
-#
-#n=4 
-#vec=np.random.rand(4)
-#mat=np.diag(vec)
-#inv=np.linalg.inv(mat)
-#
-#mat_a=np.random.rand(4,4)
-#diag=np.diagonal(mat_a)
 
