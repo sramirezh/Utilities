@@ -134,8 +134,8 @@ class BuildPBSScript(object):
         f.write('#PBS -q {0} \n'.format(self.qtype))
         f.write('#PBS -l nodes={0}:ppn={1} \n'.format(self.nodes, self.cores))
         f.write('#PBS -l walltime={0} \n'.format(self.dhms_wtime))
-        f.write('#PBS -j o output.pbs \n')  # this directive places all the outputs in that file
-        f.write('#PBS -j e error.pbs \n')  # this directive places all the outputs in that file
+        f.write('#PBS -o output.pbs \n')  # this directive places all the outputs in that file
+        f.write('#PBS -e error.pbs \n')  # this directive places all the outputs in that file
         if self.out_dir!=None:
             f.write('#PBS -o {0} \n'.format(self.out_dir))
             f.write('\n')

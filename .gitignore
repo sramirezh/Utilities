@@ -16,3 +16,4 @@
 *.lammps
 *.melt
 *.png
+Lammps/3.Pore/qsub/run.qsub.sh
