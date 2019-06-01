@@ -64,7 +64,7 @@ def main(name,root,template,n_simulations,limits):
     # =============================================================================
     #     Running the simulation
     # =============================================================================
-        
+        sim.run_simulation()
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
