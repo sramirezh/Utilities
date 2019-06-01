@@ -138,6 +138,7 @@ class BuildPBSScript(object):
         f.write('#PBS -l walltime={0} \n'.format(self.dhms_wtime))
         f.write('#PBS -o output.pbs \n')  # this directive places all the outputs in that file
         f.write('#PBS -e error.pbs \n')  # this directive places all the outputs in that file
+        f.write('cd $PBS_O_WORKDIR')
         if self.out_dir!=None:
             f.write('#PBS -o {0} \n'.format(self.out_dir))
             f.write('\n')
