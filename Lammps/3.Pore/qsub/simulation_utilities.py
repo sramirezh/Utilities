@@ -84,7 +84,9 @@ class simulation(object):
         
         
     def run_simulation(self):
-        cf.bash_command("""qsub %s/run.qsub"""%self.folder)
+        os.chdir(self.folder)
+        cf.bash_command("""qsub run.qsub""")
+        os.chdir(self.home)
         return 0
 
 
