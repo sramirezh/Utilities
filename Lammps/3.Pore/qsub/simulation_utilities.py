@@ -16,9 +16,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This fall
 import Lammps.core_functions as cf
 
 
-
-
-
 def sec_to_pbs_time(seconds, nodays=False):
     """
     clean solution from
@@ -43,13 +40,15 @@ class simulation(object):
 
         home is where the folder for all the simulation is going to be created
         template points to the folder where the template is hosted
-        Name ex. DP_0020
+        name ex. DP_0020, the name of the folder that contains everything
         initial_conf is the initial configuration file if it is required
         """
         self.initial_conf=initial_conf
         self.home=home
         self.template=template
         self.name=name
+
+        
         
         
     def clean_template(self):
@@ -67,9 +66,10 @@ class simulation(object):
         
         #Deletes innecesary files and folders in template
         self.clean_template()
-        
         #Copy the template
         self.folder=self.home+'/%s'%self.name
+
+        #Copy the template folder
         shutil.copytree(self.template,self.folder)
         
         #Copy the initial configuration
@@ -84,7 +84,7 @@ class simulation(object):
         
         
     def run_simulations(self):
-        cf.bash_command("""qsub run.qsub""")
+        cf.bash_command("""qsub %s/run.qsub"""%self.folder)
         return 0
 
 
@@ -117,6 +117,8 @@ class BuildPBSScript(object):
         self.out_dir = out_dir
         self.current_dir = os.getcwd()
         self.output_dir = output_dir
+        self.lammps_input=lammps_input
+        self.lmp_version=lmp_version
 
 
     def writePBSscript(self, fname, job_name, spatial=False):
@@ -151,8 +153,8 @@ class BuildPBSScript(object):
         # f.write('cd {0}\n'.format(self.output_dir))
         # f.write('cp {0} {1} \n'.format(self.lammps_script, self.output_dir))
         
-        f.write('mpirun -np {0} {1} -in {2}\n'.format(self.nodes * self.cores,self.lammps_version,
-                                                                                        self.lammps_script))
+        f.write('mpirun -np {0} {1} -in {2}\n'.format(self.nodes * self.cores,self.lmp_version,
+                                                                                        self.lammps_input))
 
         f.write('echo \n')
         f.write('echo \"Job finished. PBS details are:\" \n')
