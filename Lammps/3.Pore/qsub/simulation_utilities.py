@@ -83,7 +83,7 @@ class simulation(object):
         self.qsub.writePBSscript(self.folder+'/run.qsub',self.name)
         
         
-    def run_simulations(self):
+    def run_simulation(self):
         cf.bash_command("""qsub %s/run.qsub"""%self.folder)
         return 0
 

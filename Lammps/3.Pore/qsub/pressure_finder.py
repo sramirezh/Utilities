@@ -61,6 +61,10 @@ def main(name,root,template,n_simulations,limits):
         lines_to_add='python ~/Utilities/Lammps/0.General/Log_Analysis/Thermo_Analyser.py log.lammps --min 0.3'
         cf.modify_file(file_path,'echo',lines_to_add,n_ocurrence=-1)
     
+    # =============================================================================
+    #     Running the simulation
+    # =============================================================================
+        
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
