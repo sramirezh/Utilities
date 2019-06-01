@@ -248,7 +248,7 @@ def integrate(x,y,xmin,xmax):
     return I
 
 
-    
+
 def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
     """
     Replaces the entire line of the n-th occurrence of the key in the file
@@ -267,7 +267,7 @@ def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
     f=open(file_name,'r')
     
     lines=f.readlines()
-    line_number=cf.parameter_finder(lines,key_word)[n_ocurrence]
+    line_number=parameter_finder(lines,key_word)[n_ocurrence]
     lines[line_number]=modified_line
     f.close()
     s=open(copy_name,'w')
