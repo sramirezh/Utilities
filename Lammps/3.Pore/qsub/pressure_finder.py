@@ -43,7 +43,7 @@ def main(name,root,template,n_simulations,limits):
         folder_name='mu_%s'%i
         sim=simulation(home,template,folder_name)
         sim.create_folder()
-        sim.create_qsub('test',1,1,1,'input.lmp')
+        sim.create_qsub('short',1,2,1,'input.lmp')
         
     # =============================================================================
     #     #Mofications to the files here 
