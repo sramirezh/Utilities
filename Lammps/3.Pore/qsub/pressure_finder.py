@@ -43,7 +43,7 @@ def main(name,root,template,n_simulations,limits):
         folder_name='mu_%s'%i
         sim=simulation(home,template,folder_name)
         sim.create_folder()
-        sim.create_qsub('short',1,2,1,'input.lmp')
+#        sim.create_qsub('short',1,16,1,'input.lmp')
         
     # =============================================================================
     #     #Mofications to the files here 
@@ -55,16 +55,22 @@ def main(name,root,template,n_simulations,limits):
         cf.modify_file(file_path,'mu2','variable\tmu2 equal %s\n'%i)
         cf.modify_file(file_path,'Temp','variable\tTemp equal 1.0\n'%i)
         
-        #running the statistics analyisis
-        file_name='run.qsub'
-        file_path=sim.folder+'/'+file_name
-        lines_to_add='python ~/Utilities/Lammps/0.General/Log_Analysis/Thermo_Analyser.py log.lammps --min 0.3'
-        cf.modify_file(file_path,'echo',lines_to_add,n_ocurrence=-1)
+#        #modifying run.qsub
+#        
+#        file_name='run.qsub'
+#        file_path=sim.folder+'/'+file_name
+#        
+#        #Adding the statistics analysis
+#        lines_to_add='python ~/Utilities/Lammps/0.General/Log_Analysis/Thermo_Analyser.py log.lammps --min 0.3'
+#        cf.modify_file(file_path,'echo',lines_to_add,n_ocurrence=-1)
+#        
+#        #Modifying the name
+#        lines_to_add='#PBS -N mu_%s'%i
     
     # =============================================================================
     #     Running the simulation
     # =============================================================================
-        sim.run_simulation()
+        #sim.run_simulation()
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
