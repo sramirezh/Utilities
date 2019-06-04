@@ -6,7 +6,6 @@ Created on Tue May 28 09:24:03 2019
 @author: sr802
 """
 
-import glob
 import sys
 import os
 import numpy as np
@@ -24,7 +23,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 # =============================================================================
 # Main
 # =============================================================================
-def main(name,root,template,n_simulations,limits):   
+def main(name,root,template,n_simulations,limits,keep_qsub):   
     print ("Remember that in the template the input file is named input.lmp")   
 
     
@@ -42,8 +41,9 @@ def main(name,root,template,n_simulations,limits):
     # =============================================================================
         folder_name='mu_%s'%i
         sim=simulation(home,template,folder_name)
-        sim.create_folder()
-#        sim.create_qsub('short',1,16,1,'input.lmp')
+        sim.create_folder(keep_qsub)
+        if keep_qsub==False:
+            sim.create_qsub('short',1,16,1,'input.lmp')
         
     # =============================================================================
     #     #Mofications to the files here 
@@ -55,17 +55,18 @@ def main(name,root,template,n_simulations,limits):
         cf.modify_file(file_path,'mu2','variable\tmu2 equal %s\n'%i)
         cf.modify_file(file_path,'Temp','variable\tTemp equal 1.0\n'%i)
         
-#        #modifying run.qsub
-#        
-#        file_name='run.qsub'
-#        file_path=sim.folder+'/'+file_name
-#        
+        #modifying run.qsub
+        
+        file_name='run.qsub'
+        file_path=sim.folder+'/'+file_name
+        
 #        #Adding the statistics analysis
 #        lines_to_add='python ~/Utilities/Lammps/0.General/Log_Analysis/Thermo_Analyser.py log.lammps --min 0.3'
 #        cf.modify_file(file_path,'echo',lines_to_add,n_ocurrence=-1)
-#        
-#        #Modifying the name
-#        lines_to_add='#PBS -N mu_%s'%i
+        
+        #Modifying the name
+        lines_to_add='#PBS -N mu_%s'%i+'\n'
+        cf.modify_file(file_path,'-N',lines_to_add,n_ocurrence=0)
     
     # =============================================================================
     #     Running the simulation
@@ -80,7 +81,8 @@ if __name__ == "__main__":
     parser.add_argument('-root', metavar='root directory',help='Directory to create the folder for the simulations',default=cwd)
     parser.add_argument('-n_simulations',metavar='n conf',help='Number of configurations starting from the last',default=5,type=int)
     parser.add_argument('-prefix',metavar='prefix ',help='Prefix for each folder',default='mu_',type=str)
+    parser.add_argument('-keep_qsub',metavar='keep_qsub ',help='keeping the qsub from template',default=True,type=cf.str2bool)
     args = parser.parse_args()
 
-    
-    main(args.name_folder,args.root,args.template,args.n_simulations,args.limits)
+    print args.keep_qsub
+    main(args.name_folder,args.root,args.template,args.n_simulations,args.limits,args.keep_qsub)

@@ -48,29 +48,27 @@ class simulation(object):
         self.template=template
         self.name=name
 
-        
-        
-        
     def clean_template(self,keep_qsub=False):
         """
         Clean the template files except for in* or optionally the qsub file
         """
         useful_files=glob.glob(self.template+'/in*')
         if keep_qsub==True:
-            useful_files.append(glob.glob(self.template+'/*.qsub'))
+            useful_files.extend(glob.glob(self.template+'/*.qsub'))
         all_files=glob.glob(self.template+'/*')
         remove_files=[f for f in all_files if f not in useful_files]
         for fil in remove_files:
             os.remove(fil)
         
     
-    def create_folder(self):
+    def create_folder(self,keep_qsub=False):
         """
         Copies the template and adds the input configuration to the folder
         """
         
         #Deletes innecesary files and folders in template
-        self.clean_template()
+        self.clean_template(keep_qsub)
+        
         #Copy the template
         self.folder=self.home+'/%s'%self.name
 
