@@ -30,7 +30,7 @@ def main(name,root,template,conf_folder,n_conf):
     home=root+'/'+name
     
     times=cf.extract_digits(files)
-    times=[str(int(time)) for time in times]
+    times=[str(int(time[-1])) for time in times]
     #Takign the last N configurations
     
     
@@ -55,7 +55,7 @@ def main(name,root,template,conf_folder,n_conf):
         
         sim=simulation(home,template,name,restart)
         sim.create_folder()
-        sim.create_qsub('test',1,1,1,'input.lmp')
+        sim.create_qsub('short',1,16,24,'input.lmp')
     # =============================================================================
     #     #Mofications to the files here 
     # =============================================================================
@@ -64,7 +64,11 @@ def main(name,root,template,conf_folder,n_conf):
         file_path=sim.folder+'/'+file_name
         value_modify=sim.initial_conf.split('/')[-1]
         cf.modify_file(file_path,'read_restart','read_restart\t%s\n'%value_modify)
-    
+        
+    # =============================================================================
+    #     Running the simulation
+    # =============================================================================
+        sim.run_simulation()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
