@@ -15,7 +15,7 @@ import Lammps.core_functions as cf
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-import Others.Fitting.multid_fit as fit
+import Others.Statistics as stat
 
 
 cwd = os.getcwd() #current working directory
@@ -24,6 +24,7 @@ cwd = os.getcwd() #current working directory
 
 def check_terminated_simulation(folder_name):
     """
+    GENERIC FUNCTION
     First checks if the simulation started
     then checks if it finished or the last step
     Returns a counter that is 0 if the simulation chrashed before starting.
@@ -44,8 +45,23 @@ def check_terminated_simulation(folder_name):
     os.chdir(cwd)
     return counter
 
+
+def check_terminated_by_file(file_name):
+    """
+    GENERIC FUNCTION
+    Checks for the existance of the file
+    """
+    counter=1
+    if not os.path.exists(file_name):
+        print("The file %s does not exist!" % file_name)
+        counter=0
+    
+    return counter
+    
+
 def filter_directories(directories):
     """
+    THIS IS A VERY SPECIFIC FUNCTION
     checks if all the simulations inside all the directories finished, if not, deletes the directory from the analysis
     """
     os.chdir(cwd)
@@ -54,8 +70,12 @@ def filter_directories(directories):
         print '\n %s' %directory
         finished=1
         finished*=check_terminated_simulation(directory)
+        file_name='thermo.dat'
+        finished*=check_terminated_by_file(directory+'/'+file_name)
         if finished==0:
             directories.remove(directory)
+        
+    return directories
 
     
 
@@ -126,7 +146,7 @@ fitfunc = lambda  x,*p: p[0] * x**2 + p[1]*x + p[2] #Fitting to parabola
 directories=glob.glob('mu_variation/mu_*')
 
 
-filter_directories(directories)
+directories=filter_directories(directories)
 
 
 
@@ -164,7 +184,7 @@ fig.tight_layout()
 
 fig.savefig("mu_vs_p.pdf")
 
-print ('`nThe desired chemical potential is %s' %mu_desired)
+print ('\nThe desired chemical potential is %s' %mu_desired)
 
 #Now need to fit and get the mu, print it in the plot
 
