@@ -14,7 +14,7 @@ Initialisation and controling inputs
 """
 
 
-def read_chunk(i_line,f_line):
+def read_chunk(file_name,i_line,f_line):
     data=[]
     for i in range(i_line,f_line):
         data.append(linecache.getline(file_name, i+1).strip('\n').split())
@@ -61,9 +61,9 @@ def data_extract(file_name):
 
     for i in xrange(number_chunks):
         if i==0:
-            total=read_chunk(initial_line[i],final_line[i])
+            total=read_chunk(file_name, initial_line[i],final_line[i])
         else:
-            data=read_chunk(initial_line[i],final_line[i])
+            data=read_chunk(file_name,initial_line[i],final_line[i])
             total=np.delete(total,-1,axis=0) #As there are repeated timesteps, I choose to keep the last version of the variables
             total=np.vstack([total,data])
 
@@ -88,6 +88,17 @@ def discard_data(data,nmin):
 
     return data
 
+def thermo_analyser(file_name,min):
+    """
+    Args:
+        file_name
+        min Number or percentage (between 0-1) of samples to be discarded
+    """
+
+    data,header=data_extract(file_name)
+    save_file(data,header)
+    stat.fast_averager("Parameters.dat",args.min,"thermo.dat")
+
 
 
 if __name__=="__main__":
@@ -95,8 +106,9 @@ if __name__=="__main__":
     parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
     parser.add_argument('--min', help='Number or percentage (between 0-1) of samples to be discarded', default=0, type=float)
     args = parser.parse_args()
-    file_name=args.FileName
 
-    data,header=data_extract(file_name)
-    save_file(data,header)
-    stat.fast_averager("Parameters.dat",args.min,"thermo.dat")
+    thermo_analyser(args.FileName,args.min)
+
+    
+    
+    
