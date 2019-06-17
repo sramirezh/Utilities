@@ -431,15 +431,12 @@ def read_data(fname,prop_ref):
 
 rho_ref=0
 beta_ref=1/1.1
-deg_x=3
-deg_y=3
+deg_x=6
+deg_y=6
 file_p='LP'
 file_e='LE'
 p_ref=0
 e_ref=0
-
-deg_single_x=3
-deg_single_y=3
 
 # =============================================================================
 #     Here is where I define the polynomial for the pressure
@@ -569,46 +566,46 @@ popt2,pcov2,variables2=fit_poly(x_e,y_e,z_e,zerr_e,poly_e)
 single_results_e=test_prediction(popt2,variables2,z_e,poly_e)
 
 
-
-# Plot slices in beta
-
-dir_name="slices_beta_p"
-shutil.rmtree(dir_name) 
-
-os.mkdir(dir_name)
-slices=np.unique(y_p)
-for sli in slices:
+def plot_slices():
+    # Plot slices in beta
     
-    fig3=plt.figure()
-    ax3=fig3.add_subplot(111)
-    error_cap=4
-    indexes=np.where(y_p==sli)
-    ax3.errorbar(x_p[indexes],z_p[indexes],yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-    ax3.plot(x_p[indexes],er_results_p[indexes[0],1],label='Fit 2')
-    ax3.plot(x_p[indexes],single_results_p[indexes[0],1],label='Fit 1')
-    fig3.legend(loc='upper right')
-    fig3.tight_layout()
-    fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
+    dir_name="slices_beta_p"
+    shutil.rmtree(dir_name,ignore_errors=True) 
     
+    os.mkdir(dir_name)
+    slices=np.unique(y_p)
+    for sli in slices:
+        
+        fig3=plt.figure()
+        ax3=fig3.add_subplot(111)
+        error_cap=4
+        indexes=np.where(y_p==sli)
+        ax3.errorbar(x_p[indexes],z_p[indexes],yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+        ax3.plot(x_p[indexes],er_results_p[indexes[0],1],label='Fit 2')
+        ax3.plot(x_p[indexes],single_results_p[indexes[0],1],label='Fit 1')
+        fig3.legend(loc='upper right')
+        fig3.tight_layout()
+        fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
+        
+        
+    dir_name="slices_beta_e"
+    shutil.rmtree(dir_name,ignore_errors=True) 
+    os.mkdir(dir_name)
     
-dir_name="slices_beta_e"
-shutil.rmtree(dir_name) 
-os.mkdir(dir_name)
-
-slices=np.unique(y_e)
-for sli in slices:
+    slices=np.unique(y_e)
+    for sli in slices:
+        
+        fig3=plt.figure()
+        ax3=fig3.add_subplot(111)
+        error_cap=4
+        indexes=np.where(y_e==sli)
+        ax3.errorbar(x_e[indexes],z_e[indexes],yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
     
-    fig3=plt.figure()
-    ax3=fig3.add_subplot(111)
-    error_cap=4
-    indexes=np.where(y_e==sli)
-    ax3.errorbar(x_e[indexes],z_e[indexes],yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-
-    ax3.plot(x_e[indexes],er_results_e[indexes[0],1],label='Fit 2')
-    ax3.plot(x_e[indexes],single_results_e[indexes[0],1],label='Fit 1')
-    fig3.legend(loc='upper right')
-    fig3.tight_layout()
-    fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
+        ax3.plot(x_e[indexes],er_results_e[indexes[0],1],label='Fit 2')
+        ax3.plot(x_e[indexes],single_results_e[indexes[0],1],label='Fit 1')
+        fig3.legend(loc='upper right')
+        fig3.tight_layout()
+        fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
 
 
 #if __name__ == "__main__":
