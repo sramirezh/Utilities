@@ -3,6 +3,8 @@
 """
 Created on Thu May  9 11:10:12 2019
 Testing to only fit the Pressure and Energy
+
+Still to improve that the functions get the polymer as argument
 @author: simon
 """
 import numpy as np

@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu May  9 11:10:12 2019
+Testing to only fit the Pressure and Energy
 
+Still to improve that the functions get the polymer as argument
 @author: simon
 """
 import numpy as np
@@ -73,6 +75,55 @@ def set_plot_appearance():
 
     # Errorbar plots
     plt.rcParams['errorbar.capsize'] = 4
+    
+    
+    
+def plot_slices():
+    # Plot slices in beta
+    print "Generating the slices"
+    set_plot_appearance()
+    
+    dir_name="slices_beta_p"
+    shutil.rmtree(dir_name,ignore_errors=True) 
+    
+    os.mkdir(dir_name)
+    slices=np.unique(y_p)
+    for i,sli in enumerate(slices):
+        
+        fig3=plt.figure()
+        ax3=fig3.add_subplot(111)
+        error_cap=4
+        indexes=np.where(y_p==sli)
+        ax3.errorbar(x_p[indexes],z_p[indexes],yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+        ax3.plot(x_p[indexes],er_results_p[indexes[0],1],label='Fit 2')
+        ax3.plot(x_p[indexes],single_results_p[indexes[0],1],label='Fit 1')
+        ax3.set_xlabel(r'$\rho-\rho^*$')  
+        ax3.set_ylabel(r'$\Delta \beta P_{exc}$')
+        fig3.legend(loc='upper right')
+        fig3.tight_layout()
+        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
+        
+        
+    dir_name="slices_beta_e"
+    shutil.rmtree(dir_name,ignore_errors=True) 
+    os.mkdir(dir_name)
+    
+    slices=np.unique(y_e)
+    for i,sli in enumerate(slices):
+        
+        fig3=plt.figure()
+        ax3=fig3.add_subplot(111)
+        error_cap=4
+        indexes=np.where(y_e==sli)
+        ax3.errorbar(x_e[indexes],z_e[indexes],yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+    
+        ax3.plot(x_e[indexes],er_results_e[indexes[0],1],label='Fit 2')
+        ax3.plot(x_e[indexes],single_results_e[indexes[0],1],label='Fit 1')
+        ax3.set_xlabel(r'$\rho-\rho^*$')  
+        ax3.set_ylabel(r'$\Delta \rho e_{exc}$')
+        fig3.legend(loc='upper right')
+        fig3.tight_layout()
+        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
     
 # =============================================================================
 # Class polynomial
@@ -209,6 +260,73 @@ def delete_values(vector,delete_val):
     
     return vector
 
+
+
+
+
+def two_poly(data,*params):
+    
+    """
+    data contains[data1+data2,poly1+poly2] + means appended
+    """
+    data_1=data[:,:len(x_p)]  #Correct because x_e is global
+    data_2=data[:,len(x_p):]
+    poly_2=poly_e
+    z1=poly_sum(data_1,params)   #This function takes poly_p as local variable
+    z2=arbitrary_poly([data_2,poly_2],params)
+    
+    return np.append(z1,z2)
+
+
+def fit_two_poly(data_1,data_2):
+    """
+    data_i contains the [[x,y,z,zerr],poly]
+    """
+    
+    #Organising the dat in a suitable way
+    x=np.append(data_1[0][0],data_2[0][0])
+   
+    
+    y=np.append(data_1[0][1],data_2[0][1])
+    z=np.append(data_1[0][2],data_2[0][2])
+    
+
+    zerr=np.append(data_1[0][3],data_2[0][3])
+    poly=[data_1[1],data_2[1]]
+    variables=np.stack((x,y))
+    
+    ndim,mdim=poly[1].dim
+    
+    popt, pcov = curve_fit(two_poly,variables[:,:],z,sigma=zerr,p0=[0]*ndim*mdim)
+    popt_matrix=np.reshape(popt,(ndim,mdim))
+    
+    
+    return popt_matrix,pcov,variables
+
+
+
+def fit_poly(x,y,z,zerr,poly):
+    """
+    fits a polynomial using least square fitting
+    the coefficients are pijx^i*y^j
+    Args:
+        x array containing the first variable 
+        y array containing the second variable
+        z array with the dependent variable
+        zerr sigma on the dependent variable
+        d degree of the polynomial
+    
+    Returns:
+        popt: Optimal fitting coefficients.
+        pcov: Covariant matrix of the fitting.
+    """
+    ndim,mdim=poly.dim
+    variables=np.stack((x,y),axis=0)
+    print np.shape(variables)
+    popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],poly], z, sigma=zerr,p0=[0]*ndim*mdim)
+    popt_matrix=np.reshape(popt,(ndim,mdim))
+    return popt_matrix,pcov,variables
+
 def arbitrary_poly(data, *params):
     """
     Creates a polymer
@@ -246,7 +364,19 @@ def arbitrary_poly(data, *params):
 
 
 
-def fit_poly(x,y,z,zerr,poly):
+def poly_sum(data,*params):
+    """
+    Adds two arbitrary polynomials, 
+    BECAREFUL added poly_p by hand
+    """
+    points=data
+    poly=poly_p
+    
+    res1=arbitrary_poly([points,poly[0]],params)
+    res2=rho_ref*arbitrary_poly([points,poly[1]],params)
+    return res1+res2
+
+def fit_sum_poly(x,y,z,zerr,poly):
     """
     fits a polynomial using least square fitting
     the coefficients are pijx^i*y^j
@@ -261,54 +391,12 @@ def fit_poly(x,y,z,zerr,poly):
         popt: Optimal fitting coefficients.
         pcov: Covariant matrix of the fitting.
     """
-    ndim,mdim=poly.dim
-    variables=np.stack((x,y),axis=0)
-    print np.shape(variables)
-    popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],poly], z, sigma=zerr,p0=[0]*ndim*mdim)
-    popt_matrix=np.reshape(popt,(ndim,mdim))
-    return popt_matrix,pcov,variables
 
-def two_poly(data,*params):
-    
-    """
-    data contains[data1+data2,poly1+poly2] + means appended
-    """
-    data_1=data[:,:len(x_p)]  #Correct because x_e is global
-    poly_1=poly_p
-    data_2=data[:,len(x_p):]
-    poly_2=poly_e
-    z1=arbitrary_poly([data_1,poly_1],params)
-    z2=arbitrary_poly([data_2,poly_2],params)
-    
-    return np.append(z1,z2)
-
-
-def fit_two_poly(data_1,data_2):
-    """
-    data_i contains the [[x,y,z,zerr],poly]
-    """
-    
-    #Organising the dat in a suitable way
-    x=np.append(data_1[0][0],data_2[0][0])
-   
-    
-    y=np.append(data_1[0][1],data_2[0][1])
-    z=np.append(data_1[0][2],data_2[0][2])
-    
-
-    zerr=np.append(data_1[0][3],data_2[0][3])
-    poly=[data_1[1],data_2[1]]
-    variables=np.stack((x,y))
-    
     ndim,mdim=poly[0].dim
-    
-    popt, pcov = curve_fit(two_poly,variables[:,:],z,sigma=zerr,p0=[0]*ndim*mdim)
+    variables=np.stack((x,y),axis=0)
+    popt, pcov = curve_fit(poly_sum, variables[:,:], z, sigma=zerr,p0=[0]*ndim*mdim)
     popt_matrix=np.reshape(popt,(ndim,mdim))
-    
-    
     return popt_matrix,pcov,variables
-
-    
 
 def outputs(popt_matrix,pcov,e_results,n,m,name):
     
@@ -333,8 +421,13 @@ def test_prediction(popt,variables,z,poly):
     m,n_point=np.shape(variables)
     z_predict=[]
     popt=np.reshape(popt,(np.size(popt)))
+    
     for i in xrange(n_point):
-        z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
+        if np.size(poly)==1:
+            z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
+        else:
+            z_predict.append(poly_sum(variables[:,i],popt))
+        
 #        print z_predict,z[i]
     z_predict=np.array(z_predict)
 
@@ -429,20 +522,24 @@ def read_data(fname,prop_ref):
     
 
 
-rho_ref=0
+rho_ref=1.2
 beta_ref=1/1.1
 deg_x=6
 deg_y=6
-file_p='LP'
-file_e='LE'
-p_ref=0
-e_ref=0
+file_p='SP'
+file_e='SE'
+file_a='SA'
+p_ref=17.67
+e_ref=-4.196
+a_ref=1.083
 
 # =============================================================================
 #     Here is where I define the polynomial for the pressure
 # =============================================================================
 #    print "Basic information about the polynomial for the Pressure"
-poly_p=polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0])
+poly_p=[]
+poly_p.append(polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0]))
+poly_p.append(polynomial(deg_x,deg_y,[1,0],[1],[1,-1],[1,0])) 
 #    poly_p.print_initial_msg()
 
 
@@ -453,6 +550,12 @@ poly_p=polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0])
 poly_e=polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
 #    poly_e.print_initial_msg()
 
+
+# =============================================================================
+#     Here is where I define the polynomial for the Free energy
+# =============================================================================
+#print "Basic information about the polynomial for the Energy"
+poly_a=polynomial(deg_x,deg_y,[1],[1],[1,0],[1,0])
 
 print "rho_ref = %s"%rho_ref
 print "beta_ref = %s"%beta_ref
@@ -474,8 +577,17 @@ x_e=x_e-rho_ref
 y_e=y_e-beta_ref
 
 
+# =============================================================================
+#     #Reading the data for the free energy
+# =============================================================================
+x_a,y_a,z_a,zerr_a=read_data(file_a,a_ref)
+x_a=x_a-rho_ref
+y_a=y_a-beta_ref
+
+
+
 #Simultaneous Fitting
-popt, pcov,variables=fit_two_poly([[x_p,y_p,z_p,zerr_p],poly_p],[[x_e,y_e,z_e,zerr_e],poly_e])
+popt, pcov,variables=fit_two_poly([[x_a,y_a,z_a,zerr_a],poly_a],[[x_e,y_e,z_e,zerr_e],poly_e])
 
 
 plt.close('all')
@@ -483,39 +595,36 @@ plt.close('all')
 
 
 # =============================================================================
-#     #Testing for Pressure
+#     #Testing for  the free Energy
 # =============================================================================
-print ('\nTesting the pressure results\n')
-variables_p=np.stack((x_p,y_p),axis=0)
-er_results_p=test_prediction(popt,variables_p,z_p,poly_p)
-
-outputs(popt,pcov,er_results_p, deg_x, deg_y,'p')
-
-fig1 = plt.figure()
-ax = fig1.add_subplot(111, projection='3d')
-ax.scatter(x_p, y_p, z_p, zdir='z',marker='.',label="Simulation",color='r')
-
-
-
-
-
+print ('\nTesting the Free energy results\n')
+variables_a=np.stack((x_a,y_a),axis=0)
+er_results_a=test_prediction(popt,variables_a,z_a,poly_a)
+#    
+outputs(popt,pcov,er_results_a, deg_x, deg_y,'a')
+#    
+fig2 = plt.figure()
+ax2 = fig2.add_subplot(111, projection='3d')
+ax2.scatter(x_a, y_a, z_a, zdir='z',marker='.',label="Simulation",color='r')
+#    ax.scatter(x, y, z_predict, zdir='z',label="Fitting",color='black')
+#    
 #Creating the surface
-x,y=np.meshgrid(np.linspace(np.min(x_p),np.max(x_p),20),np.linspace(np.min(y_p),np.max(y_p),20))
+x,y=np.meshgrid(np.linspace(np.min(x_a),np.max(x_a),20),np.linspace(np.min(y_a),np.max(y_a),20))
 
 
 
 z=np.asarray(x)
-variables_p=np.stack((x.flatten(),y.flatten()),axis=0)
-er_results=test_prediction(popt,variables_p,z.flatten(),poly_p)
+variables_a=np.stack((x.flatten(),y.flatten()),axis=0)
+er_results=test_prediction(popt,variables_a,z.flatten(),poly_a)
 z_mesh=np.reshape(er_results[:,1],np.shape(x))
-ax.plot_wireframe(x,y,z_mesh,color='b')
+ax2.plot_wireframe(x,y,z_mesh,color='b')
+ax2.set_xlabel(r'$\rho-\rho^*$')
+ax2.set_ylabel(r'$\beta-\beta^*$')
+ax2.set_zlabel(r'$\Delta \rho \ e_{exc}$')
 
-ax.set_xlabel(r'$\rho-\rho^*$')
-ax.set_ylabel(r'$\beta-\beta^*$')
-ax.set_zlabel(r'$\Delta \beta P_{exc}$')
-fig1.legend()
-fig1.show()
-fig1.savefig("3Dplot_p.pdf")
+fig2.legend()
+fig2.show()
+fig2.savefig("3Dplot_e.pdf")
 
 
 # =============================================================================
@@ -552,61 +661,26 @@ fig2.savefig("3Dplot_e.pdf")
 
 
 
-
-
 # =============================================================================
-# #    Single fitting
+# #    Single Fitting
 # =============================================================================
 
-set_plot_appearance()
-popt1,pcov1,variables1=fit_poly(x_p,y_p,z_p,zerr_p,poly_p)
+print "\nPerforming the single fitting\n"
+popt1,pcov1,variables1=fit_poly(x_a,y_a,z_a,zerr_a,poly_a)
 single_results_p=test_prediction(popt1,variables1,z_p,poly_p)
 
 
 popt2,pcov2,variables2=fit_poly(x_e,y_e,z_e,zerr_e,poly_e)
 single_results_e=test_prediction(popt2,variables2,z_e,poly_e)
 
+plot_slices()
 
-def plot_slices():
-    # Plot slices in beta
-    
-    dir_name="slices_beta_p"
-    shutil.rmtree(dir_name,ignore_errors=True) 
-    
-    os.mkdir(dir_name)
-    slices=np.unique(y_p)
-    for sli in slices:
-        
-        fig3=plt.figure()
-        ax3=fig3.add_subplot(111)
-        error_cap=4
-        indexes=np.where(y_p==sli)
-        ax3.errorbar(x_p[indexes],z_p[indexes],yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-        ax3.plot(x_p[indexes],er_results_p[indexes[0],1],label='Fit 2')
-        ax3.plot(x_p[indexes],single_results_p[indexes[0],1],label='Fit 1')
-        fig3.legend(loc='upper right')
-        fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
-        
-        
-    dir_name="slices_beta_e"
-    shutil.rmtree(dir_name,ignore_errors=True) 
-    os.mkdir(dir_name)
-    
-    slices=np.unique(y_e)
-    for sli in slices:
-        
-        fig3=plt.figure()
-        ax3=fig3.add_subplot(111)
-        error_cap=4
-        indexes=np.where(y_e==sli)
-        ax3.errorbar(x_e[indexes],z_e[indexes],yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-    
-        ax3.plot(x_e[indexes],er_results_e[indexes[0],1],label='Fit 2')
-        ax3.plot(x_e[indexes],single_results_e[indexes[0],1],label='Fit 1')
-        fig3.legend(loc='upper right')
-        fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
+
+
+
+
+
+
 
 
 #if __name__ == "__main__":
