@@ -89,18 +89,18 @@ def plot_slices():
     os.mkdir(dir_name)
     slices=np.unique(y_p)
     print "\nPerforming the Pressure slices\n"
-    for sli in slices:
+    for i,sli in enumerate(slices):
         
         fig3=plt.figure()
         ax3=fig3.add_subplot(111)
         error_cap=4
         indexes=np.where(y_p==sli)
         ax3.errorbar(x_p[indexes],z_p[indexes]+p_ref,yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-        ax3.plot(x_p[indexes],er_results_p[indexes[0],1]+p_ref,label='Fit 2')
+        ax3.plot(x_p[indexes],er_results_p[indexes[0],1]+p_ref,label='Fit 3')
         ax3.plot(x_p[indexes],single_results_p[indexes[0],1]+p_ref,label='Fit 1')
         fig3.legend(loc='upper right')
         fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
+        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
         
         
     dir_name="slices_beta_e"
@@ -110,7 +110,7 @@ def plot_slices():
     
     slices=np.unique(y_e)
     print "\nPerforming the Energy slices\n"
-    for sli in slices:
+    for i,sli in enumerate(slices):
         
         fig3=plt.figure()
         ax3=fig3.add_subplot(111)
@@ -118,11 +118,11 @@ def plot_slices():
         indexes=np.where(y_e==sli)
         ax3.errorbar(x_e[indexes],z_e[indexes]+e_ref,yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
     
-        ax3.plot(x_e[indexes],er_results_e[indexes[0],1]+e_ref,label='Fit 2')
+        ax3.plot(x_e[indexes],er_results_e[indexes[0],1]+e_ref,label='Fit 3')
         ax3.plot(x_e[indexes],single_results_e[indexes[0],1]+e_ref,label='Fit 1')
         fig3.legend(loc='upper right')
         fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
+        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
         
         
     dir_name="slices_beta_a"
@@ -131,19 +131,22 @@ def plot_slices():
     
     slices=np.unique(y_a)
     print "\nPerforming the Free energy slices\n"
-    for sli in slices:
+    for i,sli in enumerate(slices):
         
         fig3=plt.figure()
         ax3=fig3.add_subplot(111)
         error_cap=4
         indexes=np.where(y_a==sli)
-        ax3.errorbar(x_a[indexes],z_a[indexes]+a_ref,yerr=zerr_a[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-    
-        ax3.plot(x_a[indexes],er_results_a[indexes[0],1]+a_ref,label='Fit 2')
+        ax3.errorbar(x_a[indexes],z_a[indexes],yerr=zerr_a[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+        
+        ax3.plot(x_a[indexes],er_results_a[indexes[0],1]+a_ref,label='Fit 3')
         ax3.plot(x_a[indexes],single_results_a[indexes[0],1]+a_ref,label='Fit 1')
+        
+        print sli,z_a[indexes][0],er_results_a[indexes[0],1][0],single_results_a[indexes[0],1][0]
+        
         fig3.legend(loc='upper right')
         fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,sli))
+        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
     
 # =============================================================================
 # Class polynomial
@@ -784,6 +787,7 @@ single_results_p=test_prediction(popt1,variables1,z_p,poly_p,p_ref)
 
 popt2,pcov2,variables2=fit_poly(x_e,y_e,z_e,zerr_e,poly_e)
 single_results_e=test_prediction(popt2,variables2,z_e,poly_e,e_ref)
+
 
 popt3,pcov3,variables3=fit_poly(x_a,y_a,z_a,zerr_a,poly_a)
 single_results_a=test_prediction(popt3,variables3,z_a,poly_a,a_ref)
