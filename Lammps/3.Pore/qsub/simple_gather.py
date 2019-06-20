@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 import Others.Statistics as stat
-
+import copy
 
 cwd = os.getcwd() #current working directory
 
@@ -59,19 +59,20 @@ def check_terminated_by_file(file_name):
     return counter
     
 
-def filter_directories(directories):
+def filter_directories(directories,key_file):
     """
     THIS IS A VERY SPECIFIC FUNCTION
     checks if all the simulations inside all the directories finished, if not, deletes the directory from the analysis
+    Args:
+        key_file: is the file that is checked inside the directories, if it is not there the directory is delated.
     """
     os.chdir(cwd)
-    
+    directories=copy.copy(directories)
     for directory in directories:
         print '\n %s' %directory
         finished=1
         finished*=check_terminated_simulation(directory)
-        file_name='thermo.dat'
-        finished*=check_terminated_by_file(directory+'/'+file_name)
+        finished*=check_terminated_by_file(directory+'/'+key_file)
         if finished==0:
             directories.remove(directory)
         
