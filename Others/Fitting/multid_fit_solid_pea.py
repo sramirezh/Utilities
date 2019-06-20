@@ -96,8 +96,8 @@ def plot_slices():
         error_cap=4
         indexes=np.where(y_p==sli)
         ax3.errorbar(x_p[indexes],z_p[indexes]+p_ref,yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-        ax3.plot(x_p[indexes],er_results_p[indexes[0],1]+p_ref,label='Fit 3')
-        ax3.plot(x_p[indexes],single_results_p[indexes[0],1]+p_ref,label='Fit 1')
+        ax3.plot(x_p[indexes],er_results_p[indexes[0],1],label='Fit 3')
+        ax3.plot(x_p[indexes],single_results_p[indexes[0],1],label='Fit 1')
         fig3.legend(loc='upper right')
         fig3.tight_layout()
         fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
@@ -118,8 +118,8 @@ def plot_slices():
         indexes=np.where(y_e==sli)
         ax3.errorbar(x_e[indexes],z_e[indexes]+e_ref,yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
     
-        ax3.plot(x_e[indexes],er_results_e[indexes[0],1]+e_ref,label='Fit 3')
-        ax3.plot(x_e[indexes],single_results_e[indexes[0],1]+e_ref,label='Fit 1')
+        ax3.plot(x_e[indexes],er_results_e[indexes[0],1],label='Fit 3')
+        ax3.plot(x_e[indexes],single_results_e[indexes[0],1],label='Fit 1')
         fig3.legend(loc='upper right')
         fig3.tight_layout()
         fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
@@ -137,12 +137,11 @@ def plot_slices():
         ax3=fig3.add_subplot(111)
         error_cap=4
         indexes=np.where(y_a==sli)
-        ax3.errorbar(x_a[indexes],z_a[indexes],yerr=zerr_a[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+        ax3.errorbar(x_a[indexes],z_a[indexes]+a_ref,yerr=zerr_a[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
         
-        ax3.plot(x_a[indexes],er_results_a[indexes[0],1]+a_ref,label='Fit 3')
-        ax3.plot(x_a[indexes],single_results_a[indexes[0],1]+a_ref,label='Fit 1')
+        ax3.plot(x_a[indexes],er_results_a[indexes[0],1],label='Fit 3')
+        ax3.plot(x_a[indexes],single_results_a[indexes[0],1],label='Fit 1')
         
-        print sli,z_a[indexes][0],er_results_a[indexes[0],1][0],single_results_a[indexes[0],1][0]
         
         fig3.legend(loc='upper right')
         fig3.tight_layout()
@@ -482,7 +481,8 @@ def test_prediction(popt,variables,z,poly,ref_prop):
         popt is the fitting coefficient matrix
     
     Returns:
-        Results with [z, z_predict, error]
+        
+        Results with [z+z_ref, z_predict+z_ref, error]
     """
     m,n_point=np.shape(variables)
     z_predict=[]
@@ -697,7 +697,7 @@ z=np.asarray(x)
 variables_p=np.stack((x.flatten(),y.flatten()),axis=0)
 er_results=test_prediction(popt,variables_p,z.flatten(),poly_p,p_ref)
 z_mesh=np.reshape(er_results[:,1],np.shape(x))
-ax.plot_wireframe(x,y,z_mesh+p_ref,color='b')
+ax.plot_wireframe(x,y,z_mesh,color='b')
 
 ax.set_xlabel(r'$\rho-\rho^*$')
 ax.set_ylabel(r'$\beta-\beta^*$')
@@ -730,7 +730,7 @@ z=np.asarray(x)
 variables_e=np.stack((x.flatten(),y.flatten()),axis=0)
 er_results=test_prediction(popt,variables_e,z.flatten(),poly_e,e_ref)
 z_mesh=np.reshape(er_results[:,1],np.shape(x))
-ax2.plot_wireframe(x,y,z_mesh+e_ref,color='b')
+ax2.plot_wireframe(x,y,z_mesh,color='b')
 ax2.set_xlabel(r'$\rho-\rho^*$')
 ax2.set_ylabel(r'$\beta-\beta^*$')
 ax2.set_zlabel(r'$ \rho \ e_{exc}$')
@@ -764,7 +764,7 @@ z=np.asarray(x)
 variables_a=np.stack((x.flatten(),y.flatten()),axis=0)
 er_results=test_prediction(popt,variables_a,z.flatten(),poly_a,a_ref)
 z_mesh=np.reshape(er_results[:,1],np.shape(x))
-ax3.plot_wireframe(x,y,z_mesh+a_ref,color='b')
+ax3.plot_wireframe(x,y,z_mesh,color='b')
 ax3.set_xlabel(r'$\rho-\rho^*$')
 ax3.set_ylabel(r'$\beta-\beta^*$')
 ax3.set_zlabel(r'$ \rho \beta \ a_{exc}$')
