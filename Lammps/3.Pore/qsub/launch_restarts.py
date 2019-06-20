@@ -72,14 +72,14 @@ def main(name,root,template,conf_folder,n_conf,epsilon,force,run):
         file_name="in.interaction"
         file_path=sim.folder+'/'+file_name
         value_modify=epsilon
-        cf.modify_file(file_path,'2 3','pair_coeff\t2 3 %s 1.0\n'%value_modify)
+        cf.modify_file(file_path,'2 3','pair_modify\t2 3 %s 1.0\n'%value_modify)
         
     # =============================================================================
     #     Running the simulation
     # =============================================================================
         if run==True:
             sim.run_simulation()
-	    os.chdir(cwd)
+	        os.chdir(cwd)
             
 if __name__ == "__main__":
     """
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     parser.add_argument('-template', metavar='path_template',help='Directory to take as template',default=cwd+'/Template')
     parser.add_argument('-root', metavar='root directory',help='Directory to create the folder for the simulations',default=cwd)
     parser.add_argument('-n_conf',metavar='n conf',help='number of configurations starting from the last',default=5,type=int)
-    parser.add_argument('-epsilon',metavar='epsilon',help='monomer solute interaction',default=3.0,type=float)
+    parser.add_argument('-epsilon',metavar='epsilon',help='monomer solute interaction',default=3,type=float)
     parser.add_argument('-force',metavar='force',help='Force on the solutes',default=0.01,type=float)
     parser.add_argument('-run',metavar='run',help='Define if run simulations or not. If not, just creates the folder structure',default=False,type=cf.str2bool)
     
