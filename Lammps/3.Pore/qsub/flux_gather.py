@@ -14,10 +14,10 @@ import glob
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
+import Others.Statistics.FastAverager as stat
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-import Others.Statistics as stat
 import copy
 
 cwd = os.getcwd() #current working directory
@@ -141,6 +141,23 @@ def extract_property_file(property_name,file_name):
     return value
 
 
+def run_stat_file(directories,file_analysis,dmin,output_name):
+    """
+    runs the statistical analysis on a given file
+    Args:
+        directories: list of directories to run the analysis
+        dmin: the minimum of steps to be discarded as defined in fast_averager
+    """
+    cwd=os.getcwd()
+    for folder in directories:
+        os.chdir(folder)
+        stat.fast_averager(file_analysis,dmin,output_name)
+        os.chdir(cwd)
+        
+    
+                         
+
+
 fitfunc = lambda  x,*p: p[0] * x**2 + p[1]*x + p[2] #Fitting to parabola
 # =============================================================================
 # main 
@@ -157,6 +174,8 @@ dir_stat=filter_directories(dir_fin,"statistics.dat")
 
 #directories to run statistics
 dir_run=[x for x in dir_fin if x  not in dir_stat]
+
+run_stat_file(dir_run,"vdata.dat",0.3,"statistics.dat")
 
 
 
