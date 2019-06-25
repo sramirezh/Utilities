@@ -5,6 +5,9 @@ Created on Sat Jun  1 17:35:55 2019
 
 Gathers the flow from diffusio-osmotic simulations
 
+Missing:
+    Create class for the force...
+
 @author: sr802
 """
 
@@ -171,7 +174,112 @@ def gather_statistics(directories,folder_name,files=["statistics.dat","thermo.da
     return array
 
 
+def parameter_finder(List, String):
+    """
+    Finds a string on a List and returns the position on the list
+    """
+    cont=0
+    indexes=[]
+    for s in List:
+        if String in s:
+            indexes.append(cont)
+        cont+=1
+    length=len(indexes)
+    if length>1: print "There were several ocurrences"
+    if length==0: print "No ocurrences found"
+    return indexes
 
+
+"""
+*******************************************************************************
+CLASS DEFINITION
+*******************************************************************************
+"""
+class time(object):
+    """
+    Every pair of LJ interactions has its own
+    """
+    total = 0 #This is a class atribute
+
+    @staticmethod  #Does not have self as is intended to be used by the class and not an object.
+    def number_interactions():
+        "Return the number of instances created in the class"
+        return time.total
+
+
+    def __init__(self,time):
+        self.time=float(time)
+        self.properties=[]
+        self.property_names=[]
+        time.total += 1
+
+    def __str__(self):
+        self.name=("time=%s" %(self.time))
+        return self.name
+
+    def __lt__(self,other):
+        """
+        In order to sort the times by their value
+        """
+        return self.time < other.time
+
+
+#    def addforce(self,new_force):
+#        force=float(new_force.strip('\n/dDP'))/1000
+#        self.forces.append(force)
+
+    def addproperties(self,properties):
+        values=[]
+        names=[]
+        for element in properties:
+            name,value=element.strip("\n").split("=")
+            name=name.replace(" ","_")
+            if 'NaN' in value:
+                value=float('nan')
+            elif len(value)>1:
+                value=value.split()
+
+            values.append(np.double(value))
+            names.append(name)
+        self.properties.append(values)
+        self.property_names.append(names)
+
+
+#    def compute_mobility(self):
+#        self.mobility=[]
+#        self.mob_rg=[] #Mobility over Rg
+#        count=0
+#        index_vx=parameter_finder(self.property_names[count],"vx_relative")[0]
+#        index_rg=parameter_finder(self.property_names[count],"r_gyration")[0]
+#        for force in self.forces:
+#            if force!=0:
+#                velocity=ufloat(self.properties[count][index_vx][0],self.properties[count][index_vx][1])
+#                rg=ufloat(self.properties[count][index_rg][0],self.properties[count][index_rg][1])
+#                mobility=-velocity/force
+#                self.mobility.append(mobility)
+#                if rg.n==0:
+#                   self.mob_rg.append(10**8) #To avoid division by 0
+#                else:
+#                    self.mob_rg.append(mobility/rg)
+#            count+=1
+
+    def get_property(self,name):
+        """
+        function to get the specific property
+        """
+        index=parameter_finder(self.property_names[0],name)[0]
+        count=0
+        prop=[]
+        for force in self.forces:
+            prop_f=self.properties[count][index]
+            prop.append(prop_f)
+            count+=1
+
+        return prop
+
+
+
+    
 
 
 
