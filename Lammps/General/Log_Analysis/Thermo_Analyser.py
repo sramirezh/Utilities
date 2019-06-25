@@ -88,7 +88,7 @@ def discard_data(data,nmin):
 
     return data
 
-def thermo_analyser(file_name,min):
+def thermo_analyser(file_name,minimum):
     """
     Args:
         file_name
@@ -97,7 +97,7 @@ def thermo_analyser(file_name,min):
 
     data,header=data_extract(file_name)
     save_file(data,header)
-    stat.fast_averager("Parameters.dat",args.min,"thermo.dat")
+    stat.fast_averager("Parameters.dat",minimum,"thermo.dat")
 
 
 

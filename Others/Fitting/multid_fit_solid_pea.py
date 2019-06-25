@@ -428,6 +428,42 @@ def arbitrary_poly(data, *params):
     return function
 
 
+def arbitrary_poly_check(data, *params):
+    """
+    Creates a polymer
+    p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
+    
+    Args:
+        params: all the fitting parameters
+        data: contains the the two independent variables x and y and an instance of the polynomial class containing all the information of it
+
+    """
+    
+    points=data[0]
+    x=points[0]
+    y=points[1]
+    poly=data[1]
+    ndim,mdim=poly.dim
+    params=np.reshape(params,(ndim,mdim))
+    function=0
+    
+#    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
+    
+    for i,n in enumerate(poly.exponents[0]):
+        for j,m in enumerate(poly.exponents[1]):
+            
+            #Getting the n,m dependent coefficients and exponents
+            coeff_n=coeff(poly.func_coeff[0],n)
+            coeff_m=coeff(poly.func_coeff[1],m)
+            if coeff_m==0 or coeff_n==0:
+                function+=0
+            else: 
+                x_exp=coeff(poly.func_exp[0],n)
+                y_exp=coeff(poly.func_exp[1],m)
+                print params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp)
+                function+=params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp)
+    return function
+
 
 def poly_sum(data,*params):
     """
@@ -466,7 +502,7 @@ def fit_sum_poly(x,y,z,zerr,poly):
 def outputs(popt_matrix,pcov,e_results,n,m,name):
     
     print "\nCreated coefficients.dat containing all the fitting coefficients"
-    np.savetxt('coefficients.dat', popt_matrix)
+    np.savetxt('coefficients_%s.dat'%name,popt_matrix)
     print "\nCreated covariant.dat with the covariant matrix of the fitting"
     np.savetxt('covariant.dat', pcov)
     print "\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points"
@@ -792,7 +828,7 @@ single_results_e=test_prediction(popt2,variables2,z_e,poly_e,e_ref)
 popt3,pcov3,variables3=fit_poly(x_a,y_a,z_a,zerr_a,poly_a)
 single_results_a=test_prediction(popt3,variables3,z_a,poly_a,a_ref)
 
-plot_slices()
+#plot_slices()
 
 
 
