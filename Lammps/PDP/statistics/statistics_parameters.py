@@ -286,7 +286,7 @@ def plot_force_individuals(interactions):
         except:
             pass
         plt.tight_layout()
-        plt.savefig("plots/individual/%s.pdf"%file_name)
+        plt.savefig("plots/individual/%s.pdf"%file_name,transparent=True)
         plt.close()
     print "\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory
 
@@ -389,7 +389,7 @@ def plot_parameter_vs_epsilon(y_label,name_key,file_name):
     plt.rcParams["mathtext.fontset"] = "cm"
     plt.rcParams["text.usetex"] =True
     plt.tight_layout()
-    fig.savefig("plots/all/%s"%file_name)
+    fig.savefig("plots/all/%s"%file_name, transparent=True)
     plt.close()
 
 
