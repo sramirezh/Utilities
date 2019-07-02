@@ -239,7 +239,7 @@ class time(object):
             elif len(value)>1:
                 value=value.split()
 
-            values.append(np.double(value))
+            values.append(np.float(value))
             names.append(name)
         self.properties.append(values)
         self.property_names.append(names)

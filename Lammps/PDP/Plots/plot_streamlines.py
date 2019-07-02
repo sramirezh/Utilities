@@ -53,6 +53,8 @@ data=np.loadtxt("prof2d_vel.dat",skiprows=4)
 data_rho=np.loadtxt("prof2d_con.dat",skiprows=4)
 
 R_h=4.48
+print ("Remember to define the Hydrodynamic radius, at the moment it is %s")%R_h
+
 
 def data_contour(x,y,z):
     """
@@ -105,7 +107,8 @@ fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
 plt.close('all')
 ax.axes.set_aspect('equal')
 cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be jet
-fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+cbar.ax.tick_params(labelsize=15) 
 cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
 ax.quiver(x,r,vx,vr)
