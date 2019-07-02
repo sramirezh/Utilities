@@ -54,12 +54,14 @@ def is_valid_file(parser, arg):
         return arg
 
 
-def parameter_finder(target_list, search_list, msgflag=False):
+def parameter_finder(target_list, search_list, msgflag=False,exact=False):
     """
     Finds all the elements in the search list in the target list
     the search is non case sensitive
-    msg is True to tell that there were occurrences or not.
 
+    Args:
+        msg is True to tell that there were occurrences or not.
+        exact True if the search requires the exact string, False only if it requires to contain the search list, example "vx" is in "vx_sol" 
     Returns:
         indexes with the positions of the search_list found in the target_list
     """
@@ -72,20 +74,27 @@ def parameter_finder(target_list, search_list, msgflag=False):
         cont=0
         search_list=search_list.lower()
         for t in target_list:
-            if search_list in t:
+            if exact==False and search_list in t:
+                indexes.append(cont)
+            elif exact==True and search_list==t:
                 indexes.append(cont)
             cont+=1
-
     if isinstance(search_list,list):
         search_list=map(lambda x:x.lower(),search_list)
 
         for s in search_list:
             for cont,t in enumerate(target_list):
-                if s in t:
+                if exact==False and s in t:
+                    print "Wrdong"
+                    print s,t
+                    indexes.append(cont)
+                elif exact==True and s==t:
+                    print s,t
                     indexes.append(cont)
 
-    length=len(indexes)
+    
     if msgflag==True:
+        length=len(indexes)
         if length>1: print "There were several ocurrences"
         if length==0: print "No ocurrences found"
 
