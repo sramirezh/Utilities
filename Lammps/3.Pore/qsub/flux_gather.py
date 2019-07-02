@@ -114,7 +114,7 @@ def run_stat_file(directories,file_analysis,dmin,output_name):
         dmin: the minimum of steps to be discarded as defined in fast_averager
         output_name for each file analysed
     """
-    cwd=os.getcwd()
+
     for folder in directories:
         os.chdir(folder)
         stat.fast_averager(file_analysis,dmin,output_name)
@@ -129,24 +129,29 @@ def run_thermo_directories(directories,log_name,dmin):
         directories: list of directories to run the analysis
         dmin: the minimum of steps to be discarded as defined in fast_averager
     """
-    cwd=os.getcwd()
+
     for folder in directories:
         os.chdir(folder)
         thermo.thermo_analyser(log_name,dmin)
         os.chdir(cwd)
         
         
-def gather_statistics(directories,folder_name,files=["statistics.dat","thermo.dat"]):
+def gather_statistics(directories,folder_name,root,files=["statistics.dat","thermo.dat"]):
     """
     Creates statistics summary
     
     Gathers all the information from a previous statistics analyisis
 
     creates the file "Statistics_summary.dat"
+    
+    Args:
+        directories list of directories to look for properties
+        folder_name name of the parameter that defines the subdirectories, ex time, temperature.
+        root is where the output is going to be saved
     """
     os.chdir(cwd)
     print ("\nCreating the Statistic_summary.dat\n")
-    f=open(cwd+"/Statistic_summary.dat",'w')
+    f=open(cwd+"/%s/Statistic_summary.dat"%root,'w')
     array=[]
     for directory in directories:
         
@@ -268,7 +273,7 @@ Class Inheritage creating the superclass
 #Print properties This could become a method of the superclass bundle de simulations
 
 
-def plot_property(simulations,p_name):
+def plot_property(simulations,p_name,plot_name=None):
     """
     THIS COULD BECOME A METHOD OF THE BUNDLE SIMULATION CLASS
     """
@@ -329,8 +334,9 @@ def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
 # =============================================================================
 # main 
 # =============================================================================
-    
-directories=glob.glob('mu_force_0.1/*')
+
+root="mu_force_0.1"
+directories=glob.glob('%s/[0-9]*'%root)
 
 
 
@@ -364,7 +370,7 @@ dir_run_thermo=[x for x in dir_fin if x  not in dir_thermo]
 run_thermo_directories(dir_run_thermo,"log.lammps",0.3)
 
 
-array=gather_statistics(dir_fin,'Time')
+array=gather_statistics(dir_fin,'Time',root)
 
 #cf.set_plot_apparence()
 
@@ -400,7 +406,7 @@ ax.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
 ax.set_xlabel(r'steps')
 ax.set_ylabel(r'$v_x^{sol}$')
 plt.tight_layout()
-fig.show()
+fig.savefig("%s/vx_sol.pdf"%root, transparent=True)
 
 #class force(object):
 #    
