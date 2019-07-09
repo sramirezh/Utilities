@@ -106,7 +106,7 @@ delta_r=0.2
 fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
 plt.close('all')
 ax.axes.set_aspect('equal')
-cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be jet
+cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be set
 cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
 cbar.ax.tick_params(labelsize=15) 
 cax.set_xlabel(r'$c_s$')
@@ -131,9 +131,14 @@ for i in xrange(1,4):
 
 fig,ax=plt.subplots()
 
-every=100
-ax.plot(data2[::every,0],data2[::every,1],label='Bulk')
-ax.plot(data2[::every,0],data2[::every,2],label='Inside')
+
+averages=np.average(data2,axis=0)
+every=200
+ax.plot(data2[::every,0],data2[::every,1],label='Bulk',c='r')
+ax.plot(data2[::every,0],data2[::every,2],label='Inside',c='b')
+ax.axhline(y=averages[1], xmin=0, xmax=1,ls=':',c='black')
+ax.axhline(y=averages[2], xmin=0, xmax=1,ls=':',c='white')
+
 ax.set_ylabel(r'$v_x-v_x^{cm}$')
 ax.set_xlabel(r'$step $')
 plt.legend()
