@@ -24,7 +24,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 import copy
 import tqdm
-
+import re
 
 try:
     from uncertainties import ufloat,unumpy
@@ -277,10 +277,30 @@ def plot_property(simulations,p_name,plot_name=None):
     """
     THIS COULD BECOME A METHOD OF THE BUNDLE SIMULATION CLASS
     """
+    #Plot the velocity
 
-    
-    
-    return
+    cf.set_plot_appearance()
+    #Create array time vs vx_Sol
+    x=[]
+    y=[]
+    y_error=[]
+    for sim in simulations:
+        x.append(sim.param_value)
+        values=sim.get_property(p_name,exact=True)[1][0]
+        if np.size(values)>1: #Has error
+            y.append(values[0])
+            y_error.append(values[1])
+        else:
+            y.append(values)
+            
+    name=re.sub('_',' ',p_name)
+    fig,ax=plt.subplots()
+    ax.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
+    ax.set_xlabel(r'steps')
+    ax.set_ylabel(r'$%s$'%name)
+    plt.tight_layout()
+    fig.savefig("%s/plots/%s.pdf"%(root,p_name), transparent=True)
+
 
 
 
@@ -372,41 +392,17 @@ run_thermo_directories(dir_run_thermo,"log.lammps",0.3)
 
 array=gather_statistics(dir_fin,'Time',root)
 
-#cf.set_plot_apparence()
-
-
 times=construct_simulations(directories)
 
+#Creating the plots
+directory="%s/plots/"%root
+if not os.path.exists(directory):
+        os.makedir(directory)
+
+make a plot for all the properties and 
 
 
 
-#Plot the velocity
-
-cf.set_plot_appearance()
-
-
-#Create array time vs vx_Sol
-x=[]
-y=[]
-y_error=[]
-for sim in times:
-    x.append(sim.param_value)
-    values=sim.get_property("vx_Sol",exact=True)[1][0]
-    
-    if np.size(values)>1: #Has error
-        y.append(values[0])
-        y_error.append(values[1])
-    else:
-        y.append(values)
-        
-
-
-fig,ax=plt.subplots()
-ax.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
-ax.set_xlabel(r'steps')
-ax.set_ylabel(r'$v_x^{sol}$')
-plt.tight_layout()
-fig.savefig("%s/vx_sol.pdf"%root, transparent=True)
 
 #class force(object):
 #    
