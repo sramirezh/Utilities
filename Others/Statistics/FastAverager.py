@@ -65,7 +65,7 @@ def fast_averager(input,min_limit=0,output_file="statistics.dat"):
     Function to call from another python script
     Args:
         input: could be a file or data(np.array)
-        min_limit Number of samples to be discarded (default 0)
+        min_limit Number of samples to be discarded (default 0), could be number of steps or percentage [0-1]
         output file name of the file with the analysis output (default statistics.dat)
     Returns:
         output_array containing the [Name_of variable, average, Error_autocorrelation, Error_blocking, Error_simple,variance simple]
