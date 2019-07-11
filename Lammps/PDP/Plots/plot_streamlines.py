@@ -41,6 +41,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
+import Others.Statistics.FastAverager as stat
 
 def semi_circle(origin,r):
     tetha=np.linspace(0,np.pi,1000)
@@ -132,12 +133,12 @@ for i in xrange(1,4):
 fig,ax=plt.subplots()
 
 
-averages=np.average(data2,axis=0)
+averages=stat.fast_averager(data2[:,1:3],min_limit=0)
 every=200
 ax.plot(data2[::every,0],data2[::every,1],label='Bulk',c='r')
 ax.plot(data2[::every,0],data2[::every,2],label='Inside',c='b')
-ax.axhline(y=averages[1], xmin=0, xmax=1,ls=':',c='black')
-ax.axhline(y=averages[2], xmin=0, xmax=1,ls=':',c='white')
+ax.axhline(y=averages[0][1], xmin=0, xmax=1,ls=':',c='black')
+ax.axhline(y=averages[1][1], xmin=0, xmax=1,ls=':',c='white')
 
 ax.set_ylabel(r'$v_x-v_x^{cm}$')
 ax.set_xlabel(r'$step $')
@@ -146,3 +147,34 @@ fig.tight_layout()
 fig.savefig('vx.pdf')
 
 fig.show()
+
+
+
+
+"""
+#Only Fluid inside polymer
+Substracting the average bulk velocity from all the others
+"""
+
+#Computing the average velocity in the bulk
+
+
+
+
+
+delta_r=0.2
+fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
+plt.close('all')
+ax.axes.set_aspect('equal')
+cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be set
+cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+cbar.ax.tick_params(labelsize=15) 
+cax.set_xlabel(r'$c_s$')
+cax.xaxis.set_label_position('top') 
+ax.arrow( 10, 0.35, -3.0,0, fc="k", ec="k",head_width=0.6, head_length=1,width=0.3 )
+ax.plot(circle[0],circle[1],color='black')
+ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
+ax.set_xlabel(r'$x$')
+ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
+fig.tight_layout()
+fig.savefig('vel_pol.pdf')
