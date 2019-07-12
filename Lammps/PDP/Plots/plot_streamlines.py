@@ -158,8 +158,7 @@ Substracting the average bulk velocity from all the others
 
 #Computing the average velocity in the bulk
 
-
-
+vel_inside=stat.fast_averager(data2[:,2]-data2[:,1],min_limit=0)
 
 
 delta_r=0.2
@@ -171,7 +170,7 @@ cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
 cbar.ax.tick_params(labelsize=15) 
 cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
-ax.arrow( 10, 0.35, -3.0,0, fc="k", ec="k",head_width=0.6, head_length=1,width=0.3 )
+ax.arrow( 10, 0.42, -3.0,0, fc="k", ec="k",head_width=0.6, head_length=1,width=0.3 )
 ax.plot(circle[0],circle[1],color='black')
 ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')
