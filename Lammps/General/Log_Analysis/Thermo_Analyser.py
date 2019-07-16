@@ -32,7 +32,9 @@ def save_file(data,header):
 
 def data_extract(file_name):
     """
+    Need to change this For the time being use gawk in os and awk in ubuntu.
     This function extracts the data from the timesteps after discarding the defined amount
+    
     """
 
     out,err=cf.bash_command("""grep -n "Per MPI" %s| awk -F":" '{print $1}'"""%file_name )

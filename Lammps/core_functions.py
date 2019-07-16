@@ -60,6 +60,8 @@ def parameter_finder(target_list, search_list, msgflag=False,exact=False):
     the search is non case sensitive
 
     Args:
+        Target list is the list where I want to look for the items in the search list
+        Search list is the list of items I want to look for
         msg is True to tell that there were occurrences or not.
         exact True if the search requires the exact string, False only if it requires to contain the search list, example "vx" is in "vx_sol" 
     Returns:
@@ -83,9 +85,9 @@ def parameter_finder(target_list, search_list, msgflag=False,exact=False):
         search_list=map(lambda x:x.lower(),search_list)
 
         for s in search_list:
+            s=str(s)
             for cont,t in enumerate(target_list):
                 if exact==False and s in t:
-                    print "Wrdong"
                     print s,t
                     indexes.append(cont)
                 elif exact==True and s==t:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 19 16:16:17 2019
-Widom insertion method using pylammps,
+ insertion method using pylammps,
 be careful that 'pe' gives the potential energy per particle!
 For now it just reads a restart file
 
@@ -114,7 +114,7 @@ def particle_insertion(initial,atom_type):
 
 
 
-def widom_method(initial,n_trials,atom_type):
+def _method(initial,n_trials,atom_type):
     num_cores = multiprocessing.cpu_count()
     Boltzmann=Parallel(n_jobs=num_cores,verbose=10)(delayed(particle_insertion)(initial,atom_type) for i in xrange(n_trials))
     return Boltzmann
@@ -255,7 +255,7 @@ initial_system.get_properties()
 
 
 print "\nAnalysing the chemical potential for particles of species %d"%atom_type   
-Boltzmann=widom_method(initial_system,n_trials,atom_type)    
+Boltzmann=_method(initial_system,n_trials,atom_type)    
 
 
 
@@ -274,7 +274,7 @@ mu=mu_ex+initial_system.mu_id[atom_type-1]
 array=[initial_system.rho[atom_type-1],mu,mu_ex.n,initial_system.mu_id[atom_type-1],mu_ex.s]
 array=np.array(array).reshape((1,len(array)))
 header="Number of particle insertions %s for species %s\n"%(n_trials,atom_type) + "rho mu mu_ex mu_id std_mu_ex"
-name="widom_%s_%s.log"%(n_trials,atom_type)
+name="_%s_%s.log"%(n_trials,atom_type)
 np.savetxt(name,array,fmt="%3.12f",header=header)
 
 print "Created the file %s with all the information"%name
