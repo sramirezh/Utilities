@@ -36,11 +36,14 @@ def data_extract(file_name):
     This function extracts the data from the timesteps after discarding the defined amount
     
     """
-
-    out,err=cf.bash_command("""grep -n "Per MPI" %s| awk -F":" '{print $1}'"""%file_name )
+    if sys.platform=='darwin':
+        awk_cmd='gawk'
+    else:
+        awk_cmd='awk'
+    out,err=cf.bash_command("""grep -n "Per MPI" %s| %s -F":" '{print $1}'"""%(file_name,awk_cmd) )
     initial_line=np.array(out.split(),dtype=int)+1
 
-    out2,err=cf.bash_command("""grep -n "Loop time" %s| awk -F":" '{print $1}'"""%file_name)
+    out2,err=cf.bash_command("""grep -n "Loop time" %s| %s -F":" '{print $1}'"""%(file_name,awk_cmd))
     final_line=np.array(out2.split(),dtype=int)-1
     #Check if there was minimization
     out3,err=cf.bash_command("""grep -n "Minimization stats" %s"""%file_name)
