@@ -295,6 +295,41 @@ class simulation_bundle(simulation):
                     array.append(ufloat(value,0))
             ave=sum(array)/len(array)
             self.properties.append(ave)
+            
+            
+    def plot_property(self,p_name,plot_name=None,x_name=None,y_name=None):
+        """
+        THIS COULD BECOME A METHOD OF THE BUNDLE SIMULATION CLASS
+        """
+        #Plot the velocity
+    
+        cf.set_plot_appearance()
+        #Create array time vs vx_Sol
+        x=[]
+        y=[]
+        y_error=[]
+        
+        BE CAREFIL THAT THE NEXT LEVEL WILL HAVE PROBLEMS WITH THE U FLOAT, maybe live it as an arrray....
+        for sim in self.simulations:
+            x.append(sim.param_value)
+            values=sim.get_property(p_name,exact=True)[1][0]
+            if np.size(values)>1: #Has error
+                y.append(values[0])
+                y_error.append(values[1])
+            else:
+                y.append(values)
+                
+        name=re.sub('_',' ',p_name)
+        fig,ax=plt.subplots()
+        ax.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
+        if x_name==None:
+            ax.set_xlabel(r'steps')
+        if y_name==None:
+            ax.set_ylabel(r'$%s$'%name)
+        ax.axhline(y=self.get_property(p_name)[1][0].n,c='black',ls=':')
+        plt.tight_layout()
+        fig.savefig("%s/plots/%s.pdf"%(root,p_name), transparent=True)
+
     
             
         
