@@ -234,6 +234,7 @@ class simulation(object):
         """
         Args:properties is an array with elements [property_name, property_value], where property value could be an array
         """
+        self.add_property(self.param_id,self.param_value) #Adds the parameter as a property of the simulation
         for element in properties:
             name,value=element
             if 'NaN' in value:
@@ -269,11 +270,48 @@ Class Inheritage creating the superclass
 *******************************************************************************
 """
 
+class simulation_bundle(simulation):
+    def __init__(self,simulations,parameter_id,parameter_value):
+        self.simulations=simulations
+        self.param_value=float(parameter_value)
+        self.param_id=parameter_id
+        self.properties=[]
+        self.property_names=[]
+        #Ask Shaltiel if this is oK?
+        self.add_properties()
+        
+    def add_properties(self):
+        self.property_names.extend(self.simulations[-1].property_names)  #is this very Ugly?????
+        
+        #Now I will add the average with error
+        
+        for prop in self.property_names:
+            array=[]
+            for sim in self.simulations:
+                value=sim.get_property(prop,exact=True)[1][0]
+                if np.size(value)>1:  #Has error
+                    array.append(ufloat(value[0],value[1])) 
+                else:
+                    array.append(ufloat(value,0))
+            ave=sum(array)/len(array)
+            self.properties.append(ave)
+    
+            
+        
+#    def average_values(self):
+#        for prop in self.simulations[0].property_names():
+            
+        
+        
+        
+        
+        
+
 
 #Print properties This could become a method of the superclass bundle de simulations
 
 
-def plot_property(simulations,p_name,plot_name=None):
+def plot_property(simulations,p_name,plot_name=None,x_name=None,y_name=None):
     """
     THIS COULD BECOME A METHOD OF THE BUNDLE SIMULATION CLASS
     """
@@ -296,8 +334,10 @@ def plot_property(simulations,p_name,plot_name=None):
     name=re.sub('_',' ',p_name)
     fig,ax=plt.subplots()
     ax.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
-    ax.set_xlabel(r'steps')
-    ax.set_ylabel(r'$%s$'%name)
+    if x_name==None:
+        ax.set_xlabel(r'steps')
+    if y_name==None:
+        ax.set_ylabel(r'$%s$'%name)
     plt.tight_layout()
     fig.savefig("%s/plots/%s.pdf"%(root,p_name), transparent=True)
 
@@ -397,9 +437,16 @@ times=construct_simulations(directories)
 #Creating the plots
 directory="%s/plots/"%root
 if not os.path.exists(directory):
-        os.makedir(directory)
+    os.mkdir(directory)
 
-make a plot for all the properties and 
+
+ojd=simulation_bundle(times,"mu",-0.1)
+#Plot for all the properties
+#    
+#for prop in times[0].property_names:
+#    print "\ncreating the plot of %s"%prop
+#    plot_property(times,prop)
+
 
 
 
