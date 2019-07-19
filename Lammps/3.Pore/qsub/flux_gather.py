@@ -270,7 +270,7 @@ Class Inheritage creating the superclass
 """
 
 class simulation_bundle(simulation):
-    def __init__(self,simulations,parameter_id,parameter_value,root):
+    def __init__(self,simulations,parameter_id,parameter_value,root,dictionary=None):
         """
         
         root is the directory where the plot folder and the statistic summary is going to be created
@@ -283,6 +283,7 @@ class simulation_bundle(simulation):
         self.root=root
         #Ask Shaltiel if this is oK?
         self.add_properties()
+        self.dictionary=dictionary
         
     def add_properties(self):
         
@@ -308,8 +309,9 @@ class simulation_bundle(simulation):
             
     def plot_property(self,p_name,plot_name=None,x_name=None,y_name=None):
         """
-        THIS COULD BECOME A METHOD OF THE BUNDLE SIMULATION CLASS
+        Could be extended to plot agains any parameter
         """
+        
         directory="%s/plots/"%self.root
         if not os.path.exists(directory):
             os.mkdir(directory)
@@ -329,13 +331,23 @@ class simulation_bundle(simulation):
             else:
                 y.append(values)
                 
-        name=re.sub('_',' ',p_name)
+        
         fig,ax=plt.subplots()
         ax.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
         if x_name==None:
             ax.set_xlabel(self.property_names[1]) #The zeroth-property is the param_id
+        else:
+            ax.set_xlabel(x_name)
         if y_name==None:
-            ax.set_ylabel(r'$%s$'%name)
+
+            if p_name in self.dictionary.keys():
+                y_name=dictionary[p_name]
+            else:
+                y_name=re.sub('_',' ',p_name)
+            ax.set_ylabel(y_name)
+        else:
+            ax.set_ylabel(y_name)
+            
         ax.axhline(y=self.get_property(p_name,exact=True)[1][0][0],c='black',ls=':')
         plt.tight_layout()
         fig.savefig("%s/plots/%s.pdf"%(self.root,p_name), transparent=True)
@@ -403,6 +415,8 @@ roots.append(root2)
 roots.append(root3)
 directory_pattern='[0-9]*'
 
+
+dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
 bundles=[]
 for i,root in enumerate(roots):
     directories=glob.glob('%s/%s'%(root,directory_pattern))
@@ -450,9 +464,9 @@ for i,root in enumerate(roots):
     if not os.path.exists(directory):
         os.mkdir(directory)
 
-
+    
     #Creating the bundle
-    bundles.append(simulation_bundle(times,"mu",mu[i],root))
+    bundles.append(simulation_bundle(times,"mu",mu[i],root,dictionary=dictionary))
 
     #Plot for all the properties
     for prop in bundles[-1].simulations[-1].property_names:
@@ -461,4 +475,4 @@ for i,root in enumerate(roots):
             bundles[-1].plot_property(prop)
 
 
-final=simulation_bundle(bundles,'rho',3,cwd)
+final=simulation_bundle(bundles,'rho',3,cwd,dictionary=dictionary)
