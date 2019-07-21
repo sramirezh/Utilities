@@ -351,6 +351,14 @@ class simulation_bundle(simulation):
         ax.axhline(y=self.get_property(p_name,exact=True)[1][0][0],c='black',ls=':')
         plt.tight_layout()
         fig.savefig("%s/plots/%s.pdf"%(self.root,p_name), transparent=True)
+        
+    
+    def plot_all_properties(self):
+        for i,prop in enumerate(self.simulations[-1].property_names):
+            
+            if prop!="time" and i>0:
+                print "\ncreating the plot of %s"%prop
+                self.plot_property(prop)
 
     
 
@@ -405,14 +413,13 @@ def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
 # main 
 # =============================================================================
 plt.close('all')
-root1="mu_force_0.1"
-root2="mu_force_0.02"
-root3="mu_force_0.06"
+
+#This prepartion of the folder names is preliminar.
+
+root_pattern="mu_force*"
+roots=glob.glob(root_pattern)
+mu=cf.extract_digits(roots)
 mu=[0.1,0.02,0.06]
-roots=[]
-roots.append(root1)
-roots.append(root2)
-roots.append(root3)
 directory_pattern='[0-9]*'
 
 
@@ -469,10 +476,12 @@ for i,root in enumerate(roots):
     bundles.append(simulation_bundle(times,"mu",mu[i],root,dictionary=dictionary))
 
     #Plot for all the properties
-    for prop in bundles[-1].simulations[-1].property_names:
-        print "\ncreating the plot of %s"%prop
-        if prop!="time":
-            bundles[-1].plot_property(prop)
+#    for prop in bundles[-1].simulations[-1].property_names:
+#        print "\ncreating the plot of %s"%prop
+#        if prop!="time":
+#            bundles[-1].plot_property(prop)
+    bundles[-1].plot_all_properties()
 
 
 final=simulation_bundle(bundles,'rho',3,cwd,dictionary=dictionary)
+
