@@ -142,7 +142,7 @@ def read_data_file(input_file):
 
     return data
 
-def extract_digits(strings):
+def extract_digits(strings,sort=True):
     """
     input:
         strings: Array or single string
@@ -166,7 +166,10 @@ def extract_digits(strings):
             """
             If there are several parameters it is difficult to reshape
             """
-            output=np.sort(np.array(output,dtype=float).reshape((len(output))))
+            if sort==True:
+                output=np.sort(np.array(output,dtype=float).reshape((len(output))))
+            else:
+                output=np.array(output,dtype=float).reshape((len(output)))
 
     return np.array(output,dtype=float)
 

@@ -418,8 +418,7 @@ plt.close('all')
 
 root_pattern="mu_force*"
 roots=glob.glob(root_pattern)
-mu=cf.extract_digits(roots)
-mu=[0.1,0.02,0.06]
+mu=cf.extract_digits(roots, sort=False)
 directory_pattern='[0-9]*'
 
 
@@ -485,3 +484,4 @@ for i,root in enumerate(roots):
 
 final=simulation_bundle(bundles,'rho',3,cwd,dictionary=dictionary)
 
+final.plot_all_properties()
