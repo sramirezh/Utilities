@@ -35,14 +35,14 @@ def run_thermo_directories(directories,log_name,dmin):
         os.chdir(cwd)
 
 
-#Input parameters
+#Input parameters for ideal case
 
-T=2.0
-mu=-2.0
-target=np.exp(mu/T)
+T=1.0
+mu=-3.2105263157894735
+target=np.exp(mu/T) #Only for the ideal case
 
 
-run_thermo_directories(".","log.mu-2.0",0)
+run_thermo_directories(".","log.lammps",0)
 thermo_data=cf.read_data_file("Parameters.dat")
 dic_legends={'Density':'Total','v_rhoSolv':"Solvent",'v_rhoSolu':"Solute"}
 
@@ -65,7 +65,7 @@ fig1,ax1=plt.subplots()
 for i in indexes:
     ax1.plot(data[:,ind_steps],data[:,i],label=dic_legends[names[i]])
 
-ax1.axhline(y=target, xmin=0, xmax=1,ls=':',c='red')
+#ax1.axhline(y=target, xmin=0, xmax=1,ls=':',c='red')
 ax1.set_xlabel(r'$steps $')
 ax1.set_ylabel(r'$c[\sigma^{-3}] $')
 #ax1.set_xlim(0,1)
