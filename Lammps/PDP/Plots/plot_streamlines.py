@@ -38,6 +38,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import os
+from joblib import Parallel, delayed
+import multiprocessing
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -55,7 +57,6 @@ data_rho=np.loadtxt("prof2d_con.dat",skiprows=4)
 
 R_h=4.48
 print ("Remember to define the Hydrodynamic radius, at the moment it is %s")%R_h
-
 
 def data_contour(x,y,z):
     """
@@ -102,6 +103,7 @@ cf.set_plot_appearance()
 
 """
 Velocity field and density contour
+Here the velocities do not have the polymer velocity substracted.
 """
 delta_r=0.2
 fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
@@ -122,6 +124,8 @@ fig.savefig('vfield.pdf')
 
 
 
+
+
 """
 #average velocity 
 """
@@ -133,7 +137,7 @@ for i in xrange(1,4):
 fig,ax=plt.subplots()
 
 
-averages=stat.fast_averager(data2[:,1:3],min_limit=0)
+averages=stat.fast_averager(data2[:,1:3],min_limit=0.3)
 every=200
 ax.plot(data2[::every,0],data2[::every,1],label='Bulk',c='r')
 ax.plot(data2[::every,0],data2[::every,2],label='Inside',c='b')
@@ -156,11 +160,8 @@ fig.show()
 Substracting the average bulk velocity from all the others
 """
 
-#Computing the average velocity in the bulk
-
-vel_inside=stat.fast_averager(data2[:,2]-data2[:,1],min_limit=0)
-
-
+vel_inside=stat.fast_averager(data2[:,2]-data2[:,1],min_limit=0)[0]
+print vel_inside
 delta_r=0.2
 fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
 plt.close('all')
@@ -177,3 +178,73 @@ ax.set_xlabel(r'$x$')
 ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
 fig.tight_layout()
 fig.savefig('vel_pol.pdf')
+
+
+
+"""
+Vx contour
+The velocity of the fluid without substracting the bulk velocity, in the x direction
+"""
+xmesh,rmesh,vx_contour=data_contour(x,r,vx)
+delta_r=0.2
+fig,(cax,ax)=plt.subplots(nrows=2, gridspec_kw={"height_ratios":[0.05, 1]})
+plt.close('all')
+ax.axes.set_aspect('equal')
+cntr1=ax.contourf(xmesh,rmesh,vx_contour,alpha=0.8,cmap="RdBu_r") #cnap also could be set
+cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+cbar.ax.tick_params(labelsize=10) 
+cax.set_xlabel(r'$v_x$')
+cax.xaxis.set_label_position('top') 
+ax.plot(circle[0],circle[1],color='black')
+ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
+ax.set_xlabel(r'$x$')
+ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
+fig.tight_layout()
+fig.savefig('vx_contour.pdf')
+
+
+"""
+V contour
+The velocity of the fluid without substracting the bulk velocity
+"""
+v=np.sqrt(vx**2+vr**2)
+xmesh,rmesh,v_contour=data_contour(x,r,v)
+delta_r=0.2
+fig,(cax,ax)=plt.subplots(nrows=2, gridspec_kw={"height_ratios":[0.05, 1]})
+plt.close('all')
+ax.axes.set_aspect('equal')
+cntr1=ax.contourf(xmesh,rmesh,v_contour,alpha=0.8,cmap="RdBu_r") #cnap also could be set
+cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+cbar.ax.tick_params(labelsize=10) 
+cax.set_xlabel(r'$|v|$')
+cax.xaxis.set_label_position('top') 
+ax.plot(circle[0],circle[1],color='black')
+ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
+ax.set_xlabel(r'$x$')
+ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
+fig.tight_layout()
+fig.savefig('v_contour.pdf')
+
+
+##"""
+##Analysis of the discarding percentage
+##"""
+#percentages=np.linspace(0,0.9,10)
+#num_cores = multiprocessing.cpu_count()
+#vel_array=Parallel(n_jobs=num_cores,verbose=10)(delayed(stat.fast_averager)(data2[:,2]-data2[:,1],min_limit=perc) for perc in percentages)
+#
+#
+##Because the list has one additional []
+#vel_matrix=[]
+#for el in vel_array:
+#   vel_matrix.append(el[0])
+#    
+#
+#vel_matrix=np.array(vel_matrix)
+#fig,ax=plt.subplots()
+#ax.errorbar(percentages,vel_matrix[:,1], yerr=vel_matrix[:,2])
+#ax.set_ylabel(r'$v_{x}^{\prime in}-v_{x}^{\prime Bulk}$')
+#ax.set_xlabel("Discarded percentage")
+#ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+#fig.tight_layout()
+#fig.savefig('error_evolution.pdf')
