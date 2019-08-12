@@ -22,6 +22,8 @@ import copy
 import re
 from scipy import optimize
 import simulation_results as sr
+import cPickle as pickle
+from uncertainties import ufloat,unumpy
 
 try:
     from uncertainties import ufloat
@@ -59,38 +61,122 @@ def specific_plot_all(sim_bundle,fit=True):
 # =============================================================================
 plt.close('all')
 
+def load_structure(file_name):
+    """
+    Loads the data structure to be used later
+    """
+    file1 = open(file_name, 'rb')
+    instance = pickle.load(file1)
+    file1.close()
 
+    return instance
 
+### =============================================================================
+### Chemical potential simulations
+### =============================================================================
+##
+#root_pattern="mu_force*"
+#directory_pattern='[0-9]*'
+#parameter_id='mu'
+#
+#dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+#
+#
+#bundles_mu=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
+#final_mu=sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary=dictionary)
+#
+#specific_plot_all(final_mu)
+#
+#
+#
 ## =============================================================================
-## Chemical potential simulations
+## Pressure simulations
 ## =============================================================================
 #
-root_pattern="mu_force*"
-directory_pattern='[0-9]*'
-parameter_id='mu'
 
-dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+#root_pattern="p_force*"
+#directory_pattern='[0-9]*'
+#parameter_id='p'
+#
+#dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+#
+## This function could be included inside the class simulation_bundle
+#bundles_p=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
+#final_p=sr.simulation_bundle(bundles_p,parameter_id,3,cwd,dictionary=dictionary)
+#
+#
+#specific_plot_all(final_p)
 
+#writing the structure
+#afile = open(r'p.pkl', 'wb')
+#pickle.dump(final_p, afile)
+#afile.close()
 
-bundles_mu=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
-final_mu=sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary=dictionary)
-
-specific_plot_all(final_mu)
 
 
 
 # =============================================================================
-# Pressure simulations
+# Calculations for the pressure driven to get the excess solute flux
 # =============================================================================
+    
+fitfunc1 = lambda p, x: p * x  #Fitting to a line that goes through the origin
+errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error in the least squares
 
-root_pattern="p_force*"
-directory_pattern='[0-9]*'
-parameter_id='p'
+final_p=load_structure("p.pkl")
+#The following two parameters are obtained from the knowledge of the bulk properties
+box_volume=8000 
+rho_bulk=0.752375
+cs_bulk=0.375332
 
-dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+f_p=[]
+exc_solute=[]
+for bund in final_p.simulations:
+    
+    #Getting the applied forces
+    f_p.extend(bund.get_property('p',exact=True)[1])
+    print f_p[-1]
+    #Getting the solute excess
+    exc_sol_array=[]
+    for sim in bund.simulations:
 
-# This function could be included inside the class simulation_bundle
-bundles_p=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
-final_p=sr.simulation_bundle(bundles_p,parameter_id,3,cwd,dictionary=dictionary)
+        n_solutes=sim.get_property('cSolu')[1][0][0]
+        vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
+        J_s=n_solutes/box_volume*vx_solu
+        Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
+        exc_sol_flux=J_s-cs_bulk*Q
+        
+        exc_sol_array.append(exc_sol_flux)
+    
+    exc_solute.append(sum(exc_sol_array)/len(exc_sol_array))
+    
+grad_p=rho_bulk*np.array(f_p)
+y=[i.n for i in exc_solute]
+y_error=[i.s for i in exc_solute]
 
-specific_plot_all(final_p,fit=True)
+
+
+
+
+
+
+
+
+cf.set_plot_appearance()
+
+fig,ax=plt.subplots()
+
+plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o')
+
+
+
+pinit=[1.0]
+out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
+pfinal = out[0] #fitting coefficients
+grad_p=np.insert(grad_p,0,0)
+ax.plot(np.unique(grad_p),fitfunc1(pfinal,np.unique(grad_p)),linestyle='--')
+
+
+
+ax.set_xlabel(r'$\nabla P$')
+ax.set_ylabel(r'$J_s-c_s^BQ$')
+plt.tight_layout()
