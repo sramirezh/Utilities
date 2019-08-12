@@ -129,11 +129,11 @@ def run_thermo_directories(directories,log_name,dmin):
         
         
 
-def initialise_sim_bundles(root_patter,directory_pattern,dictionary):
+def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary):
     
     #Needed parameters
     roots=glob.glob(root_pattern)
-    mu=cf.extract_digits(roots, sort=False)
+    digits=cf.extract_digits(roots, sort=False)
     
     
     bundles=[]
@@ -186,7 +186,7 @@ def initialise_sim_bundles(root_patter,directory_pattern,dictionary):
     
         
         #Creating the bundle
-        bundles.append(simulation_bundle(times,"mu",mu[i],root,dictionary=dictionary))
+        bundles.append(simulation_bundle(times,parameter_id,digits[i],root,dictionary=dictionary))
     
         #Plot for all the properties
     #    for prop in bundles[-1].simulations[-1].property_names:
@@ -195,7 +195,7 @@ def initialise_sim_bundles(root_patter,directory_pattern,dictionary):
     #            bundles[-1].plot_property(prop)
         bundles[-1].plot_all_properties()
         
-        return bundles
+    return bundles
         
 def gather_statistics(directories,folder_name,root,files=["statistics.dat","thermo.dat"]):
     """
@@ -377,7 +377,7 @@ class simulation_bundle(simulation):
         """
         Could be extended to plot agains any parameter
         """
-        
+        print "%s/plots_%s/"%(self.root,self.param_id)
         directory="%s/plots_%s/"%(self.root,self.param_id)
         if not os.path.exists(directory):
             os.mkdir(directory)
