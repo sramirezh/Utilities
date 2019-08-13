@@ -55,6 +55,8 @@ def specific_plot_all(sim_bundle,fit=True):
                 sim_bundle.plot_property(prop)
 
 
+fitfunc1 = lambda p, x: p * x  #Fitting to a line that goes through the origin
+errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error in the least squares
         
 # =============================================================================
 # main 
@@ -85,10 +87,22 @@ def load_structure(file_name):
 #bundles_mu=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
 #final_mu=sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary=dictionary)
 #
+#afile = open(r'mu.pkl', 'wb')
+#pickle.dump(final_mu, afile)
+#afile.close()
+
 #specific_plot_all(final_mu)
 #
-#
-#
+
+
+
+
+
+
+
+
+
+
 ## =============================================================================
 ## Pressure simulations
 ## =============================================================================
@@ -113,28 +127,70 @@ def load_structure(file_name):
 #afile.close()
 
 
-
-
-# =============================================================================
-# Calculations for the pressure driven to get the excess solute flux
-# =============================================================================
-    
-fitfunc1 = lambda p, x: p * x  #Fitting to a line that goes through the origin
-errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error in the least squares
-
-final_p=load_structure("p.pkl")
 #The following two parameters are obtained from the knowledge of the bulk properties
 box_volume=8000 
 rho_bulk=0.752375
 cs_bulk=0.375332
 
-f_p=[]
-exc_solute=[]
+cf.set_plot_appearance()
+
+
+# =============================================================================
+# Calculations for the transport coefficient
+# =============================================================================
+
+final_mu=load_structure("mu.pkl") 
+
+f_mu=[] #DP body force
+Q_array=[] #Total flow
+for bund in final_mu.simulations:
+    
+    #Getting the applied forces
+    f_mu.extend(bund.get_property('mu',exact=True)[1])
+    Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
+
+
+y=[i[0] for i in Q_array]
+y_error=[i[1] for i in Q_array]
+
+grad_mu=(rho_bulk/(rho_bulk-cs_bulk))*np.array(f_mu)
+
+
+fig,ax=plt.subplots()
+
+plt.errorbar(grad_mu,y,yerr=y_error,xerr=None,fmt='o')
+
+
+
+pinit=[1.0]
+out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
+pfinal = out[0] #fitting coefficients
+error = np.sqrt(out[1]) 
+print "The transport coefficient for the DP is %s +/- %s"%(pfinal[0],error[0][0])
+grad_mu=np.insert(grad_mu,0,0)
+ax.plot(np.unique(grad_mu),fitfunc1(pfinal,np.unique(grad_mu)),linestyle='--')
+
+ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
+ax.set_ylabel(r'$Q$')
+plt.tight_layout()
+plt.savefig('DO_flow.pdf')
+
+# =============================================================================
+# Calculations for the pressure driven to get the excess solute flux
+# =============================================================================
+
+final_p=load_structure("p.pkl") 
+
+
+
+
+
+f_p=[] #Pressure body force
+exc_solute=[] #Excess solute flow
 for bund in final_p.simulations:
     
     #Getting the applied forces
     f_p.extend(bund.get_property('p',exact=True)[1])
-    print f_p[-1]
     #Getting the solute excess
     exc_sol_array=[]
     for sim in bund.simulations:
@@ -149,7 +205,7 @@ for bund in final_p.simulations:
     
     exc_solute.append(sum(exc_sol_array)/len(exc_sol_array))
     
-grad_p=rho_bulk*np.array(f_p)
+grad_p=rho_bulk*np.array(f_p)  #Without the minus
 y=[i.n for i in exc_solute]
 y_error=[i.s for i in exc_solute]
 
@@ -161,7 +217,7 @@ y_error=[i.s for i in exc_solute]
 
 
 
-cf.set_plot_appearance()
+
 
 fig,ax=plt.subplots()
 
@@ -172,11 +228,14 @@ plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o')
 pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
+error = np.sqrt(out[1]) 
+print "The transport coefficient for the hydrodynamic flow is %s +/- %s"%(pfinal[0],error[0][0])
 grad_p=np.insert(grad_p,0,0)
 ax.plot(np.unique(grad_p),fitfunc1(pfinal,np.unique(grad_p)),linestyle='--')
 
 
 
-ax.set_xlabel(r'$\nabla P$')
+ax.set_xlabel(r'$-\nabla P$')
 ax.set_ylabel(r'$J_s-c_s^BQ$')
 plt.tight_layout()
+plt.savefig('Hyd_flow.pdf')
