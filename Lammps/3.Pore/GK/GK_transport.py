@@ -189,6 +189,8 @@ class correlation(object):
             fig,ax = self.plot_individual(fig,ax,dim)
         
         ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+        ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1.name,self.flux2.name))
+        ax.set_xlabel('time')
         return fig,ax
     
     def save(self,file_name):
@@ -231,15 +233,40 @@ Data=cf.read_data_file(input_file)
 data1=Data.values
 times=(data1[:,0]-data1[0,0])*delta_t
 
-total_flux=flux(data1[:,[1,3,5]],times,"r'Q'")
-solute_excess=flux(data1[:,[2,4,6]],times,"r'J_s-c_s^BQ'")
+total_flux=flux(data1[:,[1,3,5]],times,"Q")
+solute_excess=flux(data1[:,[2,4,6]],times,"J_s-c_s^BQ")
 
 max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
 
-#c11=correlation(total_flux,total_flux,max_delta)
 
-#c11.evaluate()
-#c11.correlate_one_d(0)
+# =============================================================================
+# Defining, evaluating and saving the correlations
+# =============================================================================
+
+def run():
+    """
+    Very specific function
+    """
+    c11=correlation(total_flux,total_flux,max_delta)
+    c11.evaluate()
+    c11.save('c11')
+    
+    c12=correlation(total_flux,solute_excess,max_delta)
+    c12.evaluate()
+    c12.save('c12')
+    
+    c21=correlation(solute_excess,total_flux,max_delta)
+    c21.evaluate()
+    c21.save('c21')
+    
+    c22=correlation(solute_excess,solute_excess,max_delta)
+    c22.evaluate()
+    c22.save('c22')
+
+
+# =============================================================================
+# Loading all
+# =============================================================================
 c11 = load_instance("c11.pkl")
 c22 = load_instance("c22.pkl")
 c12 = load_instance("c12.pkl")
@@ -251,9 +278,6 @@ c21 = load_instance("c21.pkl")
 plt.close('all')
 cf.set_plot_appearance()
 
-
-
-
 # =============================================================================
 # Ploting all the correlations
 # =============================================================================
@@ -261,170 +285,58 @@ cf.set_plot_appearance()
 # For c11
 fig,ax=plt.subplots()
 
-c11.plot_all(fig,ax)
+fig,ax = c11.plot_all(fig,ax)
 ax.set_xscale('log')
 plt.legend(loc='upper right')
+plt.tight_layout()
 plt.savefig("correlation11.pdf")
 
 # For c12
 fig,ax=plt.subplots()
 
-c12.plot_all(fig,ax)
+fig,ax = c12.plot_all(fig,ax)
 ax.set_xscale('log')
 plt.legend(loc='upper right')
+plt.tight_layout()
 plt.savefig("correlation12.pdf")
 
 # For c21
 fig,ax=plt.subplots()
 
-c21.plot_all(fig,ax)
+fig,ax = c21.plot_all(fig,ax)
 ax.set_xscale('log')
 plt.legend(loc='upper right')
+plt.tight_layout()
 plt.savefig("correlation21.pdf")
 
 # For c22
 fig,ax=plt.subplots()
 
-c22.plot_all(fig,ax)
+fig,ax = c22.plot_all(fig,ax)
 ax.set_xscale('log')
 plt.legend(loc='upper right')
+plt.tight_layout()
 plt.savefig("correlation22.pdf")
 
 
 
 
-
-#
-#var1=data1[:,1]
-#var2=data1[:,2]
-#
-#t=[]
-#
-#
-#
-#num_cores = multiprocessing.cpu_count()
-#
-##correlation=compute_correlation(var1,var2,0)
-#
-#correlation=Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)(var1,var1,i) for i in tqdm(xrange(max_delta)))
-#
-#correlation_initial=compute_correlation_dt(var1,var1,0) #To normalise
-#
-#correlation_norm_x=np.array(correlation)/correlation_initial.nominal_value
-#
-#
-#
-#var1=data1[:,3]
-#var2=data1[:,4]
-#
-#t=[]
-#max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
-#
-#
-#num_cores = multiprocessing.cpu_count()
-#
-##correlation=compute_correlation(var1,var2,0)
-#
-#correlation=Parallel(n_jobs=num_cores)(delayed(compute_correlation)(var1,var1,i) for i in tqdm(xrange(max_delta)))
-#
-#correlation_initial=compute_correlation(var1,var1,0) #To normalise
-#
-#correlation_norm_y=np.array(correlation)/correlation_initial.nominal_value
-#
-#
-#var1=data1[:,5]
-#var2=data1[:,6]
-#
-#t=[]
-#max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
-#
-#
-#num_cores = multiprocessing.cpu_count()
-#
-##correlation=compute_correlation(var1,var2,0)
-#
-#correlation=Parallel(n_jobs=num_cores)(delayed(compute_correlation)(var1,var1,i) for i in tqdm(xrange(max_delta)))
-#
-#correlation_initial=compute_correlation(var1,var1,0) #To normalise
-#
-#correlation_norm_z=np.array(correlation)/correlation_initial.nominal_value
-#
-#
-##D_inst=[] #Array with the instantaneous diffusion coefficient
-#
-#Total=(correlation_norm_z+correlation_norm_y+correlation_norm_x)/3
-#
-#
-
-#
-#cf.set_plot_appearance()
-#plt.close('all')
-#fig,ax=plt.subplots()
-
-##For x
-#y1=np.array([i.n for i in c11.cor[0]])
-#y1_error=np.array([i.s for i in c11.cor[0]])
-##
-#ax.plot(c11.times,y1)
-#ax.fill_between(c11.times, y1-y1_error, y1+y1_error ,alpha=0.4)
-#
-#
-##for the old x
-#
-#y2=np.array([i.n for i in correlation_norm_x])
-#y2_error=np.array([i.s for i in correlation_norm_x])
-#
-#ax.plot(t,y2)
-#ax.fill_between(t, y2-y2_error, y2+y2_error ,alpha=0.4)
-
-##For x
-#y=np.array([i.n for i in c11.cor[1]])
-#y_error=np.array([i.s for i in c11.cor[1]])
-##
-#ax.plot(c11.times,y)
-#ax.fill_between(t, y-y_error, y+y_error ,alpha=0.4)
-#
-#
-##For x
-#y=np.array([i.n for i in c11.cor[2]])
-#y_error=np.array([i.s for i in c11.cor[2]])
-##
-#ax.plot(c11.times,y)
-#ax.fill_between(t, y-y_error, y+y_error ,alpha=0.4)
-#
-###For total
-#y=np.array([i.n for i in c11.total_cor])
-#y_error=np.array([i.s for i in c11.total_cor])
-#
-#ax.plot(t,y,color='w')
-#ax.fill_between(t, y-y_error, y+y_error ,alpha=0.4,color='w')
+# =============================================================================
+# Plot the cross coefficients
+# =============================================================================
 
 
-#
-##For y 
-#y=np.array([i.n for i in correlation_norm_y])
-#y_error=np.array([i.s for i in correlation_norm_y])
-#
-#ax.plot(t,y)
-#ax.fill_between(t, y-y_error, y+y_error ,alpha=0.4)
-#
-##For z
-#y=np.array([i.n for i in correlation_norm_z])
-#y_error=np.array([i.s for i in correlation_norm_z])
-#
-#ax.plot(t,y)
-#ax.fill_between(t, y-y_error, y+y_error ,alpha=0.4)
-#
-#
-##For total
-#y=np.array([i.n for i in Total])
-#y_error=np.array([i.s for i in Total])
-#
-#ax.plot(t,y,color='w')
-#ax.fill_between(t, y-y_error, y+y_error ,alpha=0.4,color='w')
-#
+fig,ax = plt.subplots()
 
+fig,ax = c12.plot_individual(fig,ax,3)
+ax.lines[-1].set_label(r'$\langle (%s(t))(%s(0)) \rangle$'%(c12.flux1.name,c12.flux2.name)) #modifying the label of the last created line
+fig,ax = c21.plot_individual(fig,ax,3)
+ax.lines[-1].set_label(r'$\langle (%s(t))(%s(0)) \rangle$'%(c21.flux1.name,c21.flux2.name)) #modifying the label of the last created line
+ax.set_xscale('log')
 
+plt.legend(loc='upper right')
+plt.tight_layout()
+plt.savefig("crossed.pdf")
 
 
 
