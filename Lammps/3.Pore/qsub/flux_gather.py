@@ -90,7 +90,7 @@ def load_structure(file_name):
 #afile = open(r'mu.pkl', 'wb')
 #pickle.dump(final_mu, afile)
 #afile.close()
-
+#
 #specific_plot_all(final_mu)
 #
 
@@ -120,8 +120,8 @@ def load_structure(file_name):
 #
 #
 #specific_plot_all(final_p)
-
-#writing the structure
+#
+##writing the structure
 #afile = open(r'p.pkl', 'wb')
 #pickle.dump(final_p, afile)
 #afile.close()
@@ -182,9 +182,6 @@ plt.savefig('DO_flow.pdf')
 final_p=load_structure("p.pkl") 
 
 
-
-
-
 f_p=[] #Pressure body force
 exc_solute=[] #Excess solute flow
 for bund in final_p.simulations:
@@ -196,6 +193,8 @@ for bund in final_p.simulations:
     for sim in bund.simulations:
 
         n_solutes=sim.get_property('cSolu')[1][0][0]
+        n_solvents=sim.get_property('cSolv')[1][0][0]
+        n_total=n_solutes+n_solvents
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
         J_s=n_solutes/box_volume*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
