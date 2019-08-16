@@ -23,11 +23,14 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 # =============================================================================
 # Main
 # =============================================================================
-def main(name,root,template,conf_folder,n_conf,epsilon,force,run):       
+def main(name,root,template,conf_folder,n_conf,identifier,run):
+    """
+    Args:
+    """       
     #Getting the path to all the restart files
     files=glob.glob('%s/*'%conf_folder)
     
-    home=root+'/'+name+'_%s'%force
+    
     
     times=cf.extract_digits(files)
     times=[str(int(time[-1])) for time in times]
@@ -35,6 +38,7 @@ def main(name,root,template,conf_folder,n_conf,epsilon,force,run):
     
     
     conf_times=times[-n_conf:]
+    home=root+'/'+name+'_%s'%identifier
     files_analysis=cf.parameter_finder(files,conf_times)
     
     shutil.rmtree(home,ignore_errors=True)
@@ -83,11 +87,10 @@ if __name__ == "__main__":
     parser.add_argument('-template', metavar='path_template',help='Directory to take as template',default=cwd+'/Template')
     parser.add_argument('-root', metavar='root directory',help='Directory to create the folder for the simulations',default=cwd)
     parser.add_argument('-n_conf',metavar='n conf',help='number of configurations starting from the last',default=5,type=int)
-    parser.add_argument('-epsilon',metavar='epsilon',help='monomer solute interaction',default=3.0,type=float)
-    parser.add_argument('-force',metavar='force',help='Force on the solutes',default=0.01,type=float)
+    parser.add_argument('-identifier',metavar='force',help='Numerical identifier',default=1,type=float)
     parser.add_argument('-run',metavar='run',help='Define if run simulations or not. If not, just creates the folder structure',default=False,type=cf.str2bool)
     
     args = parser.parse_args()
 
     
-    main(args.name,args.root,args.template,args.conf_folder,args.n_conf,args.epsilon,args.force,args.run)
+    main(args.name,args.root,args.template,args.conf_folder,args.n_conf,args.identifier,args.run)
