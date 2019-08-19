@@ -20,6 +20,7 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 import multiprocessing
 import cPickle as pickle
+import Lammps.Pore.qsub.simulation_results as sr
 
 try:
     from uncertainties import unumpy,ufloat
@@ -36,34 +37,7 @@ try:
 except ImportError as err:
     print err
 
-
-def compute_correlation_dt(var1,var2,delta):
-    """
-    This is a VERY GENERAL function
-    
-    Computes the MSD the correlation for two variables every certain delta t
-    Args:
-        var1: time series for the first variable 
-        var2: time series for the first variable
-        Note that var1 and var2 have to have the same the same time series
-        delta: every this number of steps, we take the variable 2 to compute the correlation
-    """
-    cf.blockPrint()
-    global average
-    
-    if delta!=0:
-        var1=var1[::delta]
-        var2=var2[::delta]
-        correlation=(var1*np.roll(var2,-1,axis=0))
-        correlation=correlation[:-1]#The last contribution is the last-the initial msd
-    else:
-        correlation=var1*var2
-    
-    average=stat.fast_averager(correlation)[0]
-    cf.enablePrint()
-        
-    return ufloat(average[1],average[2]) 
-    
+cwd = os.getcwd() #current working directory
 
 
 class flux(object):
@@ -201,25 +175,20 @@ class correlation(object):
         pickle.dump(self, afile)
         afile.close()    
         
-def load_instance(file_name):
-    """
-    Loads the data structure to be used later
-    """
-    file1 = open(file_name, 'rb')
-    instance = pickle.load(file1)
-    file1.close()
-    
-    return instance
+
+root_pattern="run*"
+directory_pattern='[0-9]*'
+parameter_id='number'
+
+dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+
+
+bundles_mu=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
+final_mu=sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary=dictionary)
 
 
 
-    
 
-##writing the structure
-#afile = open(r'p.pkl', 'wb')
-#pickle.dump(final_p, afile)
-#afile.close()    
-        
 
 
 """
@@ -267,10 +236,10 @@ def run():
 # =============================================================================
 # Loading all
 # =============================================================================
-c11 = load_instance("c11.pkl")
-c22 = load_instance("c22.pkl")
-c12 = load_instance("c12.pkl")
-c21 = load_instance("c21.pkl")
+c11 = cf.load_instance("c11.pkl")
+c22 = cf.load_instance("c22.pkl")
+c12 = cf.load_instance("c12.pkl")
+c21 = cf.load_instance("c21.pkl")
 
 
 
@@ -341,3 +310,5 @@ plt.savefig("crossed.pdf")
 
 
 
+ Create something similar to the bundle but that just stores the correlations because the other things are very heavy. so the object is just a list of the total correlations
+ and you can just average

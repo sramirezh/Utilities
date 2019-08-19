@@ -127,10 +127,106 @@ def run_thermo_directories(directories,log_name,dmin):
         thermo.thermo_analyser(log_name,dmin)
         os.chdir(cwd)
         
-        
 
-def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary):
+
+#Class to check if all simulations finished well and perfrome the required analysis
+class check_n_analyse(object):
+    """
+    Class to check if the simulations finished. Then also checks if the analysis finished, if not performs the analysis
+    TODO the markers have to have the same size as the files len(thermo_markers)=len(thermo_files), check this!
+    """
+    def __init__(self,root,directory_pattern):
+        self.root = root   # TODO As the root inside the loop below ex mu_force_0.001
+        self.directory_pattern = directory_pattern
+        self.directories = glob.glob('%s/%s'%(root,directory_pattern))
+        #self.log_file = open("log_analysis")
+
+    def check_finished(self,finished_marker):
+        print "\nChecking if the simulations finished with %s\n"%finished_marker
+        self.dir_fin=filter_directories(self.directories,finished_marker)
     
+    def check_stat(self,stat_markers):
+        self.dir_stat = []  #Folders that require analysis
+        self.stat_markers = cf.str2list(stat_markers)
+        for i,fil in enumerate(self.stat_markers):
+            print "\nChecking if the statistics finished with %s\n"%fil
+            f_to_analyse = (filter_directories(self.dir_fin,fil))
+            self.dir_stat.append([x for x in self.dir_fin if x  not in f_to_analyse ])
+    
+    def check_thermo(self,thermo_markers):
+        self.dir_thermo = []
+        self.thermo_markers = cf.str2list(thermo_markers)
+        for i,fil in enumerate(self.thermo_markers):
+            print "\nChecking if the statistics finished with %s\n"%fil
+            f_to_analyse = (filter_directories(self.dir_fin,fil))
+            self.dir_thermo.append([x for x in self.dir_fin if x  not in f_to_analyse ])
+    
+    def stat_analysis(self,stat_files,discard=0.3):
+        #Running the statistics analysis
+        self.stat_files  = cf.str2list(stat_files)
+        for i,fil in enumerate(self.stat_files):
+            run_stat_file(self.dir_stat[i],fil,discard,self.stat_markers[i])
+
+    def thermo_analysis(self,thermo_files,discard=0.3):
+        #Running the thermo analysis
+        self.thermo_files  = cf.str2list(thermo_files)
+        for i,fil in enumerate(self.thermo_files):
+            run_stat_file(self.dir_thermo[i],fil,discard,self.thermo_markers[i])
+
+
+    
+
+
+   # def print_log(self,text,print_to_screen='False'):
+
+
+
+
+def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
+    """
+
+    """
+    global properties
+    times=[]
+    os.chdir(cwd)
+    
+    print ("\nConstructing the simulation instances\n")
+    
+    
+    for directory in directories:
+        
+        t=float(os.path.split(directory)[-1])
+        times.append(simulation("time",t))
+        print os.path.split(directory)[-1]
+        
+        properties=read_properties(directory,files)
+        times[-1].add_properties(properties)
+        os.chdir(cwd)
+    return times
+
+
+
+
+
+
+#TODO This function has to be generalised
+def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary={},finished_marker=[],stat_markers=[],thermo_markers = []):
+    """
+    
+    This is VERY SPECIFIC for flux gatherer
+    
+    Initialises the instances of
+    Args:
+        root_pattern: Is the patter of the folders that contain each simulation that forms the bundle ex:"mu_force*"
+        parameter_id: The name of the parameter that defines the simulation folders, it is free to choose  "Number"
+        directory_pattern: The numbering that goes in the * root_pattern , ex for restart files like 2020000, is '[0-9]*'
+        dictionary: Dictionary for the variables that are inside the analysis_markers below ex: dictionary={'vx_Solv':r'$v^x_{f}$'}
+        finished_marker: Name of a file that helps to check if the simulations finished, ex "vdata.dat"
+        stat_marker: Name of the file(s) that help to check if the statistical analysis was performed ex: "statistics.dat"
+        thermo_marker: Name of the file(s) that help to check if the themo analysis was performed ex:"thermo.dat"
+"thermo.dat"
+    """
+    global cna
     #Needed parameters
     roots=glob.glob(root_pattern)
     digits=cf.extract_digits(roots, sort=False)
@@ -140,40 +236,16 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
 
     for i,root in enumerate(roots):
         directories=glob.glob('%s/%s'%(root,directory_pattern))
-        # =============================================================================
-        # Checking if the simulation and the required files are on each folder
-        # =============================================================================
         
-        print "\nChecking if the simulations finished with vdata\n"
-        dir_fin=filter_directories(directories,"vdata.dat")
+        cna = check_n_analyse(root,directory_pattern)
+        cna.check_finished("vdata.dat")
+        cna.check_stat("statistics.dat")
+        cna.stat_analysis("vdata.dat")
+        cna.check_thermo("thermo.dat")
+        cna.thermo_analysis("log.lammps")
         
-        print "\nChecking if the simulations finished with statistics\n"
-        dir_stat=filter_directories(dir_fin,"statistics.dat")
-        
-        print "\nChecking if the simulations finished with thermo\n"
-        dir_thermo=filter_directories(dir_fin,"thermo.dat")
-    
-    
-    
-        # =============================================================================
-        # Running the necessary analysis
-        # =============================================================================
-        
-        #directories to run statistics
-        dir_run_vdata=[x for x in dir_fin if x  not in dir_stat]
-        run_stat_file(dir_run_vdata,"vdata.dat",0.3,"statistics.dat")
-        
-        
-        
-        #Directories to run thermo analysis
-        dir_run_thermo=[x for x in dir_fin if x  not in dir_thermo]
-        run_thermo_directories(dir_run_thermo,"log.lammps",0.3)
-        
-        
-        
-        # Creating the statistic summary (MAYBE Get rid of this)
-        array=gather_statistics(dir_fin,'Time',root)
-    
+        array=gather_statistics(cna.dir_fin,'Time',root)
+#    
     
         #Building the simulations
         times=construct_simulations(directories)
@@ -244,6 +316,9 @@ def gather_statistics(directories,folder_name,root,files=["statistics.dat","ther
         os.chdir(cwd)
     f.close()
     return array
+
+
+
 
 
 
@@ -465,24 +540,3 @@ def read_properties(directory,files):
     
 
 
-def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
-    """
-
-    """
-    global properties
-    times=[]
-    os.chdir(cwd)
-    
-    print ("\nConstructing the simulation instances\n")
-    
-    
-    for directory in directories:
-        
-        t=float(os.path.split(directory)[-1])
-        times.append(simulation("time",t))
-        print os.path.split(directory)[-1]
-        
-        properties=read_properties(directory,files)
-        times[-1].add_properties(properties)
-        os.chdir(cwd)
-    return times

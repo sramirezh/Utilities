@@ -9,6 +9,7 @@ import numpy as np
 import sys
 from cycler import cycler
 import warnings
+import cPickle as pickle
 warnings.filterwarnings("ignore")
 
 
@@ -300,3 +301,28 @@ def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
     s.close()
     
     print "Modified the file %s"%(file_name.split('/')[-1])
+
+
+def load_instance(file_name):
+    """
+    Loads the data structure to be used later
+    """
+    file1 = open(file_name, 'rb')
+    instance = pickle.load(file1)
+    file1.close()
+
+    return instance
+
+
+def str2list(input):
+    """
+    Check if the input is a string, if so, converts it to a list
+
+    Returns:
+        a list
+    """
+    if isinstance(input,str):
+        return [input]
+    
+    else:
+        return input
