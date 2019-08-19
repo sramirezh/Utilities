@@ -259,12 +259,7 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
         
         #Creating the bundle
         bundles.append(simulation_bundle(times,parameter_id,digits[i],root,dictionary=dictionary))
-    
-        #Plot for all the properties
-    #    for prop in bundles[-1].simulations[-1].property_names:
-    #        print "\ncreating the plot of %s"%prop
-    #        if prop!="time":
-    #            bundles[-1].plot_property(prop)
+        
         bundles[-1].plot_all_properties()
         
     return bundles
