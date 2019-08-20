@@ -13,8 +13,6 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 from scipy import optimize
-import warnings
-warnings.filterwarnings("ignore")
 import argparse
 from tqdm import tqdm  
 from joblib import Parallel, delayed
@@ -22,6 +20,7 @@ import multiprocessing
 import cPickle as pickle
 import Lammps.Pore.qsub.simulation_results as sr
 import time
+from scipy import stats
 
 try:
     from uncertainties import unumpy,ufloat
@@ -60,8 +59,42 @@ class flux(object):
         if self.dimension==1: 
             self.components = np.reshape(self.components,(len(self.components),1))
         
-        
+
+def compute_correlation_dt(var1,var2,delta):
+    """
+    This is a VERY GENERAL function
+    
+    *****
+    It is important to keep it outside the class as it is going to be evaluated in parallel and if it is a method of the class, it would require
+    to load the instance on each processor which could be very expensive
+    *****
+    
+    Computes the correlation for two variables for a given delta t
+    Args:
+        var1: time series for the first variable 
+        var2: time series for the first variable
+        Note that var1 and var2 have to have the same the same time series
+        delta: every this number of steps, we take the variable 2 to compute the correlation
+    """
+    cf.blockPrint()
+    if delta != 0:
+        var1 = var1[::delta]
+        var2 = var2[::delta]
+        cor = (var1*np.roll(var2,-1,axis=0))
+        cor = cor[:-1]#The last contribution is the last-the initial msd
+    else:
+        cor = var1*var2 
+    
+    average = stat.fast_averager(cor)[0]
+    
+    cf.enablePrint()
+    
+    return ufloat(average[1],average[2]) 
+
 class correlation(object):
+    """
+    BEWARE that the error is computed as a simple error 
+    """
     def __init__(self,flux1,flux2, max_delta):
         self.flux1 = flux1
         self.flux2 = flux2
@@ -70,7 +103,7 @@ class correlation(object):
         dimension = self.dimension
         self.cor = (dimension+1)*[0]  #list to store the correlations, the last is the total
         self.norm = (dimension+1)*[0]  #list to store the normalisation correlation with t=0 (var1(0) var2(0))
-        self.cor_norm = (dimension+1)*[0]  #list to store the normalised correlations, the last is the total
+#        self.cor_norm = (dimension+1)*[0]  #list to store the normalised correlations, the last is the total
         
     def initial_check(self):
         """
@@ -87,33 +120,7 @@ class correlation(object):
         else:
             self.times = self.flux1.times[:self.max_delta]
             
-    def compute_correlation_dt(self,var1,var2,delta):
-        """
-        This is a VERY GENERAL function
-        
-        Computes the correlation for two variables for a given delta t
-        Args:
-            var1: time series for the first variable 
-            var2: time series for the first variable
-            Note that var1 and var2 have to have the same the same time series
-            delta: every this number of steps, we take the variable 2 to compute the correlation
-        """
-        cf.blockPrint()
-    
-        t = time.time()
-        if delta != 0:
-            var1 = var1[::delta]
-            var2 = var2[::delta]
-            correlation = (var1*np.roll(var2,-1,axis=0))
-            correlation = correlation[:-1]#The last contribution is the last-the initial msd
-        else:
-            correlation = var1*var2 
-        
-        
-        average = stat.fast_averager(correlation)[0]
-        cf.enablePrint()
-        print time.time()-t
-        return ufloat(average[1],average[2]) 
+
     
     def correlate_one_d(self,dim):
         """
@@ -125,7 +132,7 @@ class correlation(object):
         var1 = self.flux1.components[:,dim]
         var2 = self.flux2.components[:,dim]
         max_delta = self.max_delta
-        cor = Parallel(n_jobs=num_cores)(delayed(self.compute_correlation_dt)(var1,var2,i) for i in tqdm(xrange(max_delta)))
+        cor = Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)(var1,var2,i) for i in tqdm(xrange(max_delta)))
         norm = cor[0].nominal_value
         self.norm[dim] = norm
         self.cor[dim] = np.array(cor)
@@ -212,8 +219,8 @@ def run_correlation_analysis(folder,input_file, save = "True"):
     
     
     
-#    c11=correlation(total_flux,total_flux,max_delta)
-#    c11.evaluate()
+    c11=correlation(total_flux,total_flux,max_delta)
+    c11.evaluate()
 #
 #    
 #    c12=correlation(total_flux,solute_excess,max_delta)
@@ -260,13 +267,28 @@ prep_results.check_stat("c11.pkl") #Assuming that if the first correlation is no
 finished_directories=prep_results.dir_fin
 unfinished_correlation=prep_results.dir_stat
 
-#c11_array=[]
-for folder in finished_directories:
-    #When Correlation still need to be run 
-    #TODO change this to just gathering the results
-    if folder in unfinished_correlation[0]:
-        print "Running the correlation analysis in %s\n"%folder
-        Correlations=run_correlation_analysis(folder,input_file)
+
+Data=cf.read_data_file(input_file)
+data1=Data.values
+times=(data1[:,0]-data1[0,0])*delta_t
+max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
+
+# Definitions of the fluxes
+total_flux=flux(data1[:,[1,3,5]],times,"Q")
+solute_excess=flux(data1[:,[2,4,6]],times,"J_s-c_s^BQ")
+
+
+
+c11=correlation(total_flux,total_flux,max_delta)
+c11.evaluate()
+
+##c11_array=[]
+#for folder in finished_directories:
+#    #When Correlation still need to be run 
+#    #TODO change this to just gathering the results
+#    if folder in unfinished_correlation[0]:
+#        print "Running the correlation analysis in %s\n"%folder
+#        Correlations=run_correlation_analysis(folder,input_file)
         
     
     
