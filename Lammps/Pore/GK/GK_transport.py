@@ -21,6 +21,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 import cPickle as pickle
 import Lammps.Pore.qsub.simulation_results as sr
+import time
 
 try:
     from uncertainties import unumpy,ufloat
@@ -66,8 +67,10 @@ class correlation(object):
         self.flux2 = flux2
         self.max_delta = max_delta
         self.initial_check()
-        self.cor = (self.dimension+1)*[0]  #list to store the correlations, the last is the total
-        self.norm = (self.dimension+1)*[0]  #list to store the normalisation correlation with t=0 (var1(0) var2(0))
+        dimension = self.dimension
+        self.cor = (dimension+1)*[0]  #list to store the correlations, the last is the total
+        self.norm = (dimension+1)*[0]  #list to store the normalisation correlation with t=0 (var1(0) var2(0))
+        self.cor_norm = (dimension+1)*[0]  #list to store the normalised correlations, the last is the total
         
     def initial_check(self):
         """
@@ -82,7 +85,7 @@ class correlation(object):
         if self.flux1.times.all != self.flux2.times.all:
             print "The fluxes were not measured for the same times"
         else:
-            self.times = self.flux1.times[:max_delta]
+            self.times = self.flux1.times[:self.max_delta]
             
     def compute_correlation_dt(self,var1,var2,delta):
         """
@@ -97,18 +100,19 @@ class correlation(object):
         """
         cf.blockPrint()
     
-        
-        if delta!=0:
-            var1=var1[::delta]
-            var2=var2[::delta]
-            correlation=(var1*np.roll(var2,-1,axis=0))
-            correlation=correlation[:-1]#The last contribution is the last-the initial msd
+        t = time.time()
+        if delta != 0:
+            var1 = var1[::delta]
+            var2 = var2[::delta]
+            correlation = (var1*np.roll(var2,-1,axis=0))
+            correlation = correlation[:-1]#The last contribution is the last-the initial msd
         else:
-            correlation=var1*var2
+            correlation = var1*var2 
         
-        average=stat.fast_averager(correlation)[0]
+        
+        average = stat.fast_averager(correlation)[0]
         cf.enablePrint()
-        
+        print time.time()-t
         return ufloat(average[1],average[2]) 
     
     def correlate_one_d(self,dim):
@@ -118,28 +122,31 @@ class correlation(object):
             dim is the component to be evaluated
         """
         num_cores = multiprocessing.cpu_count()
-        var1=self.flux1.components[:,dim]
-        var2=self.flux2.components[:,dim]
+        var1 = self.flux1.components[:,dim]
+        var2 = self.flux2.components[:,dim]
         max_delta = self.max_delta
-        norm = self.compute_correlation_dt(var1,var2,0)
+        cor = Parallel(n_jobs=num_cores)(delayed(self.compute_correlation_dt)(var1,var2,i) for i in tqdm(xrange(max_delta)))
+        norm = cor[0].nominal_value
         self.norm[dim] = norm
-        cor=Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)(var1,var2,i) for i in tqdm(xrange(max_delta)))
-        self.cor[dim]=np.array(cor)/norm.nominal_value
+        self.cor[dim] = np.array(cor)
+#        self.cor_norm[dim]=np.array(cor)/norm.nominal_value
         
     def evaluate(self):
         """
         Performs the correlations of the 1d components,calluing correlate_one_d, and adds them up to the total.
         
         """
-        total = np.zeros(max_delta)
+        total = np.zeros(self.max_delta)
         for dim in xrange(self.dimension):
             self.correlate_one_d(dim)
             total = total + self.cor[dim]
         total = total/3
         self.cor[-1] = total
-        self.norm[-1] = 1 #It must be normalised already
+#        self.norm[-1] = total[0].nominal_value
+#        self.cor_norm[-1]=total/total[0].nominal_value
         
-    def plot_individual(self,fig,ax,dim,alpha=0.4,every=1):
+        
+    def plot_individual(self,fig,ax,dim,alpha=0.4,every=1,norm=True):
         """
         Args:
             ax axes object
@@ -147,11 +154,17 @@ class correlation(object):
             dim is the dimension, for example:in a 3D vector, 0-x, 1-y, 2-z and 3-total.
             alpha is the transparency of the filling
             every to not have so many points
+            norm True if normalised
             The axis label is given here but it could be renamed later
         """
+        if norm==True:
+            cor=self.cor_norm[dim]
+        else:
+            cor=self.cor[dim]
+            
         dic_label={0:'x',1:'y',2:'z',self.dimension:'Total'}
-        y=np.array([i.n for i in self.cor[dim]])
-        y_error=np.array([i.s for i in self.cor[dim]])
+        y=np.array([i.n for i in cor])
+        y_error=np.array([i.s for i in cor])
         ax.plot(self.times[::every],y[::every],label=dic_label[dim])
         ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
         
@@ -176,116 +189,147 @@ class correlation(object):
         afile.close()    
         
 
-root_pattern="run*"
-directory_pattern='[0-9]*'
-parameter_id='number'
-
-dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
-
-
-bundles_mu=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
-final_mu=sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary=dictionary)
-
-
-
-
-
-
-"""
-Computes the diffusion coefficient
-"""
-#Input parameters
-input_file='fluxes.dat'
-delta_t=0.005
-
-Data=cf.read_data_file(input_file)
-data1=Data.values
-times=(data1[:,0]-data1[0,0])*delta_t
-
-total_flux=flux(data1[:,[1,3,5]],times,"Q")
-solute_excess=flux(data1[:,[2,4,6]],times,"J_s-c_s^BQ")
-
-max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
-
-
-# =============================================================================
-# Defining, evaluating and saving the correlations
-# =============================================================================
-
-def run():
+def run_correlation_analysis(folder,input_file, save = "True"):
     """
     Very specific function
+    
+    Computes the correlations using the general class correlation
     """
-    c11=correlation(total_flux,total_flux,max_delta)
-    c11.evaluate()
-    c11.save('c11')
+    global data1
     
-    c12=correlation(total_flux,solute_excess,max_delta)
-    c12.evaluate()
-    c12.save('c12')
+    cwd = os.getcwd()
+    os.chdir(folder)
+    Data=cf.read_data_file(input_file)
     
-    c21=correlation(solute_excess,total_flux,max_delta)
-    c21.evaluate()
-    c21.save('c21')
     
-    c22=correlation(solute_excess,solute_excess,max_delta)
-    c22.evaluate()
-    c22.save('c22')
+    data1=Data.values
+    times=(data1[:,0]-data1[0,0])*delta_t
+    max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
+    
+    # Definitions of the fluxes
+    total_flux=flux(data1[:,[1,3,5]],times,"Q")
+    solute_excess=flux(data1[:,[2,4,6]],times,"J_s-c_s^BQ")
+    
+    
+    
+#    c11=correlation(total_flux,total_flux,max_delta)
+#    c11.evaluate()
+#
+#    
+#    c12=correlation(total_flux,solute_excess,max_delta)
+#    c12.evaluate()
+#
+#    
+#    c21=correlation(solute_excess,total_flux,max_delta)
+#    c21.evaluate()
+#
+#    
+#    c22=correlation(solute_excess,solute_excess,max_delta)
+#    c22.evaluate()
+#    
+#    
+#    if save=="True":
+#        c11.save('c11')
+#        c12.save('c12')
+#        c21.save('c21')
+#        c22.save('c22')
+    
+    
+    os.chdir(cwd)
+    
+#    return [c11,c12,c21,c22]
+
+
+
+# Input parameters
+
+delta_t=0.005
+root = "."
+directory_pattern='run*'
+input_file='fluxes.dat'
 
 
 # =============================================================================
-# Loading all
+#  Checking the directories
 # =============================================================================
-c11 = cf.load_instance("c11.pkl")
-c22 = cf.load_instance("c22.pkl")
-c12 = cf.load_instance("c12.pkl")
-c21 = cf.load_instance("c21.pkl")
+
+prep_results = sr.check_n_analyse(root,directory_pattern)
+prep_results.check_finished("fluxes.dat")
+prep_results.check_stat("c11.pkl") #Assuming that if the first correlation is not ready, need to compute all
+
+finished_directories=prep_results.dir_fin
+unfinished_correlation=prep_results.dir_stat
+
+#c11_array=[]
+for folder in finished_directories:
+    #When Correlation still need to be run 
+    #TODO change this to just gathering the results
+    if folder in unfinished_correlation[0]:
+        print "Running the correlation analysis in %s\n"%folder
+        Correlations=run_correlation_analysis(folder,input_file)
+        
+    
+    
+        
+
+
+## =============================================================================
+## Loading all
+## =============================================================================
+#    
+#c11 = cf.load_instance("c11.pkl")
+#c22 = cf.load_instance("c22.pkl")
+#c12 = cf.load_instance("c12.pkl")
+#c21 = cf.load_instance("c21.pkl")
 
 
 
 
-plt.close('all')
-cf.set_plot_appearance()
+
 
 # =============================================================================
 # Ploting all the correlations
 # =============================================================================
 
-# For c11
-fig,ax=plt.subplots()
 
-fig,ax = c11.plot_all(fig,ax)
-ax.set_xscale('log')
-plt.legend(loc='upper right')
-plt.tight_layout()
-plt.savefig("correlation11.pdf")
+#plt.close('all')
+#cf.set_plot_appearance()
 
-# For c12
-fig,ax=plt.subplots()
-
-fig,ax = c12.plot_all(fig,ax)
-ax.set_xscale('log')
-plt.legend(loc='upper right')
-plt.tight_layout()
-plt.savefig("correlation12.pdf")
-
-# For c21
-fig,ax=plt.subplots()
-
-fig,ax = c21.plot_all(fig,ax)
-ax.set_xscale('log')
-plt.legend(loc='upper right')
-plt.tight_layout()
-plt.savefig("correlation21.pdf")
-
-# For c22
-fig,ax=plt.subplots()
-
-fig,ax = c22.plot_all(fig,ax)
-ax.set_xscale('log')
-plt.legend(loc='upper right')
-plt.tight_layout()
-plt.savefig("correlation22.pdf")
+##For c11
+#fig,ax=plt.subplots()
+#
+#fig,ax = c11.plot_all(fig,ax)
+#ax.set_xscale('log')
+#plt.legend(loc='upper right')
+#plt.tight_layout()
+#plt.savefig("correlation11.pdf")
+#
+## For c12
+#fig,ax=plt.subplots()
+#
+#fig,ax = c12.plot_all(fig,ax)
+#ax.set_xscale('log')
+#plt.legend(loc='upper right')
+#plt.tight_layout()
+#plt.savefig("correlation12.pdf")
+#
+## For c21
+#fig,ax=plt.subplots()
+#
+#fig,ax = c21.plot_all(fig,ax)
+#ax.set_xscale('log')
+#plt.legend(loc='upper right')
+#plt.tight_layout()
+#plt.savefig("correlation21.pdf")
+#
+## For c22
+#fig,ax=plt.subplots()
+#
+#fig,ax = c22.plot_all(fig,ax)
+#ax.set_xscale('log')
+#plt.legend(loc='upper right')
+#plt.tight_layout()
+#plt.savefig("correlation22.pdf")
 
 
 
@@ -295,20 +339,20 @@ plt.savefig("correlation22.pdf")
 # =============================================================================
 
 
-fig,ax = plt.subplots()
-
-fig,ax = c12.plot_individual(fig,ax,3)
-ax.lines[-1].set_label(r'$\langle (%s(t))(%s(0)) \rangle$'%(c12.flux1.name,c12.flux2.name)) #modifying the label of the last created line
-fig,ax = c21.plot_individual(fig,ax,3)
-ax.lines[-1].set_label(r'$\langle (%s(t))(%s(0)) \rangle$'%(c21.flux1.name,c21.flux2.name)) #modifying the label of the last created line
-ax.set_xscale('log')
-
-plt.legend(loc='upper right')
-plt.tight_layout()
-plt.savefig("crossed.pdf")
-
-
+#fig,ax = plt.subplots()
+#
+#fig,ax = c12.plot_individual(fig,ax,3)
+#ax.lines[-1].set_label(r'$\langle (%s(t))(%s(0)) \rangle$'%(c12.flux1.name,c12.flux2.name)) #modifying the label of the last created line
+#fig,ax = c21.plot_individual(fig,ax,3)
+#ax.lines[-1].set_label(r'$\langle (%s(t))(%s(0)) \rangle$'%(c21.flux1.name,c21.flux2.name)) #modifying the label of the last created line
+#ax.set_xscale('log')
+#
+#plt.legend(loc='upper right')
+#plt.tight_layout()
+#plt.savefig("crossed.pdf")
 
 
- Create something similar to the bundle but that just stores the correlations because the other things are very heavy. so the object is just a list of the total correlations
- and you can just average
+
+
+#3 Create something similar to the bundle but that just stores the correlations because the other things are very heavy. so the object is just a list of the total correlations
+# and you can just average
