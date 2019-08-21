@@ -38,7 +38,7 @@ def check_terminated_simulation(folder_name):
     cwd=os.getcwd()
     os.chdir(folder_name)
     if os.path.isfile("log.lammps")==False:
-        print "The simulation crashed before starting"
+        print "The simulation crashed before starting, as there is no log.lammpsd"
         counter=0
     else:
         tail,error=cf.bash_command("""tail -2 log.lammps""")
@@ -64,16 +64,18 @@ def check_terminated_by_file(file_name):
     return counter
     
 
-def filter_directories(directories,key_file):
+def filter_directories(folders,key_file):
     """
     THIS IS A VERY SPECIFIC FUNCTION
     checks if all the simulations inside all the directories finished, if not, deletes the directory from the analysis
     Args:
         key_file: is the file that is checked inside the directories, if it is not there the directory is delated.
+    Returns:
+        directories contains the directories that passed the test, i.e finished
     """
     os.chdir(cwd)
-    directories=copy.copy(directories)
-    for directory in directories:
+    directories=copy.copy(folders)
+    for directory in folders:
         print '\n%s' %directory
         finished=1
         finished*=check_terminated_simulation(directory)
@@ -129,49 +131,6 @@ def run_thermo_directories(directories,log_name,dmin):
         
 
 
-#Class to check if all simulations finished well and perfrome the required analysis
-class check_n_analyse(object):
-    """
-    Class to check if the simulations finished. Then also checks if the analysis finished, if not performs the analysis
-    TODO the markers have to have the same size as the files len(thermo_markers)=len(thermo_files), check this!
-    """
-    def __init__(self,root,directory_pattern):
-        self.root = root   # TODO As the root inside the loop below ex mu_force_0.001
-        self.directory_pattern = directory_pattern
-        self.directories = glob.glob('%s/%s'%(root,directory_pattern))
-        #self.log_file = open("log_analysis")
-
-    def check_finished(self,finished_marker):
-        print "\nChecking if the simulations finished with %s\n"%finished_marker
-        self.dir_fin=filter_directories(self.directories,finished_marker)
-    
-    def check_stat(self,stat_markers):
-        self.dir_stat = []  #Folders that require analysis
-        self.stat_markers = cf.str2list(stat_markers)
-        for i,fil in enumerate(self.stat_markers):
-            print "\nChecking if the statistics finished with %s\n"%fil
-            f_to_analyse = (filter_directories(self.dir_fin,fil))
-            self.dir_stat.append([x for x in self.dir_fin if x  not in f_to_analyse ])
-    
-    def check_thermo(self,thermo_markers):
-        self.dir_thermo = []
-        self.thermo_markers = cf.str2list(thermo_markers)
-        for i,fil in enumerate(self.thermo_markers):
-            print "\nChecking if the statistics finished with %s\n"%fil
-            f_to_analyse = (filter_directories(self.dir_fin,fil))
-            self.dir_thermo.append([x for x in self.dir_fin if x  not in f_to_analyse ])
-    
-    def stat_analysis(self,stat_files,discard=0.3):
-        #Running the statistics analysis
-        self.stat_files  = cf.str2list(stat_files)
-        for i,fil in enumerate(self.stat_files):
-            run_stat_file(self.dir_stat[i],fil,discard,self.stat_markers[i])
-
-    def thermo_analysis(self,thermo_files,discard=0.3):
-        #Running the thermo analysis
-        self.thermo_files  = cf.str2list(thermo_files)
-        for i,fil in enumerate(self.thermo_files):
-            run_stat_file(self.dir_thermo[i],fil,discard,self.thermo_markers[i])
 
 
     
@@ -322,6 +281,66 @@ def gather_statistics(directories,folder_name,root,files=["statistics.dat","ther
 CLASS DEFINITION
 *******************************************************************************
 """
+
+#Class to check if all simulations finished well and perfrome the required analysis 
+#TODO, this might be added to simulation
+class check_n_analyse(object):
+    """
+    Class to check if the simulations finished. Then also checks if the analysis finished, if not performs the analysis
+    TODO the markers have to have the same size as the files len(thermo_markers)=len(thermo_files), check this!
+    """
+    def __init__(self,root,directory_pattern):
+        self.root = root   # TODO As the root inside the loop below ex mu_force_0.001
+        self.directory_pattern = directory_pattern
+        self.directories = glob.glob('%s/%s'%(root,directory_pattern))
+        #self.log_file = open("log_analysis")
+
+    def check_finished(self,finished_marker):
+        print "\nChecking if the simulations finished with %s\n"%finished_marker
+        self.dir_fin=filter_directories(self.directories,finished_marker)
+    
+    def check_stat(self,stat_markers):
+        """
+        Args:
+            stat_markers is a file or list of files that indicate that certain statistical analysis has finished
+        returns:
+            dir_stat a list of lists,each containing the directories that REQUIRE the analysis, i.e DO NOT contain each stat_marker
+        """
+        self.dir_stat = []  #Folders that require analysis
+        self.stat_markers = cf.str2list(stat_markers)
+        for i,fil in enumerate(self.stat_markers):
+            print "\nChecking if the statistics finished with %s\n"%fil
+            f_to_analyse = (filter_directories(self.dir_fin,fil))
+            self.dir_stat.append([x for x in self.dir_fin if x not in f_to_analyse ])
+    
+    def check_thermo(self,thermo_markers):
+        """
+        Args:
+            thermo_markers is a file or list of files that indicate that certain statistical analysis has finished
+        returns:
+            dir_thermo a list of lists,each containing the directories that REQUIRE the analysis, i.e DO NOT contain each thermo_marker
+        """
+        self.dir_thermo = []
+        self.thermo_markers = cf.str2list(thermo_markers)
+        for i,fil in enumerate(self.thermo_markers):
+            print "\nChecking if the statistics finished with %s\n"%fil
+            f_to_analyse = (filter_directories(self.dir_fin,fil))
+            self.dir_thermo.append([x for x in self.dir_fin if x not in f_to_analyse ])
+    
+    def stat_analysis(self,stat_files,discard=0.3):
+        #Running the statistics analysis
+        self.stat_files  = cf.str2list(stat_files)
+        for i,fil in enumerate(self.stat_files):
+            run_stat_file(self.dir_stat[i],fil,discard,self.stat_markers[i])
+
+    def thermo_analysis(self,thermo_files,discard=0.3):
+        #Running the thermo analysis
+        self.thermo_files  = cf.str2list(thermo_files)
+        for i,fil in enumerate(self.thermo_files):
+            run_stat_file(self.dir_thermo[i],fil,discard,self.thermo_markers[i])
+
+
+
 class simulation(object):
     """
     Defines a generic class of simulation that has a characteristic parameter ex= time, Temperature, etc and then fills the instance with properties
