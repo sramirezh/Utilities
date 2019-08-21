@@ -59,7 +59,7 @@ def main(name,root,template,conf_folder,n_conf,identifier,run):
         
         sim=simulation(home,template,name,restart)
         sim.create_folder()
-        sim.create_qsub('short',1,16,24,'input.lmp')
+        sim.create_qsub('short',1,16,1,'input.lmp')
     # =============================================================================
     #     #Mofications to the files here (THIS IS SPECIFIC)
     # =============================================================================
