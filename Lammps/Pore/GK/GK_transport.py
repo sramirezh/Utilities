@@ -309,5 +309,12 @@ plt.savefig("crossed.pdf")
 
 
 
+# =============================================================================
+# Performing the integration
+# =============================================================================
+#Todo, this could be added to each integral
+cor = c12.cor[0]
+y = np.array([i.n for i in cor])
+x = c12.times
 
-
+I = cf.integrate(x,y,0,10)
