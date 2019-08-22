@@ -80,6 +80,22 @@ class bundle_correlation(correlation):
             ax.set_xlabel('time')
 
         return fig,ax
+    
+    def transport_coeff(self, T, V, xmin, xmax):
+        """
+        T is the temperature
+        V is the system volume
+        xmin
+        """
+    
+        y = np.array([i.n for i in self.cor[0]])
+        x = self.times
+        I = cf.integrate(x,y,xmin,xmax)
+        self.coeff= V/T*I
+        
+        return self.coeff
+    
+
 
 
 
@@ -293,7 +309,7 @@ plt.savefig("correlation22.pdf")
 # Plot the cross coefficients
 # =============================================================================
 
-
+xmax = 10 # Integration limitc
 fig,ax = plt.subplots()
 
 fig,ax = c12.plot(fig,ax,ax_label=False)
@@ -302,6 +318,7 @@ fig,ax = c21.plot(fig,ax,ax_label=False)
 ax.lines[-1].set_label(r'$\langle (%s(t))(%s(0)) \rangle$'%(c21.flux1_name,c21.flux2_name)) #modifying the label of the last created line
 ax.set_xscale('log')
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+ax.axvline(x = xmax, c='black')
 plt.legend(loc='upper right')
 plt.tight_layout()
 plt.savefig("crossed.pdf")
@@ -312,9 +329,16 @@ plt.savefig("crossed.pdf")
 # =============================================================================
 # Performing the integration
 # =============================================================================
-#Todo, this could be added to each integral
-cor = c12.cor[0]
-y = np.array([i.n for i in cor])
-x = c12.times
 
-I = cf.integrate(x,y,0,10)
+V = 20**3 # Simulation box volume
+
+#Todo, this could be added to each integral
+
+print "The c11 is %s\n" %c11.transport_coeff(1,V,0,xmax)
+print "The c12 is %s\n" %c12.transport_coeff(1,V,0,xmax)
+print "The c21 is %s\n" %c21.transport_coeff(1,V,0,xmax)
+print "The c22 is %s\n" %c22.transport_coeff(1,V,0,xmax)
+
+
+
+
