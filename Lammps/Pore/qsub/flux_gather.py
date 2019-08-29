@@ -128,14 +128,13 @@ final_p=cf.load_instance("p.pkl")
 f_p=[] #Pressure body force
 exc_solute=[] #Excess solute flow
 Q_array=[] #Total flow
-
+n_s_array = []
 for bund in final_p.simulations:
     
     #Getting the applied forces
     f_p.extend(bund.get_property('p',exact=True)[1])
     #Getting the solute excess
     exc_sol_array=[]
-    n_s_array=[]
     for sim in bund.simulations:
 
         n_solutes=sim.get_property('cSolu')[1][0][0]
@@ -217,12 +216,12 @@ final_mu=cf.load_instance("mu.pkl")
 f_mu=[] #DP body force
 Q_array=[] #Total flow
 exc_solute=[] #Excess solute flow
-
+count = 0
 for bund in final_mu.simulations:
     
     #This is just to compute the excess of solute flux
     exc_sol_array=[]
-    count = 0
+    
     for sim in bund.simulations:
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
         J_s=n_s_array[count]/box_volume*vx_solu
