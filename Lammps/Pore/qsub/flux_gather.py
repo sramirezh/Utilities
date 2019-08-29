@@ -128,7 +128,8 @@ final_p=cf.load_instance("p.pkl")
 f_p=[] #Pressure body force
 exc_solute=[] #Excess solute flow
 Q_array=[] #Total flow
-n_s_array = []
+# TODO this is not the best way but as I did not measure the solutes in mu, I have to.
+n_s_dict = {} #Created a dictionary for the solutes for a given initial conf
 for bund in final_p.simulations:
     
     #Getting the applied forces
@@ -138,7 +139,9 @@ for bund in final_p.simulations:
     for sim in bund.simulations:
 
         n_solutes=sim.get_property('cSolu')[1][0][0]
-        n_s_array.append(n_solutes)
+        time = sim.param_value
+        if time not in n_s_dict.keys():
+            n_s_dict[time] = n_solutes
         n_solvents=sim.get_property('cSolv')[1][0][0]
         n_total=n_solutes+n_solvents
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
@@ -224,7 +227,9 @@ for bund in final_mu.simulations:
     
     for sim in bund.simulations:
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
-        J_s=n_s_array[count]/box_volume*vx_solu
+        time = sim.param_value
+        n_solutes = n_s_dict[time]
+        J_s=n_solutes/box_volume*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
         exc_sol_flux=J_s-cs_bulk*Q
         exc_sol_array.append(exc_sol_flux)
