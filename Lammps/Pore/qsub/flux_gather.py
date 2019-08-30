@@ -110,7 +110,7 @@ if not glob.glob("p.pkl"):
 
 ##The following two parameters are obtained from the knowledge of the bulk properties
 box_volume=8000 
-rho_bulk=0.752375
+rho_bulk= 0.752375
 cs_bulk=0.375332
 
 cf.set_plot_appearance()
@@ -157,7 +157,7 @@ for bund in final_p.simulations:
 # =============================================================================
 #   \Gamma_sq
 # =============================================================================
-grad_p=rho_bulk*np.array(f_p)  #Without the minus
+grad_p= np.array(f_p)  #Without the minus
 y=[i.n for i in exc_solute]
 y_error=[i.s for i in exc_solute]
 
@@ -170,7 +170,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{sq} flow is %s +/- %s"%(pfinal[0],error[0][0])
+print "The transport coefficient \Gamma_{sq} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_p=np.insert(grad_p,0,0)
 ax.plot(np.unique(grad_p),fitfunc1(pfinal,np.unique(grad_p)),linestyle='--')
 
@@ -185,7 +185,7 @@ plt.savefig('Gamma_sq.pdf')
 # =============================================================================
 #  \Gamma_qq
 # =============================================================================
-grad_p=rho_bulk*np.array(f_p)  #Without the minus
+grad_p=np.array(f_p)  #Without the minus
 y=[i[0] for i in Q_array]
 y_error=[i[1] for i in Q_array]
 
@@ -198,7 +198,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{qq} is %s +/- %s"%(pfinal[0],error[0][0])
+print "The transport coefficient \Gamma_{qq} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_p=np.insert(grad_p,0,0)
 ax.plot(np.unique(grad_p),fitfunc1(pfinal,np.unique(grad_p)),linestyle='--')
 
@@ -267,7 +267,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{qs} is %s +/- %s"%(pfinal[0],error[0][0])
+print "The transport coefficient \Gamma_{qs} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_mu=np.insert(grad_mu,0,0)
 ax.plot(np.unique(grad_mu),fitfunc1(pfinal,np.unique(grad_mu)),linestyle='--')
 
@@ -298,7 +298,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{ss} is %s +/- %s"%(pfinal[0],error[0][0])
+print "The transport coefficient \Gamma_{ss} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_mu=np.insert(grad_mu,0,0)
 ax.plot(np.unique(grad_mu),fitfunc1(pfinal,np.unique(grad_mu)),linestyle='--')
 
