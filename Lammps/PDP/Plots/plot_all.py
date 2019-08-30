@@ -80,13 +80,13 @@ def plot_results(all_data,interactions,theory=False):
         epsilon=float(cf.extract_digits(interaction)[0])
         sigma=float(cf.extract_digits(interaction)[1])
     
-        #Plotting the fitting curve
-        if epsilon==1.0 and sigma==1.0:
-            ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=colors[j],linestyle='--')
-        else:
-            ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=colors[j],linestyle='--')
-
-        color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
+#        #Plotting the fitting curve
+#        if epsilon==1.0 and sigma==1.0:
+#            ax.plot(np.unique(x),np.zeros(len(np.unique(x))),color=colors[j],linestyle='--')
+#        else:
+#            ax.plot(np.unique(x),fitfunc(pfinal,np.unique(x)),color=colors[j],linestyle='--')
+#
+#        color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
         
 
         ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o')
@@ -149,9 +149,9 @@ colors=['r','b','k','g']
 Starting the plot
 ###############################################################################
 """
+plt.close('all')
 
-
-interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
+interactions=[ r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 #interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 
 fig,ax=plot_results(all_data,interactions)
@@ -163,12 +163,16 @@ fig2,ax2=plot_results(all_data,interactions,True) #Including theoretical results
 # Adding the theoretical results
 # =============================================================================
 if args.theory==True:
+    L=ax2.legend()
+    
     theory_ads=cf.read_data_file("Theoretical_1.5.dat").values
     theory_dep=cf.read_data_file("Theoretical_0.5.dat").values
-    ax2.scatter(theory_ads[:,0],theory_ads[:,1],marker='v',color="blue",label=r'$R_h^K$')
+#    ax2.scatter(theory_ads[:,0],theory_ads[:,1],marker='v',color="blue",label=r'$R_h^K$')
+    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,2]),marker='x',color="red",label=' '+r'$\epsilon=0.5$')
     ax2.scatter(theory_ads[:,0],theory_ads[:,2],marker='x',color="blue",label=r'$R_h^{\lambda}$')
-    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,1]),marker='v',color="red",label=r'$R_h^K$')
-    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,2]),marker='x',color="red",label=r'$R_h^{\lambda}$')
+#    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,1]),marker='v',color="red",label=r'$R_h^K$')
+    
+    
     
 
 
@@ -222,10 +226,13 @@ ax2.set_xlim(0,70)
 ymin,ymax=ax2.get_ylim()
 deltay=ymax-ymin
 
-
 ax2.set_ylim(ymin,ymax+deltay*y2offset)
 
-ax2.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+#The original legend
+#ax2.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],frameon=True, fancybox=False, edgecolor='k',ncol=2)
+
+#Rewriting the legend
+ax2.legend(['Theo '+r'$\epsilon=0.5$','Theo '+r'$\epsilon=1.5$','Sim '+r'$\epsilon=0.5$','Sim '+r'$\epsilon=1.5$'],loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
            frameon=True, fancybox=False, edgecolor='k',ncol=2)
 
 
