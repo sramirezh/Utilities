@@ -12,6 +12,7 @@ import argparse
 import numpy as np
 from general_plotter import general_plotter,pre_processing
 import pandas as pd
+import Lammps.PDP.trajectory_analysis.first_n_analysis as fna
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -82,6 +83,32 @@ plt.legend(names,loc='upper_left')
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.set_xlim(0,ax.get_xlim()[1])
 plt.xticks(np.arange(0,14,2))
+
+
+# =============================================================================
+# Creating the insert
+# =============================================================================
+insert= True
+if insert == True:
+    rmin = 0.985
+    rmax = 2.5
+    potentials = fna.get_potentials(rmin,rmax,epsilon_lj=1)
+    left, bottom, width, height = [0.55, 0.25, 0.4, 0.30]
+    ax2 = fig.add_axes([left, bottom, width, height])
+    
+    ax2.set_ylabel(r'$V(r)$',fontsize =17, labelpad=-5)
+    ax2.set_xlabel(r'$r$' ,fontsize =17, labelpad=-5)
+    ax2.plot(potentials[:,0],potentials[:,1],label="SRLJ")
+    ax2.plot(potentials[:,0],potentials[:,2],label="LJ")
+    ax2.tick_params(axis='both', which='major', labelsize=14)
+    ax2.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+    
+    
+
+    
+    
+    
 fig.tight_layout()
-fig.savefig(args.plot_name)
-plt.show()
+fig.savefig(args.plot_name, transparent = True)
+#plt.show()
+
