@@ -81,15 +81,6 @@ if not glob.glob("mu.pkl"):
     final_mu.save("mu")
 
 
-
-
-
-
-
-
-
-
-
 ## =============================================================================
 ## Pressure simulations
 ## =============================================================================
@@ -128,7 +119,7 @@ final_p=cf.load_instance("p.pkl")
 f_p=[] #Pressure body force
 exc_solute=[] #Excess solute flow
 Q_array=[] #Total flow
-# TODO this is not the best way but as I did not measure the solutes in mu, I have to.
+# TODO this is not the best way but as I did not measure the solutes in mu, I have to.[NOW I DO]
 n_s_dict = {} #Created a dictionary for the solutes for a given initial conf
 for bund in final_p.simulations:
     
@@ -148,8 +139,14 @@ for bund in final_p.simulations:
         J_s=n_solutes/box_volume*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
         exc_sol_flux=J_s-cs_bulk*Q
+        sim.add_property('Q',Q)
+        sim.add_property('J_s',J_s)
+        sim.add_property('J_s_exc',exc_sol_flux)
+        
         
         exc_sol_array.append(exc_sol_flux)
+    
+    bund.add_upd_properties() # To update the bundle
     Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
     exc_solute.append(sum(exc_sol_array)/len(exc_sol_array))
     
@@ -233,6 +230,9 @@ for bund in final_mu.simulations:
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
         exc_sol_flux=J_s-cs_bulk*Q
         exc_sol_array.append(exc_sol_flux)
+        sim.add_property('Q',Q)
+        sim.add_property('J_s',J_s)
+        sim.add_property('J_s_exc',exc_sol_flux)
 
         
         count+=1
@@ -240,6 +240,7 @@ for bund in final_mu.simulations:
         
     
     #Getting the applied forces
+    bund.add_upd_properties() # To update the bundle
     f_mu.extend(bund.get_property('mu',exact=True)[1])
     Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
     exc_solute.append(sum(exc_sol_array)/len(exc_sol_array))
@@ -306,6 +307,27 @@ ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
 ax.set_ylabel(r'$J_s-c_s^BQ$')
 plt.tight_layout()
 plt.savefig('Gamma_ss.pdf')
+cf.save_instance(ax,"Gamma_ss")
 
 
 
+
+# =============================================================================
+# Plot all the times results
+# =============================================================================
+
+
+
+params_dict = {} #Created a dictionary for the times [times, Parameters]
+for bund in final_p.simulations:
+    
+    #Getting the applied forces
+    f_p.extend(bund.get_property('p',exact=True)[1])
+    #Getting the solute excess
+    for sim in bund.simulations:
+        time = sim.param_value
+        Q = sim.get_property('Q')[1][0][0]
+        if time not in params_dict.keys():
+            params_dict[time] = [[Q,Q]]
+        else:
+            params_dict[time].append([Q,Q])
