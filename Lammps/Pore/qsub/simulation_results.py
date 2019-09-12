@@ -21,10 +21,8 @@ import re
 from scipy import optimize
 import cPickle as pickle
 
-try:
-    from uncertainties import ufloat
-except ImportError as err2:
-    print err2
+import uncertainties as un
+
 
 cwd = os.getcwd() #current working directory
 
@@ -367,6 +365,7 @@ class check_n_analyse(object):
 class simulation(object):
     """
     Defines a generic class of simulation that has a characteristic parameter ex= time, Temperature, etc and then fills the instance with properties
+    Each property has to be saved as an array, if it has error, then the error should be the second, third or so entrance of the property. NO U
     """
     total = 0 #This is a class atribute
 
@@ -419,6 +418,9 @@ class simulation(object):
         """
         adding just one property this could be used to add number of particles, etc
         """
+        if isinstance(prop_value, un.UFloat):
+            prop_value=[prop_value.n,prop_value.s]
+            
         self.properties.append(prop_value)
         self.property_names.append(prop_name)
 
@@ -482,9 +484,9 @@ class simulation_bundle(simulation):
             for sim in self.simulations:
                 value=sim.get_property(prop,exact=True)[1][0]
                 if np.size(value)>1:  #Has error
-                    array.append(ufloat(value[0],value[1])) 
+                    array.append(un.ufloat(value[0],value[1])) 
                 else:
-                    array.append(ufloat(value,0))
+                    array.append(un.ufloat(value,0))
             ave=sum(array)/len(array)
             self.properties.append([ave.n,ave.s])
         
