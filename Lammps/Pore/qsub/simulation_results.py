@@ -474,12 +474,18 @@ class simulation_bundle(simulation):
         self.dictionary=dictionary
         
     def add_properties(self):
+        """
+        Adds or updates the properties based in the property names in the first simulation of the bundle
+        """
         
-        self.property_names.extend(self.simulations[-1].property_names)  #is this very Ugly?????
+        initial_n_properties = self.property_names
+        new_properties = self.simulations[-1].property_names
+        new_properties = [prop for prop in new_properties if prop not in self.property_names]
+        self.property_names.extend(new_properties)  #is this very Ugly?????
         
         #Now I will add the average with error
         
-        for prop in self.property_names:
+        for prop in new_properties:
             array=[]
             for sim in self.simulations:
                 value=sim.get_property(prop,exact=True)[1][0]
@@ -490,9 +496,10 @@ class simulation_bundle(simulation):
             ave=sum(array)/len(array)
             self.properties.append([ave.n,ave.s])
         
-        #Adding the property
-        self.property_names.insert(0,self.param_id)
-        self.properties.insert(0,self.param_value)
+        if len(initial_n_properties) == 0:
+            #Adding the property identifier
+            self.property_names.insert(0,self.param_id)
+            self.properties.insert(0,self.param_value)
             
             
     def plot_property(self,p_name,plot_name=None,x_name=None,y_name=None,fit=False):
