@@ -434,6 +434,7 @@ class simulation(object):
         index=cf.parameter_finder(self.property_names,name,exact=exact)
         prop_names=[]
         prop_values=[]
+        
         for i in index:
             prop_names.append(self.property_names[i])
             prop_values.append(self.properties[i])
@@ -470,15 +471,15 @@ class simulation_bundle(simulation):
         self.property_names=[]
         self.root=root
         #Ask Shaltiel if this is oK?
-        self.add_properties()
+        self.add_upd_properties()
         self.dictionary=dictionary
         
-    def add_properties(self):
+    def add_upd_properties(self):
         """
         Adds or updates the properties based in the property names in the first simulation of the bundle
         """
         
-        initial_n_properties = self.property_names
+        length_i = len(self.property_names)
         new_properties = self.simulations[-1].property_names
         new_properties = [prop for prop in new_properties if prop not in self.property_names]
         self.property_names.extend(new_properties)  #is this very Ugly?????
@@ -496,8 +497,9 @@ class simulation_bundle(simulation):
             ave=sum(array)/len(array)
             self.properties.append([ave.n,ave.s])
         
-        if len(initial_n_properties) == 0:
-            #Adding the property identifier
+        #Adding the property identifier
+        if length_i == 0:
+            
             self.property_names.insert(0,self.param_id)
             self.properties.insert(0,self.param_value)
             
@@ -519,6 +521,12 @@ class simulation_bundle(simulation):
         
         for sim in self.simulations:
             x.append(sim.param_value)
+            
+            values = sim.get_property(p_name,exact=True)[1]
+            if len(values) == 0:
+                print "The property does not exist"
+                return
+                
             values=sim.get_property(p_name,exact=True)[1][0]
             if np.size(values)>1: #Has error
                 y.append(values[0])
@@ -532,7 +540,8 @@ class simulation_bundle(simulation):
         
         #Checking if there are axis names
         if x_name==None:
-            ax.set_xlabel(self.property_names[1]) #The zeroth-property is the param_id
+            x_name = re.sub('_',' ',self.property_names[0])
+            ax.set_xlabel(x_name) #The zeroth-property is the param_id
         else:
             ax.set_xlabel(x_name)
         if y_name==None:

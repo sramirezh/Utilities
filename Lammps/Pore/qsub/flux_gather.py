@@ -77,7 +77,7 @@ dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$
 #If the object was not saved
 if not glob.glob("mu.pkl"):
     bundles_mu=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
-    final_mu=sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary=dictionary)
+    final_mu=sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary = dictionary)
     final_mu.save("mu")
 
 
@@ -95,7 +95,7 @@ dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$
 if not glob.glob("p.pkl"):
 
     bundles_p=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
-    final_p=sr.simulation_bundle(bundles_p,parameter_id,3,cwd,dictionary=dictionary)
+    final_p=sr.simulation_bundle(bundles_p,parameter_id,3,cwd,dictionary = dictionary)
     final_p.save("p")
 
 
@@ -108,6 +108,13 @@ cf.set_plot_appearance()
 
 
 
+# =============================================================================
+# Transport coefficients from GK
+# =============================================================================
+T_sq = 0.0601964
+T_qq = 0.3412958
+T_qs = 0.0594056
+T_ss = 0.0167278
 
 # =============================================================================
 # Calculations for the pressure driven flow
@@ -141,16 +148,17 @@ for bund in final_p.simulations:
         sim.add_property('J_s',J_s)
         sim.add_property('J_s_exc',exc_sol_flux)
         
-        #TODO once the final_p_simulation is an instance of the bundle class, create the time lines a method of the class
         
-        
-        #Creating the time lines, i,e parameters for each times
+#TODO once the final_p_simulation is an instance of the bundle class, create the time lines a method of the class
+# =============================================================================
+#         #Creating the time lines, i,e parameters for each times
+# =============================================================================
         time = sim.param_value
         
         if time not in p_params_dict.keys():
-            p_params_dict[time] = [[pressure_grad,Q,exc_sol_flux]]
+            p_params_dict[time] = [[pressure_grad,Q.n,exc_sol_flux.n]]
         else:
-            p_params_dict[time].append([pressure_grad,Q,exc_sol_flux])
+            p_params_dict[time].append([pressure_grad,Q.n,exc_sol_flux.n])
             
         
         
@@ -179,7 +187,7 @@ pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
 print "The transport coefficient \Gamma_{sq} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_p=np.insert(grad_p,0,0)
-ax.plot(np.unique(grad_p),fitfunc1(pfinal,np.unique(grad_p)),linestyle='--')
+ax.plot(np.unique(grad_p),fitfunc1(T_sq,np.unique(grad_p)),linestyle='--')
 
 
 
@@ -187,6 +195,18 @@ ax.set_xlabel(r'$-\nabla P$')
 ax.set_ylabel(r'$J_s-c_s^BQ$')
 plt.tight_layout()
 plt.savefig('Gamma_sq.pdf')
+
+
+# Plotting the time lines 
+
+for time in p_params_dict.keys():
+    data = np.array(p_params_dict[time])
+    ax.plot(data[:,0], data[:,2], alpha = 0.2)
+    ax.set_xlim(0,0.0011)
+    ax.set_ylim(0,0.00006)
+    
+plt.savefig('Gamma_sq_times.pdf')
+
 
 
 # =============================================================================
@@ -207,7 +227,7 @@ pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
 print "The transport coefficient \Gamma_{qq} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_p=np.insert(grad_p,0,0)
-ax.plot(np.unique(grad_p),fitfunc1(pfinal,np.unique(grad_p)),linestyle='--')
+ax.plot(np.unique(grad_p),fitfunc1(T_qq,np.unique(grad_p)),linestyle='--')
 
 
 
@@ -215,6 +235,16 @@ ax.set_xlabel(r'$-\nabla P$')
 ax.set_ylabel(r'$Q$')
 plt.tight_layout()
 plt.savefig('Gamma_qq.pdf')
+
+
+# Plotting the time lines 
+
+for time in p_params_dict.keys():
+    data = np.array(p_params_dict[time])
+    ax.plot(data[:,0], data[:,1], alpha = 0.2)
+    
+    
+plt.savefig('Gamma_qq_times.pdf')
 
 
 # =============================================================================
@@ -280,7 +310,7 @@ pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
 print "The transport coefficient \Gamma_{qs} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_mu=np.insert(grad_mu,0,0)
-ax.plot(np.unique(grad_mu),fitfunc1(pfinal,np.unique(grad_mu)),linestyle='--')
+ax.plot(np.unique(grad_mu),fitfunc1(T_qs,np.unique(grad_mu)),linestyle='--')
 
 
 ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
@@ -291,7 +321,7 @@ plt.savefig('Gamma_qs.pdf')
 
 
 # =============================================================================
-# \Gamma_{qq}
+# \Gamma_{ss}
 # =============================================================================
 y=[i.n for i in exc_solute]
 y_error=[i.s for i in exc_solute]
@@ -311,7 +341,7 @@ pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
 print "The transport coefficient \Gamma_{ss} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
 grad_mu=np.insert(grad_mu,0,0)
-ax.plot(np.unique(grad_mu),fitfunc1(pfinal,np.unique(grad_mu)),linestyle='--')
+ax.plot(np.unique(grad_mu),fitfunc1(T_ss,np.unique(grad_mu)),linestyle='--')
 
 ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
 ax.set_ylabel(r'$J_s-c_s^BQ$')
@@ -321,4 +351,25 @@ cf.save_instance(ax,"Gamma_ss")
 
 
 
+# =============================================================================
+# Peclet number computation
+# =============================================================================
 
+D = 0.066 # Diffusion coefficient
+L = 2
+pe_p = []
+for bund in final_p.simulations:
+    pe_p.append(bund.get_property('Q')[1][0][0]/D * L)
+    pe_p.sort()
+    
+    
+    
+    
+# =============================================================================
+# Peclet number computation
+# =============================================================================
+
+pe_mu = []
+for bund in final_mu.simulations:
+    pe_mu.append(bund.get_property('Q')[1][0][0]/D * L)
+    pe_mu.sort()
