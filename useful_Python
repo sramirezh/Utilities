@@ -1,1 +1,11 @@
 to see the __str__() method from one of the objects, use print(object_name)
+
+
+## To rewrite the legend of a figure
+in the example ax2 has 4 curves.
+ax2.legend(['hola','l',';o','poi'],loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+           frameon=True, fancybox=False, edgecolor='k',ncol=2)
+
+Also you can do this
+
+ax.lines[-1].set_label

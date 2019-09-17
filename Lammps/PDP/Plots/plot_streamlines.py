@@ -55,7 +55,7 @@ def semi_circle(origin,r):
 data=np.loadtxt("prof2d_vel.dat",skiprows=4)
 data_rho=np.loadtxt("prof2d_con.dat",skiprows=4)
 
-R_h = 4.67520164
+R_h = 3 #4.67520164
 print ("Remember to define the Hydrodynamic radius, at the moment it is %s")%R_h
 
 def data_contour(x,y,z):
