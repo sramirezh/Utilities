@@ -316,6 +316,16 @@ def load_instance(file_name):
 
     return instance
 
+def save_instance(instance, file_name):
+    """
+    Saves the instance 
+    args:
+        instance is the objet that is going to be saved, if it is for a plot, save the ax 
+    """
+    afile = open(r'%s.pkl'%file_name, 'wb')
+    pickle.dump(instance, afile)
+    afile.close()   
+
 
 def str2list(input):
     """
