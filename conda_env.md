@@ -25,3 +25,6 @@ conda env create -f environment.yml
 # To remove an environment
 
 conda remove --name myenv --all
+
+# when spyder does not start
+conda update python spyder
