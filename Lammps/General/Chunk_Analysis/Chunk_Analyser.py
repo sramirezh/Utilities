@@ -9,7 +9,7 @@ It generates a file "Averages.dat" that has the averages of all data and then if
 
 
 """
-from __future__ import division
+
 import os
 import sys
 import pandas as pd
@@ -34,7 +34,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 
 
@@ -51,11 +51,11 @@ def read_times(nmin):
     """
     times=np.sort(pd.read_csv("Times.dat",header=None).values,axis=0)
     if nmin<1:
-        print "Discarding %d%% of the timesteps for the analysis"%(int(nmin*100))
+        print("Discarding %d%% of the timesteps for the analysis"%(int(nmin*100)))
         discard=int(nmin*len(times))
         times=times[discard:]
     else: 
-        print "Discarding %d out of %d timesteps for the analysis" %(nmin,len(times))
+        print("Discarding %d out of %d timesteps for the analysis" %(nmin,len(times)))
         times=times[int(nmin):]
         
     return times
@@ -75,11 +75,11 @@ def get_zshift():
 def split_trajectory(split):
     
     if split==True:
-        print "\nSplitting the chunk series"
+        print("\nSplitting the chunk series")
         #make a general csplitter
         #out,err=cf.bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,file_name))
     else:
-        print "\nThe chunk file was not splitted"
+        print("\nThe chunk file was not splitted")
 
 
 def get_parameters():
@@ -95,9 +95,9 @@ def get_parameters():
     parameters=f.readlines()[2].split()
     f.close()
     parameters.remove("#")
-    print "The parameters are:\n"
+    print("The parameters are:\n")
     for f in parameters:
-        print f
+        print(f)
     return parameters
 
 """ main"""
@@ -137,21 +137,21 @@ Computing the averages and other parameters
 averages=np.zeros((n,m))
 averages[:,index_avoid]=data.values[:,index_avoid]
 
-print "\nGathering all the data\n"
+print("\nGathering all the data\n")
 
-for k in tqdm(xrange(x),file=sys.stdout): 
+for k in tqdm(range(x),file=sys.stdout): 
    # print("Reading configuration %d of %d" %(k,x-1))
     file_name=str(int(times[k]))+".chunk"
     data=pd.read_csv(file_name,sep=" ",header=None,skiprows=1).dropna(axis=1,how='all')
     data=data.values
-    for l in xrange(m): #Runs over the parameter
+    for l in range(m): #Runs over the parameter
         if l in index_stress:
             averages[:,l]=averages[:,l]-data[:,l]*data[:,index_density] #Stress per atom*mass/density
         elif l not in index_avoid:
             averages[:,l]=averages[:,l]+data[:,l]
 
 #Building the final array
-for i in xrange(m):
+for i in range(m):
     if i not in index_avoid:
         averages[:,i]=averages[:,i]/(x)
 

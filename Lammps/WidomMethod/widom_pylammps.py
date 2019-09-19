@@ -13,7 +13,7 @@ PENDING:
 """
 
 
-from __future__ import division
+
 from lammps import IPyLammps
 import numpy as np
 import argparse
@@ -116,7 +116,7 @@ def particle_insertion(initial,atom_type):
 
 def _method(initial,n_trials,atom_type):
     num_cores = multiprocessing.cpu_count()
-    Boltzmann=Parallel(n_jobs=num_cores,verbose=10)(delayed(particle_insertion)(initial,atom_type) for i in xrange(n_trials))
+    Boltzmann=Parallel(n_jobs=num_cores,verbose=10)(delayed(particle_insertion)(initial,atom_type) for i in range(n_trials))
     return Boltzmann
 
 
@@ -137,7 +137,7 @@ def visualise(initial, name="snapshot.png"):
     L.create_atoms(atom_type, "single %f %f %f"%(random_position(initial.box)))
     L.run(0)
     L.image(filename=name)
-    print "created a file called %s" %name
+    print("created a file called %s" %name)
     L.__del__()
     
 
@@ -179,7 +179,7 @@ class system(object):
         L.run(0)
         self.n_types=L.system.ntypes
         numbers=[]
-        for j in xrange(self.n_types):
+        for j in range(self.n_types):
             i=j+1
             L.command("group g%s type %s"%(i,i))
             L.variable('a%s equal count(g%s)'%(i,i))
@@ -208,11 +208,11 @@ class system(object):
         L.__del__()
         self.vol=(box[1]-box[0])*(box[3]-box[2])*(box[5]-box[4])
         self.box=box
-        print "\nFound a simulation box with volume=%f, a total of %d particles and %d species"%(self.vol,np.sum(self.natoms),self.n_types)
+        print("\nFound a simulation box with volume=%f, a total of %d particles and %d species"%(self.vol,np.sum(self.natoms),self.n_types))
         
         rho_vector=[]
         mu_id_vector=[]
-        for i in xrange(self.n_types):
+        for i in range(self.n_types):
             rho=(self.natoms[i]/self.vol)
             rho_vector.append(rho)
             mu_id_vector.append(mu_id(self.temperature,rho))
@@ -254,7 +254,7 @@ initial_system.get_properties()
 
 
 
-print "\nAnalysing the chemical potential for particles of species %d"%atom_type   
+print("\nAnalysing the chemical potential for particles of species %d"%atom_type)   
 Boltzmann=_method(initial_system,n_trials,atom_type)    
 
 
@@ -277,7 +277,7 @@ header="Number of particle insertions %s for species %s\n"%(n_trials,atom_type) 
 name="_%s_%s.log"%(n_trials,atom_type)
 np.savetxt(name,array,fmt="%3.12f",header=header)
 
-print "Created the file %s with all the information"%name
+print("Created the file %s with all the information"%name)
 
 #main()
 

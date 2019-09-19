@@ -20,7 +20,7 @@ Returns:
 
 @author: simon
 """
-from __future__ import division
+
 import numpy as np
 import pandas as pd
 import argparse
@@ -40,7 +40,7 @@ try:
     import matplotlib.pyplot as plt
 #    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
-    print err
+    print(err)
 
 
 """
@@ -118,7 +118,7 @@ def real_position(Data,L):
     """
     n,m=np.shape(Data)
     array=np.zeros((n,3))
-    for i in xrange(3):
+    for i in range(3):
         array[:,i]=Data[:,2+i]+Data[:,5+i]*L[i]
 
     return array
@@ -166,7 +166,7 @@ def radial_distribution(nbins,rmax,pos_sphere):
     bin_count=np.zeros((nbins,3))
     bin_ends=-rmax*np.cos(np.linspace(np.pi/2,np.pi,num=nbins+1))
     vol_old=0
-    for i in xrange(nbins):
+    for i in range(nbins):
         bin_count[i,0]=0.5*(bin_ends[i+1]+bin_ends[i]) #Count position in the middle of the bin
         if np.size(pos_sphere)==0:continue #To stop counting after there are no more particles
         rmax_bin=bin_ends[i+1]
@@ -202,15 +202,15 @@ def hydrodynamic_radius(pos):
     Returns the inverse of the hydrodynamic radius
     """
     n,m=np.shape(pos)
-    print n
+    print(n)
     if n==1: # For a monomer
 
         return 0
     else:
         dist=squareform(pdist(pos))
         inv_r=0
-        for i in xrange(n):
-            for j in xrange(i+1,n):
+        for i in range(n):
+            for j in range(i+1,n):
                 inv_r += 1./dist[i,j]
 
         inv_rh=2*inv_r/(n*n-1)
@@ -221,10 +221,10 @@ def hydrodynamic_radius(pos):
 def poly_analysis(file_name, split, n_bins=10, n_min=0):
 
     if split==True:
-        print "\nSplitting the trajectory file"
+        print("\nSplitting the trajectory file")
         out,err=cf.bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,file_name))
     else:
-        print "The Trajectory file was not splitted"
+        print("The Trajectory file was not splitted")
 
     trajectory_analysis(file_name,n_bins,n_min)
 
@@ -251,10 +251,10 @@ def trajectory_analysis(file_name,n_bins,n_min):
 
     dist_vect=[]
     counter=0
-    for k in xrange(n_min,x): #Runs over the sampled times.
-        print("Reading configuration %d of %d" %(k,x-1))
+    for k in range(n_min,x): #Runs over the sampled times.
+        print(("Reading configuration %d of %d" %(k,x-1)))
         file_name=str(int(times[k]))+".cxyz"
-        print file_name
+        print(file_name)
         Data=cf.read_data_file(file_name).values
         n,m=Data.shape
         pos=real_position(Data,L) #Real positions of all the atoms
@@ -413,7 +413,7 @@ if __name__ == "__main__":
         matplotlib.use('agg')
         import matplotlib.pyplot as plt
     except ImportError as err:
-        print err
+        print(err)
 
 
     parser = argparse.ArgumentParser(description='This script evaluates the trajectory file of a polymer',formatter_class=argparse.ArgumentDefaultsHelpFormatter)

@@ -89,10 +89,10 @@ def parameter_finder(target_list, search_list, msgflag=False,exact=False):
             s=str(s)
             for cont,t in enumerate(target_list):
                 if exact==False and s in t:
-                    print(s,t)
+                    print((s,t))
                     indexes.append(cont)
                 elif exact==True and s==t:
-                    print(s,t)
+                    print((s,t))
                     indexes.append(cont)
 
     
@@ -303,7 +303,7 @@ def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
     s.writelines(lines)
     s.close()
     
-    print("Modified the file %s"%(file_name.split('/')[-1]))
+    print(("Modified the file %s"%(file_name.split('/')[-1])))
 
 
 def load_instance(file_name):

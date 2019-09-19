@@ -59,10 +59,10 @@ gamma=Integrate(Data[:,0],gamma_integrand,xmin,xmax)
 ls=(Integrate(Data[:,0],ls_integrand,xmin,xmax)/gamma)
 
 
-print "Gamma %lf"%gamma
+print("Gamma %lf"%gamma)
 
-print "Legth %lf"%ls
-print "Bulk Concentration %lf" %bc
+print("Legth %lf"%ls)
+print("Bulk Concentration %lf" %bc)
 
 1
 #Test
@@ -72,8 +72,8 @@ gamma_test=Integrate(Data[:,0],gamma_test_integrand,xmin,xmax)
 ls_integrand_test=(Data[:,2]/bc-1.0)*Data[:,0]
 ls_test=(Integrate(Data[:,0],ls_integrand_test,xmin,xmax)/gamma_test)
 
-print "Gamma_test %lf"%gamma_test
-print "ls_test %lf"%ls_test
+print("Gamma_test %lf"%gamma_test)
+print("ls_test %lf"%ls_test)
 
 #Values for N_30 E_1.5_1.5
 
@@ -86,7 +86,7 @@ viscosity=2.061 #from Molecular Dynamics Study of the Lennard-Jones Fluid Viscos
 2
 mobility_theo=bc*gamma*(ls+k**0.5)/viscosity
 mob_test=-bc*gamma_test*(ls_test+k**0.5)/viscosity
-print "mobility theo %lf %lf"%(mobility_theo,mob_test)
+print("mobility theo %lf %lf"%(mobility_theo,mob_test))
 
 
 

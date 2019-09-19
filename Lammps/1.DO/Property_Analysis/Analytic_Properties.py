@@ -43,7 +43,7 @@ BulkMin=15
 BulkMax=25
 BulkC=0
 cont=0
-for i in xrange(n):
+for i in range(n):
     if (Concentration[i,0]>=BulkMin and Concentration[i,0]<BulkMax):
         cont=cont+1
         BulkC=BulkC+Concentration[i,1]
@@ -96,7 +96,7 @@ Kdo=Integrate(Concentration[:,0],IntegrandKdo,xmin,xmax)/etha
 IntegrandVb=(BulkC-Concentration[:,1])*Concentration[:,0]
 Vb=Integrate(Concentration[:,0],IntegrandVb,xmin,xmax)*0.063
 
-print Vb
+print(Vb)
 
 
 #

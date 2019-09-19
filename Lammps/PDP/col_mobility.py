@@ -6,7 +6,7 @@ Estimates the velocity using Sharifi-Mood
 a is the particle radius
 @author: sr802
 """
-from __future__ import division
+
 import numpy as np
 import matplotlib.pyplot as plt
 

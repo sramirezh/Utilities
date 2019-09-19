@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Functions import statistics, blocking
+from .Functions import statistics, blocking
     
 data=np.loadtxt("data")
 n,m=np.shape(data)
@@ -9,7 +9,7 @@ Results=np.zeros((MaxIter,3*m))
 Error=np.zeros((MaxIter,m))
 
 
-for j in xrange(m):
+for j in range(m):
     i=0
     diff=1
     data1=data
@@ -21,7 +21,7 @@ for j in xrange(m):
             diff=Error[i,j]-Error[i-1,j]
         i+=1
 
-for i in xrange(m):
+for i in range(m):
     plt.plot(Error[:np.max(np.nonzero(Error[:,i])),i],'o-',label='$U_{%s}$' %i )
     plt.plot()
 plt.legend(loc=2)
@@ -30,6 +30,6 @@ plt.ylabel("$\sigma$",fontsize=20)
 plt.show()
 Nonblock=statistics(data)
 print("Blocking analysis")
-for i in xrange(m):
-    print(Error[np.max(np.nonzero(Error[:,i]))-1,i])
-print("Non Blocking Results",Nonblock[m:2*m])
+for i in range(m):
+    print((Error[np.max(np.nonzero(Error[:,i]))-1,i]))
+print(("Non Blocking Results",Nonblock[m:2*m]))

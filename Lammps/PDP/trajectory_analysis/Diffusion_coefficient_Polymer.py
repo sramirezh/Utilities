@@ -6,7 +6,7 @@ This scripts reads the pos.dat that contains the cm positions of a polymer and c
 @author: sr802
 """
 
-from __future__ import division
+
 import numpy as np
 import os
 import sys
@@ -23,7 +23,7 @@ import multiprocessing
 try:
     from uncertainties import unumpy,ufloat
 except ImportError as err2:
-    print err2
+    print(err2)
 import Others.Statistics.FastAverager as stat
 
 
@@ -121,10 +121,10 @@ def compute_diffusion_coefficient(input_file,delta_t,initial_index,final_ratio,s
     
     
     num_cores = multiprocessing.cpu_count()
-    msd=Parallel(n_jobs=num_cores)(delayed(compute_one_msd)(pos,i+1,"single") for i in tqdm(xrange(max_delta)))
+    msd=Parallel(n_jobs=num_cores)(delayed(compute_one_msd)(pos,i+1,"single") for i in tqdm(range(max_delta)))
     
     D_inst=[] #Array with the instantaneous diffusion coefficient
-    for i in xrange(max_delta):
+    for i in range(max_delta):
         dt=times[i]
         t.append(dt)
         D_inst.append(msd[i]/dt/(2*3))
@@ -145,7 +145,7 @@ def compute_diffusion_coefficient(input_file,delta_t,initial_index,final_ratio,s
     
     plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal,D)
     
-    print "The diffusion coefficient is %s +/- %s"%(D,D_err)
+    print("The diffusion coefficient is %s +/- %s"%(D,D_err))
     f=open("Diffusion.out",'w')
     f.write("The diffusion coefficient is %s +/- %s \n"%(D,D_err))
     f.close
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         matplotlib.use('agg')
         import matplotlib.pyplot as plt
     except ImportError as err:
-        print err
+        print(err)
 
 
     parser = argparse.ArgumentParser(description='This script computes the diffusion coefficient of the center of a point particle',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     initial_index=args.initial_index
     final_ratio=args.final_ratio
     step=args.step
-    print "\nAssuming that the time step is %s"%delta_t
+    print("\nAssuming that the time step is %s"%delta_t)
     compute_diffusion_coefficient(input_file,delta_t,initial_index,final_ratio,step)
 
 

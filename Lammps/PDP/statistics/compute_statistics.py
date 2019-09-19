@@ -51,12 +51,12 @@ def gather_statistics(directories):
         f.write(directory+"\n")        
         
         os.chdir(directory)
-        print os.getcwd()
-        print directory
+        print(os.getcwd())
+        print(directory)
         forces=glob.glob("dDP*")
-        forces.sort(key=lambda f: int(filter(str.isdigit, f)))
+        forces.sort(key=lambda f: int(list(filter(str.isdigit, f))))
         for force in forces:
-            print force
+            print(force)
             f.write("\n"+force+"\n")
             os.chdir(force)
                 
@@ -86,15 +86,15 @@ def check_terminated_simulation(force):
     counter=1
     os.chdir("%s"%(force))
     if os.path.isfile("vdata.dat")==False:
-        print "The simulation crashed before starting"
+        print("The simulation crashed before starting")
         counter=0
     else:
         tail=cf.bash_command("""tail -1 vdata.dat""")
         if "Total wall" in tail:
-            print"This simulation terminated"
+            print("This simulation terminated")
         else:
             last_step=cf.extract_digits(tail[0])[0]
-            print "This simulation stoped at %s" %last_step
+            print("This simulation stoped at %s" %last_step)
     os.chdir("../")
     return counter
     
@@ -105,12 +105,12 @@ def filter_directories(directories):
     os.chdir(cwd)
     
     for directory in directories:
-        print directory
+        print(directory)
         os.chdir(directory)
         forces=glob.glob("dDP*")
         forces_finished=1
         for force in forces:
-            print force
+            print(force)
             forces_finished*=check_terminated_simulation(force)
         if forces_finished==0:
             directories.remove(directory)
@@ -183,7 +183,7 @@ def compute_statistics(directories, dmin):
     Parallel(n_jobs=num_cores,verbose=10)(delayed(run_analysis)(param[0], param[1],dmin) for param in parameters)
     
 
-    print "This is the time in paralell %f" %(time.time()-t)
+    print("This is the time in paralell %f" %(time.time()-t))
     
     gather_statistics(directories)
     

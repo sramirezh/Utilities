@@ -19,7 +19,7 @@ import numpy as np
 import copy
 import re
 from scipy import optimize
-import cPickle as pickle
+import pickle as pickle
 
 import uncertainties as un
 
@@ -64,15 +64,15 @@ def check_terminated_simulation(folder_name):
     cwd=os.getcwd()
     os.chdir(folder_name)
     if os.path.isfile("log.lammps")==False:
-        print "The simulation crashed before starting, as there is no log.lammpsd"
+        print("The simulation crashed before starting, as there is no log.lammpsd")
         counter=0
     else:
         tail,error=cf.bash_command("""tail -2 log.lammps""")
         if "Total wall" in tail:
-            print"This simulation terminated"
+            print("This simulation terminated")
         else:
             last_step=cf.extract_digits(tail)
-            print "This simulation stoped at %s" %last_step[0]
+            print("This simulation stoped at %s" %last_step[0])
     os.chdir(cwd)
     return counter
 
@@ -84,7 +84,7 @@ def check_terminated_by_file(file_name):
     """
     counter=1
     if not os.path.exists(file_name):
-        print("The file %s does not exist!" % file_name)
+        print(("The file %s does not exist!" % file_name))
         counter=0
     
     return counter
@@ -102,7 +102,7 @@ def filter_directories(folders,key_file):
     os.chdir(cwd)
     directories=copy.copy(folders)
     for directory in folders:
-        print '\n%s' %directory
+        print('\n%s' %directory)
         finished=1
         finished*=check_terminated_simulation(directory)
         finished*=check_terminated_by_file(directory+'/'+key_file)
@@ -176,7 +176,7 @@ def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
         
         t=float(os.path.split(directory)[-1])
         times.append(simulation("time",t))
-        print os.path.split(directory)[-1]
+        print(os.path.split(directory)[-1])
         
         properties=read_properties(directory,files)
         times[-1].add_properties(properties)
@@ -265,7 +265,7 @@ def gather_statistics(directories,folder_name,root,files=["statistics.dat","ther
         dir_array=[]
         dir_array.append([folder_name,os.path.split(directory)[-1]])
         
-        print os.path.split(directory)[-1]
+        print(os.path.split(directory)[-1])
         os.chdir(cwd)
         f.write( "############################################################################\n")
         f.write(directory.split('/')[-1]+"\n")        
@@ -316,7 +316,7 @@ class check_n_analyse(object):
         #self.log_file = open("log_analysis")
 
     def check_finished(self,finished_marker):
-        print "\nChecking if the simulations finished with %s\n"%finished_marker
+        print("\nChecking if the simulations finished with %s\n"%finished_marker)
         self.dir_fin=filter_directories(self.directories,finished_marker)
     
     def check_stat(self,stat_markers):
@@ -329,7 +329,7 @@ class check_n_analyse(object):
         self.dir_stat = []  #Folders that require analysis
         self.stat_markers = cf.str2list(stat_markers)
         for i,fil in enumerate(self.stat_markers):
-            print "\nChecking if the statistics finished with %s\n"%fil
+            print("\nChecking if the statistics finished with %s\n"%fil)
             f_to_analyse = (filter_directories(self.dir_fin,fil))
             self.dir_stat.append([x for x in self.dir_fin if x not in f_to_analyse ])
     
@@ -343,7 +343,7 @@ class check_n_analyse(object):
         self.dir_thermo = []
         self.thermo_markers = cf.str2list(thermo_markers)
         for i,fil in enumerate(self.thermo_markers):
-            print "\nChecking if the statistics finished with %s\n"%fil
+            print("\nChecking if the statistics finished with %s\n"%fil)
             f_to_analyse = (filter_directories(self.dir_fin,fil))
             self.dir_thermo.append([x for x in self.dir_fin if x not in f_to_analyse ])
     
@@ -508,7 +508,7 @@ class simulation_bundle(simulation):
         """
         Could be extended to plot agains any parameter
         """
-        print "%s/plots_%s/"%(self.root,self.param_id)
+        print("%s/plots_%s/"%(self.root,self.param_id))
         directory="%s/plots_%s/"%(self.root,self.param_id)
         if not os.path.exists(directory):
             os.mkdir(directory)
@@ -524,7 +524,7 @@ class simulation_bundle(simulation):
             
             values = sim.get_property(p_name,exact=True)[1]
             if len(values) == 0:
-                print "The property does not exist"
+                print("The property does not exist")
                 return
                 
             values=sim.get_property(p_name,exact=True)[1][0]
@@ -546,7 +546,7 @@ class simulation_bundle(simulation):
             ax.set_xlabel(x_name)
         if y_name==None:
 
-            if p_name in self.dictionary.keys():
+            if p_name in list(self.dictionary.keys()):
                 y_name=self.dictionary[p_name]
             else:
                 y_name=re.sub('_',' ',p_name)
@@ -558,7 +558,7 @@ class simulation_bundle(simulation):
         if fit==True and np.size(values)>1: #Has error
             #Same procedure as in statistic_parameters.py
             pinit=[1.0]
-            print x,y,y_error
+            print(x,y,y_error)
             out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
             pfinal = out[0] #fitting coefficients
             x=np.insert(x,0,0)
@@ -576,7 +576,7 @@ class simulation_bundle(simulation):
         for i,prop in enumerate(self.simulations[-1].property_names):
             
             if prop!="time" and i>0:
-                print "\ncreating the plot of %s"%prop
+                print("\ncreating the plot of %s"%prop)
                 self.plot_property(prop)
 
     

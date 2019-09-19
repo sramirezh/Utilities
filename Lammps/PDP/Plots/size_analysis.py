@@ -12,7 +12,7 @@ import sys
 import os
 import argparse
 import numpy as np
-from general_plotter import pre_processing, general_plotter
+from .general_plotter import pre_processing, general_plotter
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -26,7 +26,7 @@ try:
     import warnings
     warnings.filterwarnings("ignore")
 except ImportError as err:
-    print err
+    print(err)
 
 parser = argparse.ArgumentParser(description='This script plots the method files',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))

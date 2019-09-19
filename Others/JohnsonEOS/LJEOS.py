@@ -90,7 +90,7 @@ def pressure(rho,T):
     A=a(T)
     B=b(T)
     F=funcF(rho)
-    for i in xrange(8):
+    for i in range(8):
         sum1=sum1+A[i]*rho**((i+1)+1)
         if i<6:
             sum2=sum2+B[i]*rho**(2*(i+1)+1)
@@ -110,7 +110,7 @@ def free_energy(rho,T):
     A=a(T)
     B=b(T)
     G=funcG(rho)
-    for i in xrange(8):
+    for i in range(8):
         sum1=sum1+A[i]*rho**((i+1))/(i+1)
         if i<6:
             sum2=sum2+B[i]*G[i]
@@ -146,7 +146,7 @@ def main():
     
     p_vect=[]
     mu_ex_vect=[]
-    for i in xrange(np.size(rho_vect)):
+    for i in range(np.size(rho_vect)):
         p_vect.append(pressure(rho_vect[i],T))
         mu_ex_vect.append(mu_ex(rho_vect[i],T))
     

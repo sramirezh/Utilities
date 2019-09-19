@@ -5,8 +5,8 @@ Created on Mon May 27 17:48:19 2019
 
 This is a modification of the class created by Raman Ganti
 """
-from __future__ import division
-from __future__ import print_function
+
+
 
 import os
 import glob

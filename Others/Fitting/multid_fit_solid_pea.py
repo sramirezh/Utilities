@@ -88,7 +88,7 @@ def plot_slices():
     
     os.mkdir(dir_name)
     slices=np.unique(y_p)
-    print "\nPerforming the Pressure slices\n"
+    print("\nPerforming the Pressure slices\n")
     for i,sli in enumerate(slices):
         
         fig3=plt.figure()
@@ -109,7 +109,7 @@ def plot_slices():
     
     
     slices=np.unique(y_e)
-    print "\nPerforming the Energy slices\n"
+    print("\nPerforming the Energy slices\n")
     for i,sli in enumerate(slices):
         
         fig3=plt.figure()
@@ -130,7 +130,7 @@ def plot_slices():
     os.mkdir(dir_name)
     
     slices=np.unique(y_a)
-    print "\nPerforming the Free energy slices\n"
+    print("\nPerforming the Free energy slices\n")
     for i,sli in enumerate(slices):
         
         fig3=plt.figure()
@@ -241,7 +241,7 @@ class polynomial(object):
                 coeff_m=coeff(self.func_coeff[1],m)
                 x_exp=coeff(self.func_exp[0],n)
                 y_exp=coeff(self.func_exp[1],m)
-                print '%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp)
+                print('%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp))
                 
 #    def print_initial_msg(self):
 #        print "The exponents in x are:%s" %self.exponents[0]
@@ -387,7 +387,7 @@ def fit_poly(x,y,z,zerr,poly):
     """
     ndim,mdim=poly.dim
     variables=np.stack((x,y),axis=0)
-    print np.shape(variables)
+    print(np.shape(variables))
     popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],poly], z, sigma=zerr,p0=[0]*ndim*mdim)
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
@@ -460,7 +460,7 @@ def arbitrary_poly_check(data, *params):
             else: 
                 x_exp=coeff(poly.func_exp[0],n)
                 y_exp=coeff(poly.func_exp[1],m)
-                print params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp)
+                print(params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp))
                 function+=params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp)
     return function
 
@@ -501,11 +501,11 @@ def fit_sum_poly(x,y,z,zerr,poly):
 
 def outputs(popt_matrix,pcov,e_results,n,m,name):
     
-    print "\nCreated coefficients.dat containing all the fitting coefficients"
+    print("\nCreated coefficients.dat containing all the fitting coefficients")
     np.savetxt('coefficients_%s.dat'%name,popt_matrix)
-    print "\nCreated covariant.dat with the covariant matrix of the fitting"
+    print("\nCreated covariant.dat with the covariant matrix of the fitting")
     np.savetxt('covariant.dat', pcov)
-    print "\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points"
+    print("\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points")
     header='%s\t%s_predicted\trelative_error\trho*\tbeta*'%(name,name)
     np.savetxt('error_%s.dat'%name,e_results, header=header,fmt='%12.8f')
 
@@ -524,7 +524,7 @@ def test_prediction(popt,variables,z,poly,ref_prop):
     z_predict=[]
     popt=np.reshape(popt,(np.size(popt)))
     
-    for i in xrange(n_point):
+    for i in range(n_point):
         if np.size(poly)==1:
             z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
         else:
@@ -672,8 +672,8 @@ poly_a=polynomial(deg_x,deg_y,[1],[1],[1,0],[1,0])
 
 
 
-print "rho_ref = %s"%rho_ref
-print "beta_ref = %s"%beta_ref
+print("rho_ref = %s"%rho_ref)
+print("beta_ref = %s"%beta_ref)
 
 # =============================================================================
 #     #Reading the data for the pressure
@@ -816,7 +816,7 @@ fig3.savefig("3Dplot_a.pdf")
 # #    Single Fitting
 # =============================================================================
 
-print "\nPerforming the single fitting\n"
+print("\nPerforming the single fitting\n")
 popt1,pcov1,variables1=fit_sum_poly(x_p,y_p,z_p,zerr_p,poly_p)
 single_results_p=test_prediction(popt1,variables1,z_p,poly_p,p_ref)
 

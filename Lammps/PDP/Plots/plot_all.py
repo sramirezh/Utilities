@@ -8,7 +8,7 @@ in the options you can decide to plot all the dat files or just the ones you dec
 Still have to add the interactions by hand in the interactions array
 @author: sr802
 """
-from __future__ import division
+
 import argparse
 import pandas as pd
 import numpy as np
@@ -31,7 +31,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 """
 *******************************************************************************
@@ -95,9 +95,9 @@ def plot_results(all_data,interactions,theory=False):
         Printing the fitting factors and their errors
         """
     
-        print "For epsilon=%s and sigma=%s" %(epsilon,sigma)
-        print "The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1]))
-        print "The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0]))
+        print("For epsilon=%s and sigma=%s" %(epsilon,sigma))
+        print("The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1])))
+        print("The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0])))
         
         
     return fig,ax
@@ -134,7 +134,7 @@ for f in dat_files:
     """
     Inserts the data from the files in order based on the length of the polymer.
     """
-    print "reading file %s \n"%f
+    print("reading file %s \n"%f)
     length=int(cf.extract_digits(f)[0])
     position=bisect.bisect(lengths,length)
     lengths.insert(position,length)

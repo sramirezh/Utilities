@@ -17,9 +17,9 @@ x=np.size(Times)
 
 #Opening the first array
 data=np.loadtxt("full-mean."+str(int(Times[x-N])))
-for k in xrange(x-N+1,x): #Runs over the sampled times.
+for k in range(x-N+1,x): #Runs over the sampled times.
                
-    print("Reading configuration %d of %d" %(k,x-1))
+    print(("Reading configuration %d of %d" %(k,x-1)))
     #Reading the Results 
     name="full-mean."+str(int(Times[k]))
     array=np.loadtxt(name)

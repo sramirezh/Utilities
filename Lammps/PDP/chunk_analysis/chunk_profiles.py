@@ -6,7 +6,7 @@ Created on Mon Jul  2 13:47:42 2018
 @author: sr802
 """
 
-from __future__ import division
+
 import numpy as np
 import pandas as pd
 import argparse
@@ -21,7 +21,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 
 

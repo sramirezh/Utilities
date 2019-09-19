@@ -7,7 +7,7 @@ Estimates the velocity only using the concentration profile.
 Define Viscosity
 @author: sr802
 """
-from __future__ import division
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -70,7 +70,7 @@ def plots(indexes,data,data_limit,y,c_excess):
     
     """Plot Solute concentration"""
     fig,ax=plt.subplots()
-    print data_limit
+    print(data_limit)
     ax.set_xlim(0,data_limit)
     ax.plot(data[indexes,1],data[indexes,3])
     ax.set_xlabel(r'$r[\sigma] $')
@@ -96,7 +96,7 @@ def plots(indexes,data,data_limit,y,c_excess):
 
 
 
-print "Remember to define the viscosity, box_size,Rh..."
+print("Remember to define the viscosity, box_size,Rh...")
 
 
 
@@ -114,5 +114,5 @@ mu=1.2
 T=0.845
 
 U_0,K,H,U=velocity_colloid(a,T,mu, box_size,alpha)
-print U_0,K,H,U
+print(U_0,K,H,U)
 

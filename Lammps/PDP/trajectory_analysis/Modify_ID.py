@@ -37,7 +37,7 @@ file=open(file_name,'r')
 content=file.read()
 file.close()
 
-print 
+print() 
 initial=1
 final=int(linecache.getline(file_name, 4))
 

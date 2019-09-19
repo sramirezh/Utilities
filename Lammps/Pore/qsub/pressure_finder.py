@@ -12,7 +12,7 @@ import numpy as np
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import shutil
-from simulation_utilities import simulation
+from .simulation_utilities import simulation
 import argparse
 
 cwd = os.getcwd() #current working directory
@@ -84,5 +84,5 @@ if __name__ == "__main__":
     parser.add_argument('-keep_qsub',metavar='keep_qsub ',help='keeping the qsub from template',default=True,type=cf.str2bool)
     args = parser.parse_args()
 
-    print args.keep_qsub
+    print(args.keep_qsub)
     main(args.name_folder,args.root,args.template,args.n_simulations,args.limits,args.keep_qsub)

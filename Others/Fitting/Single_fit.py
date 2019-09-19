@@ -117,7 +117,7 @@ def build_example_grid(n_points=20):
     
     z=p_known(x,y)
     zerr= np.random.rand(*np.shape(x))
-    print np.shape(x),np.shape(y),np.shape(z),np.shape(zerr)
+    print(np.shape(x),np.shape(y),np.shape(z),np.shape(zerr))
     
     
     data=np.column_stack([x.flatten(),y.flatten(),z.flatten(),zerr.flatten()])
@@ -190,7 +190,7 @@ def test_prediction(popt,variables,z,poly):
     m,n_point=np.shape(variables)
     z_predict=[]
     popt=np.reshape(popt,(np.size(popt)))
-    for i in xrange(n_point):
+    for i in range(n_point):
         z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
     z_predict=np.array(z_predict)
 
@@ -201,11 +201,11 @@ def test_prediction(popt,variables,z,poly):
 
 def outputs(popt_matrix,pcov,error,n,m):
     
-    print "\nCreated coefficients.dat containing all the fitting coefficients"
+    print("\nCreated coefficients.dat containing all the fitting coefficients")
     np.savetxt('coefficients.dat', popt_matrix)
-    print "\nCreated covariant.dat with the covariant matrix of the fitting"
+    print("\nCreated covariant.dat with the covariant matrix of the fitting")
     np.savetxt('covariant.dat', pcov)
-    print "\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points"
+    print("\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points")
     np.savetxt('error.dat',error)
     
 #def coefficient_guide(n,m,exclude_n,exclude_m):
@@ -254,9 +254,9 @@ def fit_poly(x,y,z,zerr,poly):
 # =============================================================================
 
 def print_initial_msg(poly):
-    print '\nRunning the script assuming:'
-    print "The exponents in rho are:%s" %poly.exponents[0]
-    print "The exponents in beta are:%s" %poly.exponents[1]
+    print('\nRunning the script assuming:')
+    print("The exponents in rho are:%s" %poly.exponents[0])
+    print("The exponents in beta are:%s" %poly.exponents[1])
     
 def main(input_file,rho_ref,beta_ref,deg_x,deg_y,exc_x,exc_y):
     
@@ -264,8 +264,8 @@ def main(input_file,rho_ref,beta_ref,deg_x,deg_y,exc_x,exc_y):
     poly=polynomial(deg_x,deg_y,exc_x,exc_y)
     print_initial_msg(poly)
     
-    print "rho_ref = %s"%rho_ref
-    print "beta_ref = %s"%beta_ref
+    print("rho_ref = %s"%rho_ref)
+    print("beta_ref = %s"%beta_ref)
     
     global x,y,z,z_mesh,popt,new_poly
     x,y,z, zerr=read_data(

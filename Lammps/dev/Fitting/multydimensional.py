@@ -33,8 +33,8 @@ def arbitrary_poly(point, *params):
     dim=int(np.sqrt(np.size(params)))
     params=np.reshape(params,(dim,dim))
     poly=0
-    for i in xrange(dim):
-        for j in xrange(dim):
+    for i in range(dim):
+        for j in range(dim):
             poly+=params[i,j]*x**i*y**j
             
     return poly
@@ -57,7 +57,7 @@ popt_matrix=np.reshape(popt,((d+1),(d+1)))
 #Analizing the estimation
 
 z_predict=[]
-for i in xrange(n_points):
+for i in range(n_points):
     z_predict.append(arbitrary_poly(variables[:,i],popt))
 
 diff=z-z_predict

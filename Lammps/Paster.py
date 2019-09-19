@@ -19,8 +19,8 @@ data=np.loadtxt(sys.argv[1])
 #data[:,3]=-data[:,3] #To correct the sign change just in the first Bocquet simulation
 
 
-for i in xrange(2,Ninputs):
-    print i
+for i in range(2,Ninputs):
+    print(i)
     array=np.loadtxt(sys.argv[i])
     data[:,2::]=data[:,2::]+array[:,2::]
 

@@ -7,7 +7,7 @@ TODO optimise and simplify
 @author: sr802
 """
 
-from __future__ import division
+
 import numpy as np
 import os
 import sys
@@ -16,13 +16,13 @@ import Lammps.core_functions as cf
 import Lammps.Pore.qsub.simulation_results as sr
 import glob
 
-from flux_correlation import flux, correlation
+from .flux_correlation import flux, correlation
 
 
 try:
     from uncertainties import unumpy,ufloat
 except ImportError as err2:
-    print err2
+    print(err2)
 
 
 # Put this inside the argparser
@@ -31,7 +31,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 cwd = os.getcwd() #current working directory
 
@@ -187,8 +187,8 @@ prep_results.check_stat("c11.pkl") #Assuming that if the first correlation is no
 finished_directories=prep_results.dir_fin
 unfinished_correlation=prep_results.dir_stat
 
-print "\nFinished directories %s\n"%finished_directories
-print "\nUnfinished correlations in %s\n"%unfinished_correlation 
+print("\nFinished directories %s\n"%finished_directories)
+print("\nUnfinished correlations in %s\n"%unfinished_correlation) 
 
 
 # Array with the total correlations
@@ -202,14 +202,14 @@ if len(glob.glob('c1*'))<1:
     for folder in finished_directories:
         #When Correlation still need to be run 
         #TODO change this to just gathering the results
-        print "Now in folder %s\n"%folder
+        print("Now in folder %s\n"%folder)
         
         if folder in unfinished_correlation[0]:
-            print "Running the correlation analysis in %s\n"%folder
+            print("Running the correlation analysis in %s\n"%folder)
             c11,c12,c21,c22=run_correlation_analysis(folder,input_file, delta_t)
         
         else:
-            print "Loading the results in %s\n"%folder
+            print("Loading the results in %s\n"%folder)
             c11,c12,c21,c22=load_correlations(folder)
             
         c11_array.append(c11.cor[-1])
@@ -334,10 +334,10 @@ V = 20**3 # Simulation box volume
 
 #Todo, this could be added to each integral
 
-print "The c11 is %s\n" %c11.transport_coeff(1,V,0,xmax)
-print "The c12 is %s\n" %c12.transport_coeff(1,V,0,xmax)
-print "The c21 is %s\n" %c21.transport_coeff(1,V,0,xmax)
-print "The c22 is %s\n" %c22.transport_coeff(1,V,0,xmax)
+print("The c11 is %s\n" %c11.transport_coeff(1,V,0,xmax))
+print("The c12 is %s\n" %c12.transport_coeff(1,V,0,xmax))
+print("The c21 is %s\n" %c21.transport_coeff(1,V,0,xmax))
+print("The c22 is %s\n" %c22.transport_coeff(1,V,0,xmax))
 
 
 

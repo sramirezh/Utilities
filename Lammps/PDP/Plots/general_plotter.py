@@ -19,7 +19,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 
 """

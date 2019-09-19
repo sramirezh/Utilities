@@ -42,7 +42,7 @@ np.savetxt("Sigma.param",Sigma)
 
 
 Results=[]
-for k in xrange(x): #Runs over the sampled times.
+for k in range(x): #Runs over the sampled times.
     f.write("Analysing configuration %d of %d \n" %(k+1,x))
     File_Name=str(int(Times[k]))+".cxyz"
     args=['./Widom.o', File_Name]

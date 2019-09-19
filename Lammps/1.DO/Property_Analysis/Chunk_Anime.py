@@ -14,7 +14,7 @@ import sys
 import matplotlib.pyplot as plt
 import time
 
-print "\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n"
+print("\nRemember to define the surface shift and run only Chunk_Splitter!!!!\n")
 
 #zshifts 
 #0.5, 0.8   is -2.118560 
@@ -59,13 +59,13 @@ InputArg=sys.argv #Aditional arguments
 #Confirmation details
 if len(InputArg)==1:
     pressFlag=0
-    print "\nNo stress calculations explicitly required, searching for the word 'stress' in any of the Parameters...\n"
+    print("\nNo stress calculations explicitly required, searching for the word 'stress' in any of the Parameters...\n")
 else:
     pressFlag=1
-    Stresses=map(int,sys.argv[1].split(","))	
-    print "The positions of the stress inputs are:\n" 
+    Stresses=list(map(int,sys.argv[1].split(",")))	
+    print("The positions of the stress inputs are:\n") 
     for entry in Stresses:
-	print entry 
+	print(entry) 
 
 #Reading the header
 f=open("header", 'r')
@@ -74,9 +74,9 @@ f.close()
 Nparam=len(Parameters)-1 
 ExcludeP=2 #Excluded parameters, like the position of the chunk
 Parameters.remove("#")
-print "The parameters are:\n"
+print("The parameters are:\n")
 for f in Parameters:
-    print f
+    print(f)
 
 #Checking if there are stress calculations
 IsPress=np.zeros(Nparam)
@@ -84,9 +84,9 @@ if pressFlag==0:
     Stresses=Parameter_Finder(Parameters,"tress")
     if len(Stresses)>0:
         pressFlag=1
-        print "Found %d possible stress parameter in the input:" %(len(Stresses))
+        print("Found %d possible stress parameter in the input:" %(len(Stresses)))
         for elem in Stresses:
-            print Parameters[elem]
+            print(Parameters[elem])
 IsPress[Stresses]=1    
 index=Parameter_Finder(Parameters,"density/mass")[0]
 
@@ -107,7 +107,7 @@ Computing the averages and other parameters
 
 Averages=np.zeros((n,Nparam))
 IsPressure=0
-for k in xrange(x): #Runs over the sampled times.
+for k in range(x): #Runs over the sampled times.
    # print("Reading configuration %d of %d" %(k,x-1))
     File_Name=str(int(Times[k]))+".chunk"
     Chunk_Results=np.loadtxt(File_Name,skiprows=1) 
@@ -116,7 +116,7 @@ for k in xrange(x): #Runs over the sampled times.
     plt.xlim(zshift,25)
     plt.pause(0.01)
     plt.clf()
-    for l in xrange(ExcludeP,Nparam): #Runs over the parameter
+    for l in range(ExcludeP,Nparam): #Runs over the parameter
         if IsPress[l]==1:
             Averages[:,l]=Averages[:,l]-Chunk_Results[:,l]*Chunk_Results[:,index] #Stress per atom*mass/density
         else:
@@ -125,7 +125,7 @@ for k in xrange(x): #Runs over the sampled times.
     #Averages[:,1]=Averages[:,1]+Chunk_Results[:,5]*Chunk_Results[:,6]  #To set the Pyy    
 
 #Building the final array
-for i in xrange(Nparam):
+for i in range(Nparam):
     if i<ExcludeP:
         Averages[:,i]=Chunk_Results[:,i]
     else:

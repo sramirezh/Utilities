@@ -26,7 +26,7 @@ Ff=-Fs*rhos/rhof
 Force=np.zeros((n,2))
 Force[:,0]=f[:,1]
 
-for i in xrange(n):
+for i in range(n):
     if All[i,5]==0:
         Force[i,1]=0
     else:

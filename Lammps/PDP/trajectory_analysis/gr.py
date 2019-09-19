@@ -7,14 +7,14 @@ This scripts analyses the pair correlation function from the *.gz files
 """
 
 
-from __future__ import division
+
 import numpy as np
 import pandas as pd
 import argparse
 import os
 import sys
 import glob
-import poly_analysis as pa
+from . import poly_analysis as pa
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
@@ -50,7 +50,7 @@ def computation_gr(particles,p_types,dist,i,j,nbins, rmax):
         #indexes to delete if there is more than one type of particles
         i_axis0=[]
         i_axis1=[]
-        for k in xrange(len(p_types)):
+        for k in range(len(p_types)):
             if k!=i:
                 i_axis0.append(particles[k])
             if k!=j:
@@ -64,19 +64,19 @@ def computation_gr(particles,p_types,dist,i,j,nbins, rmax):
     bin_ends = -rmax*np.cos(np.linspace(np.pi/2,np.pi,num=nbins+1))
 
     vol_old=0
-    for i in xrange(nbins):
+    for i in range(nbins):
         bin_count[i,0]=0.5*(bin_ends[i+1]+bin_ends[i]) #Count position in the middle of the bin only needed in the first
         rmax_bin=bin_ends[i+1]
         indexes=np.where(dist<=rmax_bin)
         dist[indexes]=1000
         bin_count[i,1]=len(indexes[0])/len(particles[j])
-        print len(particles[j])
+        print(len(particles[j]))
         vol_new=4/3*np.pi*rmax_bin**3
         bin_count[i,2]=bin_count[i,1]/(vol_new-vol_old)
 
     rho_ave=256/6.71838**3 #np.sum(bin_count[:,1])/(4/3*np.pi*rmax**3)
 
-    print rho_ave
+    print(rho_ave)
 
     bin_count[:,2]=bin_count[:,2]/rho_ave**2  #g(r)=rho(r)/rho_ave
 
@@ -100,7 +100,7 @@ def compute_one_configuration_not_mine(fil):
 
     dist=squareform(pdist(pos))
     np.fill_diagonal(dist, 1000) #To avoid self contributions
-    print np.shape(dist)
+    print(np.shape(dist))
 
     results=np.zeros((3,nbins,3)) #Factorial is the number of gr that we have
 
@@ -129,7 +129,7 @@ def compute_one_configuration(fil):
 
     dist=squareform(pdist(pos))
     np.fill_diagonal(dist, 1000) #To avoid self contributions
-    print np.shape(dist)
+    print(np.shape(dist))
 
     results=np.zeros((3,nbins,3)) #Factorial is the number of gr that we have
 
@@ -157,7 +157,7 @@ rmax=2.5
 #num_conf=len(times)
 input_files = glob.glob("config*.dat")
 
-input_files.sort(key=lambda f: int(filter(str.isdigit, f)))
+input_files.sort(key=lambda f: int(list(filter(str.isdigit, f))))
 times=cf.extract_digits(input_files)
 num_conf=len(times)
 

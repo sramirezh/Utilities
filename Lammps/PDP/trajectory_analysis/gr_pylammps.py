@@ -8,13 +8,13 @@ them in pylammps
 """
 
 
-from __future__ import division
+
 import numpy as np
 import pandas as pd
 import argparse
 import os
 import sys
-import cPickle as pickle
+import pickle as pickle
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -30,7 +30,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
@@ -49,7 +49,7 @@ def call_pylammps(fil,p_types):
     p_types is an array with the particle types.
     """
 
-    file_time=int(filter(str.isdigit,fil))
+    file_time=int(list(filter(str.isdigit,fil)))
 
     L=IPyLammps()
     L.region("box block", 0, 20, 0, 1.9469999999999999e+01, 0, 30)
@@ -79,7 +79,7 @@ def read_gr(fil, p_types):
     """
 
     results=[]
-    file_time=int(filter(str.isdigit,fil))
+    file_time=int(list(filter(str.isdigit,fil)))
     for i in p_types:
         for j in p_types:
             if j>=i:
@@ -109,7 +109,7 @@ def run_one_time(fil,p_types):
 
 def run_analysis(input_files,p_types):
 
-    input_files.sort(key=lambda f: int(filter(str.isdigit, f)))
+    input_files.sort(key=lambda f: int(list(filter(str.isdigit, f))))
     t=time.time()
 
 
@@ -118,7 +118,7 @@ def run_analysis(input_files,p_types):
 
 
     g_r=np.average(results,axis=0)
-    print "The total time was %s seconds, the g(r) was saved as gr.pkl "%(time.time()-t)
+    print("The total time was %s seconds, the g(r) was saved as gr.pkl "%(time.time()-t))
 
     afile = open(r'gr.pkl', 'wb')
     pickle.dump(g_r, afile)
@@ -154,7 +154,7 @@ def plot_gr(g_r):
     markers=['.','^','v','s','D']
     markevery=[5,6,5,6,5]
 
-    for i in xrange(5):
+    for i in range(5):
         if i<len(colors):color=colors[i]
         else: color=np.random.rand(3)
 

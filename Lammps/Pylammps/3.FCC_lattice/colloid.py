@@ -4,7 +4,7 @@ Created on Sun Sep 15 16:15:07 2019
 
 @author: sr802
 """
-from __future__ import division
+
 import pandas as pd
 import numpy as np
 from lammps import IPyLammps
@@ -31,7 +31,7 @@ L.pair_coeff(1, 1, 1.0, 1.0, 2.5)
 n_atoms = L.system.natoms
 v = L.eval ('vol')
 
-print ("The density of the system is:%f"%(n_atoms/v))
+print(("The density of the system is:%f"%(n_atoms/v)))
 
 
 L.command("region r_nocolloid sphere 10 10 10 3 side out")

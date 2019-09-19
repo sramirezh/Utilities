@@ -1,5 +1,5 @@
 import numpy as np
-from Functions import statistics, Autocorrelation 
+from .Functions import statistics, Autocorrelation 
 import matplotlib.pyplot as plt
 
 
@@ -15,8 +15,8 @@ Average=Results[0:m] #Averages of measurements
 """Independent error Analysis"""
 #Working with Rij=Ui/Uj
 IndError=np.zeros((m,m))
-for i in xrange(m):
-    for j in xrange(m):
+for i in range(m):
+    for j in range(m):
         if i!=j:
             IndError[j,i]=np.sqrt((1.0/n)*((Average[i]/Average[j])**2)*(Variance[j]/Average[j]**2+Variance[i]/Average[i]**2))
 
@@ -24,8 +24,8 @@ for i in xrange(m):
 NewVariable=np.zeros((n,m))
 CorError=np.zeros((m,m))
 ###Indexes are like in the pdf, Ui/Uj
-for j in xrange(m):
-    for i in xrange(m):
+for j in range(m):
+    for i in range(m):
         if i!=j:
             NewVariable[:,i]=data[:,i]/Average[i]-data[:,j]/Average[j]
     Results=statistics(NewVariable)
@@ -36,7 +36,7 @@ for j in xrange(m):
     Variance=Error**2*n 
     NAverage=Results[0:m]
     cont=0
-    for i in xrange(m):
+    for i in range(m):
         if i!=j:
             CorError[j,i]=np.sqrt((1.0/n)*((Average[i]/Average[j])**2)*Variance[i])
 
@@ -46,6 +46,6 @@ np.savetxt("CorError",CorError,fmt='%6.5f',delimiter=" & ")
 
 
 RelErr=np.zeros((5,5))
-for i in xrange(5):
-    for j in xrange(5):
+for i in range(5):
+    for j in range(5):
         RelErr[i,j]=np.abs(IndError[i,j]-CorError[i,j])/(0.5*(IndError[i,j]+CorError[i,j]))*100.0

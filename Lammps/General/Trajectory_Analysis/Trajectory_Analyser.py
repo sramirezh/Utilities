@@ -16,7 +16,7 @@ In My particle definition
 4=Upper Solid Wall
 
 """
-from __future__ import division
+
 import numpy as np
 import argparse
 import os
@@ -50,9 +50,9 @@ def solid_surface(data,atom_type):
     Maxz=np.max(data[indexes,3])
     Minz=np.min(data[indexes,3])
 
-    print "The maximum height of the solid surface is %lf" %Maxz
-    print "The minimum height of the solid surface is %lf" %Minz
-    print "The height of the solid surface is %lf" %(Maxz-Minz)
+    print("The maximum height of the solid surface is %lf" %Maxz)
+    print("The minimum height of the solid surface is %lf" %Minz)
+    print("The height of the solid surface is %lf" %(Maxz-Minz))
 
     #Writing the Zshift
     f=open("Zshift.dat",'w')
@@ -95,7 +95,7 @@ def check_analysis_box(cv_limits,simulation_limits):
     if vol_args!=6 and (not args.Volume)==False: #If the argument number is not 6 or 0
         sys.exit("There is a mistake with the analysis volume, 6 inputs required")
     elif (not args.Volume): #If no arguments, sets the control volume as the simulation box.
-        print "\nNo volume given, assumend the entire box"
+        print("\nNo volume given, assumend the entire box")
         cv_limits=simulation_limits
     else: #If 6 arguments given, check if the volume is within the simulation box.
         cv_limits=np.transpose(np.reshape(np.array(cv_limits),(3,2)))
@@ -145,7 +145,7 @@ def particles_cv(data,cv_limits,box_limits):
         box_limits: array containing min and max each direction for the simulatio box
     """
     if np.array_equal(cv_limits,box_limits)==False:
-        for i in xrange(3):
+        for i in range(3):
             if np.array_equal(cv_limits[:,i],box_limits[:,i])==True:
                 continue
             else:
@@ -185,7 +185,7 @@ InputFile=args.FileName
 if args.split==True:
     bash_command("""%s/Trajectory_Splitter.sh -i %s"""  %(dir_path,InputFile))
 else:
-    print "The Trajectory file was not splitted"
+    print("The Trajectory file was not splitted")
 
 
 
@@ -209,7 +209,7 @@ n_tsteps,times=read_times()
 
 bin_limits=np.linspace(cv_limits[0,0],cv_limits[1,0],number_bins+1)
 
-print "Delta is %lf"%bin_size
+print("Delta is %lf"%bin_size)
 
 bin_centers=bin_limits[:-1]+0.5*bin_size
 
@@ -225,8 +225,8 @@ Computing the averages and other parameters
 Ns=np.zeros(number_bins)
 Nf=np.zeros(number_bins)
 
-for k in xrange(n_tsteps): #Runs over the sampled times.
-    print("Reading configuration %d of %d" %(k,n_tsteps-1))
+for k in range(n_tsteps): #Runs over the sampled times.
+    print(("Reading configuration %d of %d" %(k,n_tsteps-1)))
     file_name=str(int(times[k]))+".cxyz"
     data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
 
@@ -235,15 +235,15 @@ for k in xrange(n_tsteps): #Runs over the sampled times.
     """
     if k==0:
         if np.max(data[:,0])<=2:
-            print "There is no solid surface"
+            print("There is no solid surface")
         else:
-            print "Analysing the solid surface"
+            print("Analysing the solid surface")
             solid_surface(data,3)
 
     data=particles_cv(data,cv_limits,box_limits)
     n,m=data.shape
 
-    for i in xrange(n):
+    for i in range(n):
         if data[i,0]==1:
             errorv=np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins)
             Nf[np.minimum(int(np.floor((data[i,1]-cv_limits[0,0])/bin_size)),number_bins-1)]+=1 #The -xmin is to avoid negative indexes
@@ -262,7 +262,7 @@ Nf=Nf/n_tsteps/Chunk_Volume
 
 
 
-print "The volume of the control volume is %lf, Number of fluid particles is %d and the Fp is %lf" %(cv_volume,num_fluid,cv_volume/num_fluid)
+print("The volume of the control volume is %lf, Number of fluid particles is %d and the Fp is %lf" %(cv_volume,num_fluid,cv_volume/num_fluid))
 
 #Creating the output file
 Ns=np.column_stack((bin_centers,Ns))

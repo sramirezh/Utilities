@@ -9,14 +9,14 @@ import multiprocessing
 import numpy as np
 from tqdm import tqdm  
 from joblib import Parallel, delayed
-import cPickle as pickle
+import pickle as pickle
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 
 try:
     from uncertainties import unumpy,ufloat
 except ImportError as err2:
-    print err2
+    print(err2)
     
 # =============================================================================
 # Class definition
@@ -63,12 +63,12 @@ class correlation(object):
         """
         self.dimension=self.flux1.dimension
         if self.flux1.dimension != self.flux2.dimension:
-            print "The fluxes do not have the same dimension"
+            print("The fluxes do not have the same dimension")
         else:
             self.dimension=self.flux1.dimension
             
         if self.flux1.times.all != self.flux2.times.all:
-            print "The fluxes were not measured for the same times"
+            print("The fluxes were not measured for the same times")
         else:
             self.times = self.flux1.times[:self.max_delta]
             
@@ -84,7 +84,7 @@ class correlation(object):
         var1 = self.flux1.components[:,dim]
         var2 = self.flux2.components[:,dim]
         max_delta = self.max_delta
-        cor = Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)(var1,var2,i) for i in tqdm(xrange(max_delta)))
+        cor = Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)(var1,var2,i) for i in tqdm(range(max_delta)))
         norm = cor[0].nominal_value
         self.norm[dim] = norm
         self.cor[dim] = np.array(cor)
@@ -96,7 +96,7 @@ class correlation(object):
         
         """
         total = np.zeros(self.max_delta)
-        for dim in xrange(self.dimension):
+        for dim in range(self.dimension):
             self.correlate_one_d(dim)
             total = total + self.cor[dim]
         total = total/3
@@ -131,7 +131,7 @@ class correlation(object):
         return fig,ax
     
     def plot_all(self,fig,ax,alpha=0.4):
-        for dim in xrange(self.dimension+1):
+        for dim in range(self.dimension+1):
             fig,ax = self.plot_individual(fig,ax,dim)
         
         ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')

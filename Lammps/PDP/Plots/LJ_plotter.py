@@ -5,7 +5,7 @@ Created on Fri Oct  5 15:07:44 2018
 
 @author: sr802
 """
-from __future__ import division
+
 import numpy as np
 import matplotlib.pyplot as plt
 

@@ -6,7 +6,7 @@ This files creates the table for the frenkel potential to be used in Lammps
 @author: simon
 """
 
-from __future__ import division
+
 import argparse
 import pandas as pd
 import numpy as np

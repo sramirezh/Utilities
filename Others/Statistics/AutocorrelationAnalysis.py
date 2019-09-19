@@ -1,5 +1,5 @@
 import numpy as np
-from Functions import statistics, Autocorrelation 
+from .Functions import statistics, Autocorrelation 
 import matplotlib.pyplot as plt
 
 
@@ -10,7 +10,7 @@ Results=statistics(data)
 Correlation,time=Autocorrelation(data, Results[0:m])
 Error=np.sqrt(Correlation[0,:]*2*time/(n+1))
 print(Error)
-for i in xrange(m):
+for i in range(m):
     plt.plot(Correlation[:np.max(np.nonzero(Correlation[:,i])),i],'o-',label='$U_{%s}$' %i )
     plt.plot()
 plt.legend()

@@ -132,7 +132,7 @@ class cow(object):
 l_box=2.6726124191242437e+01
 
 files = glob.glob("Trajectories/*.cxyz")
-files.sort(key=lambda f: int(filter(str.isdigit, f)))
+files.sort(key=lambda f: int(list(filter(str.isdigit, f))))
 
 #intialise cow array
 
@@ -149,11 +149,11 @@ for j,file_name in enumerate(files):
     if j==0:
         cows=[]
         n,m=np.shape(data)
-        for i in xrange(n):
+        for i in range(n):
             cows.append(cow(data[i,0],data[i,2],data[i,3]))
     #Update cows
     else:
-        for i in xrange(n):
+        for i in range(n):
             cows[i].update_position(data[i,2],data[i,3])
             cows[i].update_angle()
             

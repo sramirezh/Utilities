@@ -5,7 +5,7 @@ File created to run all the sequential equilibrations
 @author: simon
 """
 
-from __future__ import division
+
 import os
 import sys
 from shutil import copyfile

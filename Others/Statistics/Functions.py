@@ -8,7 +8,7 @@ def blocking(A):
     """
     n,m=np.shape(A)
     B=np.zeros((int(0.5*n),m))
-    for i in xrange(int(0.5*n)):
+    for i in range(int(0.5*n)):
         B[i]=0.5*(A[2*i-1,:]+A[2*i,:])           
     return B
 
@@ -22,7 +22,7 @@ def statistics(M):
     Av=np.sum(M,0)/n
     Error=np.zeros((1,m))
     var=np.zeros((1,m))
-    for i in xrange(m):
+    for i in range(m):
         diff=M[:,i]-Av[i] #replace with an index
         var[0,i]=(np.sum(diff**2))/n 
         Error[0,i]=np.sqrt(var[0,i]/n) #Pag 9 Error of independent sampling
@@ -41,13 +41,13 @@ def autocorrelation_error (A,av):
     n,m=np.shape(A)
     C=np.zeros((n,m)) #Autocorrelation
     corrTime=np.zeros(m)
-    for k in xrange(m):
+    for k in range(m):
         i=0;
         tol=0.0001
         val=10
         sign=True
         while val>tol and sign==True:    
-            for j in xrange(n-i):
+            for j in range(n-i):
                 C[i,k]=C[i,k]+(A[j,k]-av[k])*(A[j+i,k]-av[k])
             C[i,k]=C[i,k]/(n-i)
             val=C[i,k]
@@ -67,7 +67,7 @@ def blocking_error(data):
     Results=np.zeros((MaxIter,3*m))
     Error=np.zeros((MaxIter,m)) 
     final_error=np.zeros(m)
-    for j in xrange(m):
+    for j in range(m):
         i=0
         diff=1
         data1=data
@@ -79,7 +79,7 @@ def blocking_error(data):
                 diff=Error[i,j]-Error[i-1,j]
             i+=1
             
-    for i in xrange(m):
+    for i in range(m):
         if np.size(np.nonzero(Error[:,i]))==0:  #This arises when the 
             final_error[i]=0
         else:

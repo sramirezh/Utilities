@@ -12,7 +12,7 @@ Computes the g(r) for the selected particles in a box that is not completelly fi
 
 @author: sr802
 """
-from __future__ import division
+
 import numpy as np
 import pandas as pd
 import argparse
@@ -42,7 +42,7 @@ try:
     import matplotlib.pyplot as plt
 #    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
-    print err
+    print(err)
 
 
 utilities_path=str(os.path.join(os.path.dirname(__file__), '../../../') )
@@ -94,7 +94,7 @@ def com_pbc(positions,box_length):
     """
 
     com=np.zeros(3)
-    for i in xrange(3):
+    for i in range(3):
 
         theta=positions[:,i]/box_length[i]*2*np.pi
         epsilon=np.cos(theta)
@@ -120,8 +120,8 @@ def shift_coordinates(positions,box_length,shift):
     n_particles,m=np.shape(positions)
     new_pos=np.zeros((n_particles,3))
 
-    for dim in xrange(3):
-        for i in xrange(n_particles):
+    for dim in range(3):
+        for i in range(n_particles):
             if shift[dim]<0:
                 new_pos[i,dim]=(positions[i,dim]-shift[dim])-np.rint(0.5*(positions[i,dim]-shift[dim])/box_length[dim])*box_length[dim]
             else:
@@ -197,7 +197,7 @@ def computation_first_n(particles,p_types,dist,i,j):
     i_axis0=[]
     i_axis1=[]
 
-    for k in xrange(len(p_types)):
+    for k in range(len(p_types)):
         if k!=i:
             i_axis0.append(particles[k])
         if k!=j:
@@ -275,7 +275,7 @@ def histogram_types(particles,p_types,dist,i,j,delta, rmax):
         #indexes to delete if there is more than one type of particles
         i_axis0=[]
         i_axis1=[]
-        for k in xrange(len(p_types)):
+        for k in range(len(p_types)):
             if k!=i:
                 i_axis0.append(particles[k])
             if k!=j:
@@ -288,7 +288,7 @@ def histogram_types(particles,p_types,dist,i,j,delta, rmax):
     #bin_ends = -rmax*np.cos(np.linspace(np.pi/2,np.pi,num=nbins+1))
     bin_ends=np.linspace(0,rmax,num=nbins+1)
 
-    for i in xrange(nbins):
+    for i in range(nbins):
         bin_count[i,0]=0.5*(bin_ends[i+1]+bin_ends[i]) #Count position in the middle of the bin only needed in the first
         rmax_bin=bin_ends[i+1]
         indexes=np.where(dist<=rmax_bin)
@@ -328,7 +328,7 @@ def g_r_restricted(h_r):
     g_r=np.copy(h_r)
 
     vol_old=0
-    for i in xrange(nbins):
+    for i in range(nbins):
         radius=h_r[i,0]+delta/2
         vol_new=(4/3*np.pi*(radius**3))
         vol=vol_new-vol_old
@@ -475,7 +475,7 @@ def main():
     if args.split==True:
         xyz_splitter(args.file_name)
     else:
-        print "The Trajectory file was not splitted"
+        print("The Trajectory file was not splitted")
 
 
     trajectory_name='new_trajectory.xyz'
@@ -484,7 +484,7 @@ def main():
 
 
     files = glob.glob("*.cxyz")
-    files.sort(key=lambda f: int(filter(str.isdigit, f)))
+    files.sort(key=lambda f: int(list(filter(str.isdigit, f))))
 
 
     nearest_solvent=[]
@@ -496,7 +496,7 @@ def main():
     rmax=10
 
     for file_name in files:
-        print file_name
+        print(file_name)
         data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
 
         volume,limits=read_box_limits(args.log)
@@ -540,7 +540,7 @@ def main():
 
     energy_particle=energy_from_gr(0,1.16,rho_id,g_r)
 
-    print "The energy per solute particle is: %f" %energy_particle
+    print("The energy per solute particle is: %f" %energy_particle)
 
 
     nearest_solvent=list(itertools.chain(*nearest_solvent))

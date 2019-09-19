@@ -33,15 +33,15 @@ def check_terminated_simulation(folder_name):
     cwd=os.getcwd()
     os.chdir(folder_name)
     if os.path.isfile("log.lammps")==False:
-        print "The simulation crashed before starting"
+        print("The simulation crashed before starting")
         counter=0
     else:
         tail,error=cf.bash_command("""tail -2 log.lammps""")
         if "Total wall" in tail:
-            print"This simulation terminated"
+            print("This simulation terminated")
         else:
             last_step=cf.extract_digits(tail)
-            print "This simulation stoped at %s" %last_step[0]
+            print("This simulation stoped at %s" %last_step[0])
     os.chdir(cwd)
     return counter
 
@@ -53,7 +53,7 @@ def check_terminated_by_file(file_name):
     """
     counter=1
     if not os.path.exists(file_name):
-        print("The file %s does not exist!" % file_name)
+        print(("The file %s does not exist!" % file_name))
         counter=0
     
     return counter
@@ -69,7 +69,7 @@ def filter_directories(directories,key_file):
     os.chdir(cwd)
     directories=copy.copy(directories)
     for directory in directories:
-        print '\n %s' %directory
+        print('\n %s' %directory)
         finished=1
         finished*=check_terminated_simulation(directory)
         finished*=check_terminated_by_file(directory+'/'+key_file)
@@ -100,12 +100,12 @@ def gather_statistics(directories):
         f.write(directory+"\n")        
         
         os.chdir(directory)
-        print os.getcwd()
-        print directory
+        print(os.getcwd())
+        print(directory)
         forces=glob.glob("dDP*")
-        forces.sort(key=lambda f: int(filter(str.isdigit, f)))
+        forces.sort(key=lambda f: int(list(filter(str.isdigit, f))))
         for force in forces:
-            print force
+            print(force)
             f.write("\n"+force+"\n")
             os.chdir(force)
                 
@@ -185,7 +185,7 @@ fig.tight_layout()
 
 fig.savefig("mu_vs_p.pdf")
 
-print ('\nThe desired chemical potential is %s' %mu_desired)
+print(('\nThe desired chemical potential is %s' %mu_desired))
 
 #Now need to fit and get the mu, print it in the plot
 

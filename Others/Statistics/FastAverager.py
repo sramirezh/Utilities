@@ -15,7 +15,7 @@ import numpy as np
 import argparse
 import os
 import sys
-from Functions import autocorrelation_error, blocking_error
+from .Functions import autocorrelation_error, blocking_error
 from scipy import stats
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
@@ -34,7 +34,7 @@ def exclude_parameters(names, p_to_exclude):
         names is the list of strings containing the names of the parameters.
         p_to_exclude is a list of strings containing the parameters to exclude
     """
-    i_exclude=list(map(lambda x: cf.parameter_finder(names,x),p_to_exclude))
+    i_exclude=list([cf.parameter_finder(names,x) for x in p_to_exclude])
     i_exclude=np.concatenate(np.array(i_exclude))
     i_exclude=np.unique(np.array(i_exclude,dtype=int))
 
@@ -70,13 +70,13 @@ def fast_averager(input,min_limit=0,output_file="statistics.dat"):
     Returns:
         output_array containing the [Name_of variable, average, Error_autocorrelation, Error_blocking, Error_simple,variance simple]
     """
-    if isinstance(input,basestring):
+    if isinstance(input,str):
         try:
             os.path.exists(input)
             data,names=read_from_file(input)
             calculations(data,min_limit,output_file,names)
         except IOError:
-            print 'The input file for the statistical analysis does not exist '
+            print('The input file for the statistical analysis does not exist ')
         return
 
     else:
@@ -95,11 +95,11 @@ def discard_data(data,nmin):
     """
 
     if nmin<1:
-        print "Discarding %d%% of the timesteps for the analysis"%(int(nmin*100))
+        print("Discarding %d%% of the timesteps for the analysis"%(int(nmin*100)))
         discard=int(nmin*len(data))
         data=data[discard:]
     else:
-        print "Discarding %d out of %d timesteps for the analysis" %(nmin,len(data))
+        print("Discarding %d out of %d timesteps for the analysis" %(nmin,len(data)))
         data=data[int(nmin):]
 
     return data
@@ -136,16 +136,16 @@ def calculations(data, min_limit,output_file, names=None, function=False):
         data1=discard_data(data,min_limit)
         #Excluding some data that does not need to be analysed
         exclude=["time", "Chunk", "Coord1","step"]
-        if isinstance(names[0],basestring)==True:
+        if isinstance(names[0],str)==True:
             try:
                 i_delete=exclude_parameters(names, exclude)
                 data_to_analyse=np.delete(data1,i_delete,axis=1)
-                print "skipped the next parameters from the analysis:"
+                print("skipped the next parameters from the analysis:")
                 for j,i in enumerate(i_delete):
-                    print "%s. %s"%(j,names[i])
+                    print("%s. %s"%(j,names[i]))
                 names_to_analyse=np.delete(names,i_delete)
             except:
-                print "No columns to skip"
+                print("No columns to skip")
                 data_to_analyse=data1
                 names_to_analyse=names
 
@@ -174,22 +174,22 @@ def calculations(data, min_limit,output_file, names=None, function=False):
     error_b=blocking_error(data_to_analyse)
 
     if function==False:
-        print "The Results are:\n"
-        print "Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance"
+        print("The Results are:\n")
+        print("Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance")
     file=open(output_file,'w')
     file.write("Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
-    for i in xrange(size):
+    for i in range(size):
         if function==False:
-            print "%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i])
+            print("%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i]))
         file.write("%s = %lf %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
     file.close()
 
     output_array=[]
-    for i in xrange(size):
+    for i in range(size):
         output_array.append([names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i]])
 
     if function==False:
-        print "\nCreated a file %s with the averages"%output_file
+        print("\nCreated a file %s with the averages"%output_file)
     return output_array
 
 

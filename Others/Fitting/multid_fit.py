@@ -168,7 +168,7 @@ class polynomial(object):
                 coeff_m=coeff(self.func_coeff[1],m)
                 x_exp=coeff(self.func_exp[0],n)
                 y_exp=coeff(self.func_exp[1],m)
-                print '%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp)
+                print('%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp))
                 
 #    def print_initial_msg(self):
 #        print "The exponents in x are:%s" %self.exponents[0]
@@ -263,7 +263,7 @@ def fit_poly(x,y,z,zerr,poly):
     """
     ndim,mdim=poly.dim
     variables=np.stack((x,y),axis=0)
-    print np.shape(variables)
+    print(np.shape(variables))
     popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],poly], z, sigma=zerr,p0=[0]*ndim*mdim)
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
@@ -312,11 +312,11 @@ def fit_two_poly(data_1,data_2):
 
 def outputs(popt_matrix,pcov,e_results,n,m,name):
     
-    print "\nCreated coefficients.dat containing all the fitting coefficients"
+    print("\nCreated coefficients.dat containing all the fitting coefficients")
     np.savetxt('coefficients.dat', popt_matrix)
-    print "\nCreated covariant.dat with the covariant matrix of the fitting"
+    print("\nCreated covariant.dat with the covariant matrix of the fitting")
     np.savetxt('covariant.dat', pcov)
-    print "\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points"
+    print("\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points")
     header='%s\t%s_predicted\trelative_error'%(name,name)
     np.savetxt('error_%s.dat'%name,e_results, header=header,fmt='%12.8f')
 
@@ -333,7 +333,7 @@ def test_prediction(popt,variables,z,poly):
     m,n_point=np.shape(variables)
     z_predict=[]
     popt=np.reshape(popt,(np.size(popt)))
-    for i in xrange(n_point):
+    for i in range(n_point):
         z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
 #        print z_predict,z[i]
     z_predict=np.array(z_predict)
@@ -454,8 +454,8 @@ poly_e=polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
 #    poly_e.print_initial_msg()
 
 
-print "rho_ref = %s"%rho_ref
-print "beta_ref = %s"%beta_ref
+print("rho_ref = %s"%rho_ref)
+print("beta_ref = %s"%beta_ref)
 
 # =============================================================================
 #     #Reading the data for the pressure

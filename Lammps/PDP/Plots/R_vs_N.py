@@ -5,12 +5,12 @@ Created on Mon Jul  9 11:58:15 2018
 Rg Vs N
 @author: sr802
 """
-from __future__ import division
+
 import sys
 import os
 import argparse
 import numpy as np
-from general_plotter import general_plotter,pre_processing
+from .general_plotter import general_plotter,pre_processing
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
@@ -21,7 +21,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 parser = argparse.ArgumentParser(description='This script plots several files',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))

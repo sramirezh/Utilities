@@ -54,7 +54,7 @@ def data_extract(file_name):
 
     """Checking if the simulation did not finish"""
     if np.size(initial_line)>np.size(final_line):
-        print "\nThe log file is incomplete!, lets analyse it in anycase \n"
+        print("\nThe log file is incomplete!, lets analyse it in anycase \n")
         out3,err=cf.bash_command("""wc -l %s |awk '{print $1}'"""%file_name)
         line=int(out3.split()[0])
         final_line=np.append(final_line,line)
@@ -64,7 +64,7 @@ def data_extract(file_name):
     header_string=" ".join(header)
     number_chunks=np.size(initial_line)
 
-    for i in xrange(number_chunks):
+    for i in range(number_chunks):
         if i==0:
             total=read_chunk(file_name, initial_line[i],final_line[i])
         else:
@@ -84,11 +84,11 @@ def discard_data(data,nmin):
     """
 
     if nmin<1:
-        print "Discarding %d%% of the timesteps for the analysis"%(int(nmin*100))
+        print("Discarding %d%% of the timesteps for the analysis"%(int(nmin*100)))
         discard=int(nmin*len(data))
         data=data[discard:]
     else:
-        print "Discarding %d out of %d timesteps for the analysis" %(nmin,len(data))
+        print("Discarding %d out of %d timesteps for the analysis" %(nmin,len(data)))
         data=data[int(nmin):]
 
     return data

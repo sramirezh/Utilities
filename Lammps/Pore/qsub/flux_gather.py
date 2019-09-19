@@ -21,14 +21,14 @@ import numpy as np
 import copy
 import re
 from scipy import optimize
-import simulation_results as sr
-import cPickle as pickle
+from . import simulation_results as sr
+import pickle as pickle
 from uncertainties import ufloat,unumpy
 import glob
 try:
     from uncertainties import ufloat
 except ImportError as err2:
-    print err2
+    print(err2)
 
 cwd = os.getcwd() #current working directory
 
@@ -45,7 +45,7 @@ def specific_plot_all(sim_bundle,fit=True):
     for i,prop in enumerate(sim_bundle.simulations[-1].property_names):
         
         if prop!="time" and i>0:
-            print "\ncreating the plot of %s"%prop
+            print("\ncreating the plot of %s"%prop)
             
             if "vx" in prop: 
                 
@@ -155,7 +155,7 @@ for bund in final_p.simulations:
 # =============================================================================
         time = sim.param_value
         
-        if time not in p_params_dict.keys():
+        if time not in list(p_params_dict.keys()):
             p_params_dict[time] = [[pressure_grad,Q.n,exc_sol_flux.n]]
         else:
             p_params_dict[time].append([pressure_grad,Q.n,exc_sol_flux.n])
@@ -185,7 +185,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{sq} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
+print("The transport coefficient \Gamma_{sq} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
 grad_p=np.insert(grad_p,0,0)
 ax.plot(np.unique(grad_p),fitfunc1(T_sq,np.unique(grad_p)),linestyle='--')
 
@@ -199,7 +199,7 @@ plt.savefig('Gamma_sq.pdf')
 
 # Plotting the time lines 
 
-for time in p_params_dict.keys():
+for time in list(p_params_dict.keys()):
     data = np.array(p_params_dict[time])
     ax.plot(data[:,0], data[:,2], alpha = 0.2)
     ax.set_xlim(0,0.0011)
@@ -225,7 +225,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{qq} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
+print("The transport coefficient \Gamma_{qq} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
 grad_p=np.insert(grad_p,0,0)
 ax.plot(np.unique(grad_p),fitfunc1(T_qq,np.unique(grad_p)),linestyle='--')
 
@@ -239,7 +239,7 @@ plt.savefig('Gamma_qq.pdf')
 
 # Plotting the time lines 
 
-for time in p_params_dict.keys():
+for time in list(p_params_dict.keys()):
     data = np.array(p_params_dict[time])
     ax.plot(data[:,0], data[:,1], alpha = 0.2)
     
@@ -308,7 +308,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{qs} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
+print("The transport coefficient \Gamma_{qs} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
 grad_mu=np.insert(grad_mu,0,0)
 ax.plot(np.unique(grad_mu),fitfunc1(T_qs,np.unique(grad_mu)),linestyle='--')
 
@@ -339,7 +339,7 @@ pinit=[1.0]
 out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
 pfinal = out[0] #fitting coefficients
 error = np.sqrt(out[1]) 
-print "The transport coefficient \Gamma_{ss} is %.6f +/- %.6f"%(pfinal[0],error[0][0])
+print("The transport coefficient \Gamma_{ss} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
 grad_mu=np.insert(grad_mu,0,0)
 ax.plot(np.unique(grad_mu),fitfunc1(T_ss,np.unique(grad_mu)),linestyle='--')
 

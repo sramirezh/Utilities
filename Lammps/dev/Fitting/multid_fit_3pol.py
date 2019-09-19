@@ -105,11 +105,11 @@ class polynomial(object):
                 coeff_m=coeff(self.func_coeff[1],m)
                 x_exp=coeff(self.func_exp[0],n)
                 y_exp=coeff(self.func_exp[1],m)
-                print '%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp)
+                print('%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp))
                 
     def print_initial_msg(self):
-        print "The exponents in x are:%s" %self.exponents[0]
-        print "The exponents in y are:%s\n" %self.exponents[1]
+        print("The exponents in x are:%s" %self.exponents[0])
+        print("The exponents in y are:%s\n" %self.exponents[1])
      
         
 def coeff(function,point):
@@ -157,7 +157,7 @@ def test_prediction(popt,variables,z,poly):
     m,n_point=np.shape(variables)
     z_predict=[]
     popt=np.reshape(popt,(np.size(popt)))
-    for i in xrange(n_point):
+    for i in range(n_point):
         z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
     z_predict=np.array(z_predict)
 
@@ -316,11 +316,11 @@ def fit_three_poly(data_1,data_2,data_3):
 
 def outputs(popt_matrix,pcov,error,n,m,name):
     
-    print "\nCreated coefficients.dat containing all the fitting coefficients"
+    print("\nCreated coefficients.dat containing all the fitting coefficients")
     np.savetxt('coefficients.dat', popt_matrix)
-    print "\nCreated covariant.dat with the covariant matrix of the fitting"
+    print("\nCreated covariant.dat with the covariant matrix of the fitting")
     np.savetxt('covariant.dat', pcov)
-    print "\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points"
+    print("\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points")
     np.savetxt('error_%s.dat'%name,error)
 
 
@@ -468,7 +468,7 @@ def main(rho_ref,beta_ref,a_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e,file_a):
 # =============================================================================
 #     Here is where I define the polynomial for the pressure
 # =============================================================================
-    print "Basic information about the polynomial for the Pressure"
+    print("Basic information about the polynomial for the Pressure")
     poly_p=polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0])
     poly_p.print_initial_msg()
     
@@ -476,7 +476,7 @@ def main(rho_ref,beta_ref,a_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e,file_a):
 # =============================================================================
 #     Here is where I define the polynomial for the pressure
 # =============================================================================
-    print "Basic information about the polynomial for the Energy"
+    print("Basic information about the polynomial for the Energy")
     poly_e=polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
     poly_e.print_initial_msg()
     
@@ -485,13 +485,13 @@ def main(rho_ref,beta_ref,a_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e,file_a):
 # =============================================================================
 #     Here is where I define the polynomial for the Free energy
 # =============================================================================
-    print "Basic information about the polynomial for the Energy"
+    print("Basic information about the polynomial for the Energy")
     poly_a=polynomial(deg_x,deg_y,[1],[1],[1],[1])
     poly_a.print_initial_msg()
     
     
-    print "rho_ref = %s"%rho_ref
-    print "beta_ref = %s"%beta_ref
+    print("rho_ref = %s"%rho_ref)
+    print("beta_ref = %s"%beta_ref)
     
 # =============================================================================
 #     #Reading the data for the pressure

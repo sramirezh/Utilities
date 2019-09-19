@@ -7,14 +7,14 @@ to find the diffusion coefficient for both cases and validating the approach.
 @author: sr802
 """
 
-from __future__ import division
+
 import numpy as np
 import pandas as pd
 import argparse
 import os
 import sys
 import glob
-import poly_analysis as pa
+from . import poly_analysis as pa
 import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -44,7 +44,7 @@ def lammps_MSD(delta_t):
 
     D=out[0]/(2*3)
 
-    print "The diffusion coefficient from Lammps MSD is %s"%D
+    print("The diffusion coefficient from Lammps MSD is %s"%D)
     return times,msd
 
 def compute_one_time(pos_init,fil):
@@ -77,7 +77,7 @@ delta_t= 0.005
 #times_l,msd_l = lammps_MSD(delta_t)
 
 input_files = glob.glob("conf/dump*")
-input_files.sort(key=lambda f: int(filter(str.isdigit, f)))
+input_files.sort(key=lambda f: int(list(filter(str.isdigit, f))))
 times=cf.extract_digits(input_files)*delta_t
 num_conf=len(times)
 Box,L=pa.Box_limits(input_files[0])
@@ -104,4 +104,4 @@ out=np.polyfit(times,results[:,3],1)
 
 D=out[0]/(2*3)
 
-print "The diffusion coefficient from My calculations is %s"%D
+print("The diffusion coefficient from My calculations is %s"%D)

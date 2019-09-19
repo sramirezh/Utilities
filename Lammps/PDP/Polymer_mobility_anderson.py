@@ -11,7 +11,7 @@ the file Parameters, has N R_H^K R_H^{md}
 Define Viscosity
 @author: sr802
 """
-from __future__ import division
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -57,8 +57,8 @@ def group_consecutive(data):
     from itertools import groupby
     from operator import itemgetter
     results=[]
-    for k, g in groupby(enumerate(data), lambda (i, x): i-x):
-        results.append(map(itemgetter(1), g))
+    for k, g in groupby(enumerate(data), lambda i_x: i_x[0]-i_x[1]):
+        results.append(list(map(itemgetter(1), g)))
         
          
     return results
@@ -246,7 +246,7 @@ def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
 # MAIN
 # =============================================================================
 
-print "Remember to define the viscosity"
+print("Remember to define the viscosity")
 
 cf.set_plot_appearance()
 
@@ -260,30 +260,30 @@ eta=1.55639001606637
 parameters=cf.read_data_file('../data.dat').values
 N=int(cf.extract_digits(os.getcwd().split('/')[-1])[0]) #Number of monomers obtained from the path
 
-print "Running for N=%d" %N
+print("Running for N=%d" %N)
 
 
 index_1=np.where(parameters==N)[0][0] #gets the line with the parameters of this Number of monomers
 box_size=parameters[index_1,1]
 
-print '\nUsing the Rh estimation from Kirkwood'
+print('\nUsing the Rh estimation from Kirkwood')
 
 a_k=parameters[index_1,2]
 
 results=velocity_polymer(a_k,T,eta, box_size,grad_mu,rh_origin='K')
 mobility=results[-1]/grad_mu
-print 'K,L,H,U_0,U_1,U,mobility'
-print results,mobility
+print('K,L,H,U_0,U_1,U,mobility')
+print(results,mobility)
 
-print '\nUsing the Rh estimation from the mobility'
+print('\nUsing the Rh estimation from the mobility')
 
 D=parameters[index_1,3]
 a_md=T/(6*np.pi*eta*D)
 
 results=velocity_polymer(a_md,T,eta, box_size,grad_mu,'md')
 mobility=results[-1]/grad_mu
-print 'K,L,H,U_0,U_1,U,mobility'
-print results,mobility
+print('K,L,H,U_0,U_1,U,mobility')
+print(results,mobility)
 
 
 

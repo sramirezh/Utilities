@@ -12,7 +12,7 @@ Returns:
 
 @author: simon
 """
-from __future__ import division
+
 import os
 import sys
 import pandas as pd
@@ -35,13 +35,13 @@ try:
     import matplotlib.pyplot as plt
 #    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
-    print err
+    print(err)
 
 
 try:
     from uncertainties import ufloat,unumpy
 except ImportError as err2:
-    print err2
+    print(err2)
 
 
 """
@@ -76,7 +76,7 @@ def build_data():
     #Finding the number of properties
     indexes=cf.parameter_finder(lines,"dDP")
     nproperties=indexes[1]-indexes[0]-2
-    print "\nFound %d properties in Statistic_summary.dat\n" %nproperties
+    print("\nFound %d properties in Statistic_summary.dat\n" %nproperties)
 
     i=0
     count=0
@@ -84,16 +84,16 @@ def build_data():
     while i<len(lines):
         if re.search("E_*",lines[i] ): #Finding the LJ parameters
             interactions.append(LJInteraction(cf.extract_digits(lines[i])[-2::]))
-            print "\nReading data from  %s"%lines[i]
+            print("\nReading data from  %s"%lines[i])
             i=i+1
             count+=1
         else:
-            print lines[i]
+            print(lines[i])
             if re.search("\AdDP*",lines[i] ):
                 interactions[-1].addforce(lines[i])
                 i+=1
                 properties=[]
-                for j in xrange(nproperties):
+                for j in range(nproperties):
                     properties.append(lines[i])
                     i+=1
                 interactions[-1].addproperties(properties)
@@ -113,8 +113,8 @@ def parameter_finder(List, String):
             indexes.append(cont)
         cont+=1
     length=len(indexes)
-    if length>1: print "There were several ocurrences"
-    if length==0: print "No ocurrences found"
+    if length>1: print("There were several ocurrences")
+    if length==0: print("No ocurrences found")
     return indexes
 
 
@@ -152,7 +152,7 @@ def plot_force_individuals(interactions):
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$c_s^B [\sigma^{-3}]$','vx_poly':r'$v_p^x[\sigma/\tau]$','r_gyration':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
     dic_fit={'vx_poly':1}
-    print "\nGenerating Plots..."
+    print("\nGenerating Plots...")
     directory="plots/individual"
 
     if not os.path.exists(directory):
@@ -162,7 +162,7 @@ def plot_force_individuals(interactions):
 
     has_error=np.ones((n_properties), dtype=bool)
 
-    for property_index in xrange(n_properties):
+    for property_index in range(n_properties):
         if np.size(interactions[0].properties[0][property_index])==1:
             has_error[property_index]=False
 
@@ -170,7 +170,7 @@ def plot_force_individuals(interactions):
         if "Time" in prop_name: continue #To avoid plotting the timestep
         file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
         name=re.sub('_',' ',file_name)
-        print "\nplotting the %s" %name
+        print("\nplotting the %s" %name)
 
 
         interactions.sort() #sorts using the method __lt__
@@ -230,7 +230,7 @@ def plot_force_individuals(interactions):
                     ax.plot(np.unique(x),fitfunc2(pfinal,np.unique(x)),color=color,linestyle='--')
                 cov=out[1] #Covariance
 
-                print "for Epsilon=%s and Sigma =%s The slope is %f error is %f" %(ljpair.epsilon,ljpair.sigma,pfinal[0],np.sqrt(cov[0][0]))
+                print("for Epsilon=%s and Sigma =%s The slope is %f error is %f" %(ljpair.epsilon,ljpair.sigma,pfinal[0],np.sqrt(cov[0][0])))
 
             except:
                 pass
@@ -288,7 +288,7 @@ def plot_force_individuals(interactions):
         plt.tight_layout()
         plt.savefig("plots/individual/%s.pdf"%file_name,transparent=True)
         plt.close()
-    print "\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory
+    print("\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory)
 
 
 def is_valid_file(parser,arg):
@@ -317,7 +317,7 @@ def compute_statistics_param(dpolymin):
 
     """
     tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -print -quit""")#Assuming all the input files have the same parameters.
-    print tfile
+    print(tfile)
     out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
     d=int(cf.extract_digits(out)[0])
 
@@ -354,7 +354,7 @@ def plot_parameter_vs_epsilon(y_label,name_key,file_name):
     error_cap=4
     ave_data_index=cf.parameter_finder(column_names,name_key)[0]-1
     epsilon_vect=[]
-    for i in xrange(len(interactions)):
+    for i in range(len(interactions)):
         epsilon_vect.append(interactions[i].epsilon)
 
     fig,ax=plt.subplots()
@@ -511,18 +511,18 @@ if source == "read":
 
 
 if source=="run":
-    print "\nRunning the statistics analysis, using the following parameters"
+    print("\nRunning the statistics analysis, using the following parameters")
     dppoly_params=compute_statistics_param(args.dpolymin)
-    print "Initial dp_poly step=%d"%dppoly_params[0]
-    print "Interval dp_poly=%d"%dppoly_params[1]
-    print "Final dp_poly step=%d"%dppoly_params[2]
-    print "vdata discarded steps =%d"%args.vdatamin
-    print " "
+    print("Initial dp_poly step=%d"%dppoly_params[0])
+    print("Interval dp_poly=%d"%dppoly_params[1])
+    print("Final dp_poly step=%d"%dppoly_params[2])
+    print("vdata discarded steps =%d"%args.vdatamin)
+    print(" ")
     cstat.compute_statistics(directories,args.vdatamin)
 
 
 elif source=="gather":
-    print "\nGathering the statistics analysis results"
+    print("\nGathering the statistics analysis results")
     cstat.gather_statistics(directories)
 
 
@@ -531,7 +531,7 @@ elif source=="gather":
 Main program
 *******************************************************************************
 """
-print "\nAnalizing the results"
+print("\nAnalizing the results")
 interactions=build_data()
 plot_force_individuals(interactions)
 
@@ -608,4 +608,4 @@ plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rg','R_g_vs_epsilon.pdf')
 #Rhyd vs epsilon ms
 plot_parameter_vs_epsilon(r'$R_{hyd} [\sigma]$','rhyd','R_hyd_vs_epsilon.pdf')
 
-print "\nGenerated average results Results.dat and plots in '%s'"%directory
+print("\nGenerated average results Results.dat and plots in '%s'"%directory)

@@ -9,7 +9,7 @@ Inputs:
 Averages.dat has the parameters as [This is just for the all fluid]:
 Chunk,Coord,Ncout,Vx,Rho,[Pzz,Pxx]
 """
-from __future__ import division
+
 import numpy as np
 from subprocess import Popen,PIPE
 from shlex import split
@@ -37,7 +37,7 @@ p1 = Popen(split('grep "nvt" log.lammps'),stdout=PIPE)
 p2 = Popen(split('head -1'), stdin=p1.stdout, stdout=PIPE)
 out,err=p2.communicate()
 T=np.float(out.split()[-2])
-print "\nWorking temperature is %f \n" %T
+print("\nWorking temperature is %f \n" %T)
 
 # =============================================================================
 # Function Definition
@@ -68,7 +68,7 @@ def BulkProperties(Properties, BulkMin, BulkMax):
     BulkC=0
     cont=0
     N=0
-    for i in xrange(n):
+    for i in range(n):
         if (Properties[i,1]>=BulkMin and Properties[i,1]<BulkMax):
             cont=cont+1
             BulkC=BulkC+Properties[i,4]
@@ -117,7 +117,7 @@ def MuForce(Cs,Cf,SProperties,FProperties,AProperties):
     MuForce = np.zeros((n, 2))
     MuForce[:, 0] = SProperties[Indexes, 1]
 
-    for i in xrange(n):
+    for i in range(n):
         if AProperties[i, 4] == 0:
             MuForce[i, 1] = 0
 
@@ -125,8 +125,8 @@ def MuForce(Cs,Cf,SProperties,FProperties,AProperties):
             MuForce[i, 1] = (Ff * FProperties[i, 4] + Fs * SProperties[i, 4]) / AProperties[i, 4]
 
     np.savetxt("MuForce.dat",MuForce)
-    print "*********************Running Mu Force Calculations*********************\n"
-    print "Created Mu grad Force distribution File MuForce.dat "
+    print("*********************Running Mu Force Calculations*********************\n")
+    print("Created Mu grad Force distribution File MuForce.dat ")
 
 
     return MuForce
@@ -152,7 +152,7 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
     YForce = np.zeros((n, 2))
     YForce[:, 0] = FProperties[Indexes, 1]
 
-    for i in xrange(n):
+    for i in range(n):
         if AProperties[i, 4] == 0:
             YForce[i, 1] = 0
 
@@ -160,9 +160,9 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
             YForce[i, 1] = (FfY * FProperties[i, 4] + FsY * SProperties[i, 4]) / AProperties[i, 4]
 
     np.savetxt("YForce.dat", YForce)
-    print "\n*********************Running Yawei Calculations*********************\n"
-    print "The force on the Solutes is %f, on the Solvents %f" %(FsY,FfY)
-    print "Created Yawei Force distribution File YForce.dat "
+    print("\n*********************Running Yawei Calculations*********************\n")
+    print("The force on the Solutes is %f, on the Solvents %f" %(FsY,FfY))
+    print("Created Yawei Force distribution File YForce.dat ")
 
     return YForce
 
@@ -201,45 +201,45 @@ def PosConstant(x,y,Tol):
 # Solvent
 # ==============================================================================
 
-print "\nComputing Solvent properties\n"
+print("\nComputing Solvent properties\n")
 
 Cf,Nf=BulkProperties(FProperties, BulkMin, BulkMax)
-print "The bulk concentration is %f" %(Cf)
-print "The average concentration is %f" %(np.average(FProperties[:,4]))
+print("The bulk concentration is %f" %(Cf))
+print("The average concentration is %f" %(np.average(FProperties[:,4])))
 
 FGamma= Gamma(FProperties,Cf,IntLow,IntUp)
 
-print "The Solvent adsorption is %f" %FGamma
+print("The Solvent adsorption is %f" %FGamma)
 
 # ==============================================================================
 # Solute
 # ==============================================================================
 
-print "\nComputing Solute properties\n"
+print("\nComputing Solute properties\n")
 
 Cs,Ns=BulkProperties(SProperties, BulkMin, BulkMax)
-print "The bulk concentration is %f" %(Cs)
-print "The average concentration is %f" %(np.average(SProperties[:,4]))
+print("The bulk concentration is %f" %(Cs))
+print("The average concentration is %f" %(np.average(SProperties[:,4])))
 
 SGamma = Gamma(SProperties,Cs,IntLow,IntUp)
 
-print "The Solute adsorption is %f" %SGamma
+print("The Solute adsorption is %f" %SGamma)
 
 # ==============================================================================
 # Fluid
 # ==============================================================================
 
-print "\nComputing Fluid properties\n"
+print("\nComputing Fluid properties\n")
 
 C,N=BulkProperties(AProperties, BulkMin, BulkMax)
-print "The bulk concentration is %f" %(C)
-print "The average concentration is %f" %(np.average(AProperties[:,4]))
+print("The bulk concentration is %f" %(C))
+print("The average concentration is %f" %(np.average(AProperties[:,4])))
 
 
 # ==============================================================================
 # Force Calculations
 # ==============================================================================
-print "\n Starting the Force Calculations\n"
+print("\n Starting the Force Calculations\n")
 
 
 MuForce = MuForce(Ns,N,SProperties,FProperties,AProperties)
@@ -256,8 +256,8 @@ Cut_off=PosConstant(MuForce[:,0],MuForce[:,1],0.001)+1
 Zpos =MuForce[:Cut_off+1, 0]+Zshift
 MuF = np.transpose(MuForce[:Cut_off, 1])
 YF = np.transpose(YForce[:Cut_off, 1])
-print "The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos)
-print "Creating the Files to iterate in Lammps"
+print("The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos))
+print("Creating the Files to iterate in Lammps")
 np.savetxt("Zpos_iterate.dat", Zpos)
 np.savetxt("MuForce_iterate.dat", MuF)
 np.savetxt("YForce_iterate.dat", YF)

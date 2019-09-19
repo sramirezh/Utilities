@@ -30,7 +30,7 @@ rho_vect=np.linspace(0.01,1)
 
 p_vect=[]
 mu_ex_vect=[]
-for i in xrange(np.size(rho_vect)):
+for i in range(np.size(rho_vect)):
     p_vect.append(ljeos.pressure(rho_vect[i],T))
     mu_ex_vect.append(ljeos.mu_ex(rho_vect[i],T))
 

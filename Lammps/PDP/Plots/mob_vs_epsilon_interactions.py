@@ -5,12 +5,12 @@ Created on 28/02/2019
 Plots the Mobility vs the interactions for several input files generated perhaps from different potentials.
 @author: sr802
 """
-from __future__ import division
+
 import sys
 import os
 import argparse
 import numpy as np
-from general_plotter import general_plotter,pre_processing
+from .general_plotter import general_plotter,pre_processing
 import pandas as pd
 import Lammps.PDP.trajectory_analysis.first_n_analysis as fna
 
@@ -22,7 +22,7 @@ try:
     matplotlib.use('agg')
     import matplotlib.pyplot as plt
 except ImportError as err:
-    print err
+    print(err)
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -48,7 +48,7 @@ data,names=pre_processing(files,path_name)
 converting into pandas df
 """
 
-for i in xrange(len(data)):
+for i in range(len(data)):
     data[i]=pd.DataFrame(data=data[i][1:,1:],index=data[i][1:,0], columns=data[i][0,1:])
 
 

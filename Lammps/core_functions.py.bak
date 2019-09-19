@@ -1,4 +1,4 @@
-from __future__ import division
+
 from subprocess import Popen,PIPE
 from shlex import split
 import argparse
@@ -9,7 +9,7 @@ import numpy as np
 import sys
 from cycler import cycler
 import warnings
-import cPickle as pickle
+import pickle as pickle
 warnings.filterwarnings("ignore")
 
 
@@ -19,7 +19,7 @@ try:
     import matplotlib.pyplot as plt
 #    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError as err:
-    print err
+    print(err)
 
 def bash_command(cmd):
     """
@@ -36,7 +36,7 @@ def bash_command(cmd):
     chain=cmd.split("|")
     n_pipes=len(chain)
 
-    for i in xrange(n_pipes):
+    for i in range(n_pipes):
         if i==0:
             p=Popen(split(chain[0]),stdout=PIPE)
         else:
@@ -68,7 +68,7 @@ def parameter_finder(target_list, search_list, msgflag=False,exact=False):
     Returns:
         indexes with the positions of the search_list found in the target_list
     """
-    target_list=map(lambda x:x.lower(),target_list)
+    target_list=[x.lower() for x in target_list]
 
     indexes=[]
 
@@ -83,23 +83,23 @@ def parameter_finder(target_list, search_list, msgflag=False,exact=False):
                 indexes.append(cont)
             cont+=1
     if isinstance(search_list,list):
-        search_list=map(lambda x:x.lower(),search_list)
+        search_list=[x.lower() for x in search_list]
 
         for s in search_list:
             s=str(s)
             for cont,t in enumerate(target_list):
                 if exact==False and s in t:
-                    print s,t
+                    print(s,t)
                     indexes.append(cont)
                 elif exact==True and s==t:
-                    print s,t
+                    print(s,t)
                     indexes.append(cont)
 
     
     if msgflag==True:
         length=len(indexes)
-        if length>1: print "There were several ocurrences"
-        if length==0: print "No ocurrences found"
+        if length>1: print("There were several ocurrences")
+        if length==0: print("No ocurrences found")
 
     return indexes
 
@@ -303,7 +303,7 @@ def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
     s.writelines(lines)
     s.close()
     
-    print "Modified the file %s"%(file_name.split('/')[-1])
+    print("Modified the file %s"%(file_name.split('/')[-1]))
 
 
 def load_instance(file_name):

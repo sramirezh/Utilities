@@ -16,7 +16,7 @@ In My particle definition
 
 
 """
-from __future__ import division
+
 import numpy as np
 
 def SolidSurface():
@@ -27,16 +27,16 @@ def SolidSurface():
     Nfluid=0
 
 
-    for i in xrange(n):
+    for i in range(n):
         if Data[i,0]==3: #3 is for solid surface, 2 for solutes, 1 for solvents.
             Maxz=max(Maxz,Data[i,3])
             Minz=min(Minz,Data[i,3])
         else:
             Nfluid+=1
 
-    print "The maximum height of the solid surface is %lf" %Maxz
-    print "The minimum height of the solid surface is %lf" %Minz
-    print "The height of the solid surface is %lf" %(Maxz-Minz)
+    print("The maximum height of the solid surface is %lf" %Maxz)
+    print("The minimum height of the solid surface is %lf" %Minz)
+    print("The height of the solid surface is %lf" %(Maxz-Minz))
 
     #Writing the Zshift
     f=open("Zshift.dat",'w')
@@ -45,7 +45,7 @@ def SolidSurface():
 
 
 
-print "Remember to define the Volume and the length in X so the bins are the same as in Lammps"
+print("Remember to define the Volume and the length in X so the bins are the same as in Lammps")
 
 xmin=-30
 xmax=30
@@ -53,7 +53,7 @@ L=xmax-xmin
 binS=0.05
 Nbins=int(L/0.05)
 
-print Nbins
+print(Nbins)
 #Reading the times to make it easier to read the file by chunks
 Times=np.loadtxt("Times.dat",dtype=int)
 x=np.size(Times)
@@ -66,7 +66,7 @@ Data=np.genfromtxt(File_Name,skip_header=0)
 Xarray=np.linspace(xmin,xmax,Nbins)
 delta=binS
 
-print "Delta is %lf"%delta
+print("Delta is %lf"%delta)
 
 CenterPos=Xarray[:-1]+0.5*binS
 l=CenterPos.size
@@ -76,8 +76,8 @@ Nf=np.zeros(l)
 Computing the averages and other parameters
 """
 
-for k in xrange(x): #Runs over the sampled times.
-    print("Reading configuration %d of %d" %(k,x-1))
+for k in range(x): #Runs over the sampled times.
+    print(("Reading configuration %d of %d" %(k,x-1)))
     File_Name=str(int(Times[k]))+".cxyz"
     Data=np.genfromtxt(File_Name,skip_header=0)
     n,m=Data.shape
@@ -87,12 +87,12 @@ for k in xrange(x): #Runs over the sampled times.
     """
     if k==0:
         if np.max(Data[:,0])<=2:
-            print "There is no solid surface"
+            print("There is no solid surface")
         else:
-            print "Analysing the solid surface"
+            print("Analysing the solid surface")
             SolidSurface()
 
-    for i in xrange(n):
+    for i in range(n):
         if Data[i,0]==1:
             Nf[np.minimum(int(np.floor((Data[i,1]-xmin)/delta)),l-1)]+=1 #The -xmin is to avoid negative indexes
 
@@ -112,7 +112,7 @@ Volume=Ly*Lz*L
 Nfluid=(np.sum(Ns)+np.sum(Nf))*Chunk_Volume
 Fp=Volume/(Nfluid)
 
-print "The vol is %lf, Number of fluid particles is %lf and the Fp is %lf" %(Volume,Nfluid,Fp)
+print("The vol is %lf, Number of fluid particles is %lf and the Fp is %lf" %(Volume,Nfluid,Fp))
 
 #Creating the output file
 Ns=np.column_stack((CenterPos,Ns))

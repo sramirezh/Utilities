@@ -105,11 +105,11 @@ class polynomial(object):
                 coeff_m=coeff(self.func_coeff[1],m)
                 x_exp=coeff(self.func_exp[0],n)
                 y_exp=coeff(self.func_exp[1],m)
-                print '%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp)
+                print('%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp))
                 
     def print_initial_msg(self):
-        print "The exponents in x are:%s" %self.exponents[0]
-        print "The exponents in y are:%s\n" %self.exponents[1]
+        print("The exponents in x are:%s" %self.exponents[0])
+        print("The exponents in y are:%s\n" %self.exponents[1])
      
         
 def coeff(function,point):
@@ -155,10 +155,10 @@ def test_prediction(popt,variables,z,poly):
         popt is the fitting coefficient matrix
     """
     m,n_point=np.shape(variables)
-    print "Test prediction %s %s %s "%(m,n_point,np.shape(z))
+    print("Test prediction %s %s %s "%(m,n_point,np.shape(z)))
     z_predict=[]
     popt=np.reshape(popt,(np.size(popt)))
-    for i in xrange(n_point):
+    for i in range(n_point):
         z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
     z_predict=np.array(z_predict)
 
@@ -219,8 +219,8 @@ def fit_poly(x,y,z,zerr,poly):
     """
     ndim,mdim=poly.dim
     variables=np.stack((x,y),axis=0)
-    print 'jola'
-    print np.shape(variables)
+    print('jola')
+    print(np.shape(variables))
     popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],poly], z, sigma=zerr,p0=[0]*ndim*mdim)
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
@@ -230,13 +230,13 @@ def two_poly(data,*params):
     """
     data contains[data1+data2,poly1+poly2] + means appended
     """
-    print 'the shape of data is %s'%np.shape(data)
+    print('the shape of data is %s'%np.shape(data))
     data_1=data[0][:,:len(x_p)]  #Correct because x_e is global
     poly_1=poly_p
     data_2=data[0][:,len(x_p):]
     poly_2=poly_e
     
-    print 'the shape of data_1 %s and data 2 %s'%(np.shape(data_1),np.shape(data_2))
+    print('the shape of data_1 %s and data 2 %s'%(np.shape(data_1),np.shape(data_2)))
     z1=arbitrary_poly([data_1,poly_1],params)
     z2=arbitrary_poly([data_2,poly_2],params)
     
@@ -255,13 +255,13 @@ def fit_two_poly(data_1,data_2):
     y=np.append(data_1[0][1],data_2[0][1])
     z=np.append(data_1[0][2],data_2[0][2])
     
-    print 'hola'
-    print np.shape(x), np.shape(y)
+    print('hola')
+    print(np.shape(x), np.shape(y))
     zerr=np.append(data_1[0][3],data_2[0][3])
     poly=[data_1[1],data_2[1]]
     variables=np.stack((x,y))
-    print 'the shape of variables in two:'
-    print np.shape(variables)
+    print('the shape of variables in two:')
+    print(np.shape(variables))
     
     ndim,mdim=poly[0].dim
     
@@ -275,11 +275,11 @@ def fit_two_poly(data_1,data_2):
 
 def outputs(popt_matrix,pcov,error,n,m,name):
     
-    print "\nCreated coefficients.dat containing all the fitting coefficients"
+    print("\nCreated coefficients.dat containing all the fitting coefficients")
     np.savetxt('coefficients.dat', popt_matrix)
-    print "\nCreated covariant.dat with the covariant matrix of the fitting"
+    print("\nCreated covariant.dat with the covariant matrix of the fitting")
     np.savetxt('covariant.dat', pcov)
-    print "\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points"
+    print("\nCreated error.dat containing the relative error between the property and the prediction given by the fitting evaluated at the same input points")
     np.savetxt('error_%s.dat'%name,error)
 
 
@@ -379,7 +379,7 @@ def build_example_grid(n_points=20):
     
     z=p_known(x,y)
     zerr= np.random.rand(*np.shape(x))
-    print np.shape(x),np.shape(y),np.shape(z),np.shape(zerr)
+    print(np.shape(x),np.shape(y),np.shape(z),np.shape(zerr))
     
     
     data=np.column_stack([x.flatten(),y.flatten(),z.flatten(),zerr.flatten()])
@@ -428,7 +428,7 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
 # =============================================================================
 #     Here is where I define the polynomial for the pressure
 # =============================================================================
-    print "Basic information about the polynomial for the Pressure"
+    print("Basic information about the polynomial for the Pressure")
     poly_p=polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0])
     poly_p.print_initial_msg()
     
@@ -436,13 +436,13 @@ def main(rho_ref,beta_ref,deg_x,deg_y,p_ref,e_ref,file_p,file_e):
 # =============================================================================
 #     Here is where I define the polynomial for the pressure
 # =============================================================================
-    print "Basic information about the polynomial for the Energy"
+    print("Basic information about the polynomial for the Energy")
     poly_e=polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
     poly_e.print_initial_msg()
     
     
-    print "rho_ref = %s"%rho_ref
-    print "beta_ref = %s"%beta_ref
+    print("rho_ref = %s"%rho_ref)
+    print("beta_ref = %s"%beta_ref)
     
 # =============================================================================
 #     #Reading the data for the pressure
