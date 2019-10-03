@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 
 warnings.filterwarnings("ignore")
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
 
