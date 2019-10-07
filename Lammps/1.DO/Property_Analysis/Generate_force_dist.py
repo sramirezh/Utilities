@@ -60,16 +60,15 @@ def Force(Ns,Nf,SProperties,FProperties,AProperties):
     :param FProperties: Solvent Properties
     :param AProperties: Fluid Properties
     :return:
-    The Force distribution only up to IntUp, after that it is assumed that the force is zero
+    The Force distribution 
 
     """
-    IntUp = 10
+
     Fs = 1
     Ff = -Fs * Ns / Nf
-    Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
-    n=len(Indexes)
+    n,m = np.shape(FProperties)
     Force = np.zeros((n, 2))
-    Force[:, 0] = FProperties[Indexes, 1]
+    Force[:, 0] = FProperties[:, 1]
 
     for i in range(n):
         if AProperties[i, 4] == 0:
@@ -87,7 +86,7 @@ def Force(Ns,Nf,SProperties,FProperties,AProperties):
 
 def read_box_limits(log_name):
     """
-    Copied from first_n_analysis
+    TODO make a lammps utilities function Copied from first_n_analysis
     Reads the box limits from log.lammps
     ONLY required for .xyz not for .dump
     Args:
@@ -116,22 +115,75 @@ def read_box_limits(log_name):
 
 
 thermo_data = ta.thermo_analyser("log.lammps")
-
+volume, limits  = read_box_limits("log.lammps")
 
 
 Ns = float(thermo_data.at['v_cBSolu','Average'])
 Nf = float(thermo_data.at['v_cBSolv','Average'])
 
+
+#Getting the concentrations in the bulk
+h_B=10  #height of the bulk as defined in in.geom
+v_B=(volume*(h_B/(limits[1][1]-limits[0][1])))/0.5 #Added the 0.5 because of the 2D correction
+Cs_B = Ns/v_B
+Cf_B = Nf/v_B
+
 Force = Force(Ns,Nf,SProperties,FProperties,AProperties)
 
-Zshift = 0
+
+cf.beware_msg("Check that the shift is correct manually because you may use this for 2d or 3d, also h_B")
 
 
-Cut_off=PosConstant(Force[:,0],Force[:,1],0.001)+1
 
-Zpos =Force[:Cut_off+1, 0]+Zshift
-MuF = np.transpose(Force[:Cut_off, 1])
+cut_off=PosConstant(Force[:,0],Force[:,1],0.001)+1
+
+Zpos = Force[:cut_off+1, 0]
+MuF = np.transpose(Force[:cut_off, 1])
 print("The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos))
 print("Creating the Files to iterate in Lammps")
 np.savetxt("Zpos_iterate.dat", Zpos)
 np.savetxt("Force_iterate.dat", MuF)
+
+# =============================================================================
+# Plots
+# =============================================================================
+
+#Plots without shifting
+zmin = 0
+zmax = limits[1][1]
+x_tick_distance = 5
+
+cf.set_plot_appearance()
+
+
+# Force distribution
+fig1,ax1=plt.subplots()
+ax1.plot(Force[:,0],Force[:,1])
+ax1.set_ylabel(r"$F$")
+ax1.set_xlabel(r'$d[\sigma]$')
+ax1.set_xlim(zmin, zmax)
+ax1.set_xticks(np.arange(zmin, zmax, x_tick_distance))
+ax1.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+ax1.axvline(x=Zpos[-1], ymin=0, ymax=1,ls='-.',c='black')
+ax1.axvline(x=10, ymin=0, ymax=1,ls='-.',c='b')
+ax1.axvline(x=20, ymin=0, ymax=1,ls='-.',c='b')
+plt.tight_layout()
+fig1.savefig("Force_dist.pdf")
+
+
+# Density distribution
+
+fig2,ax2=plt.subplots()
+ax2.plot(FProperties[:,1],FProperties[:,4],label = 'Solvents', c ='b')
+ax2.plot(SProperties[:,1],SProperties[:,4],label = 'Solvents', c ='r')
+ax2.set_ylabel(r"$c[\sigma^{-3}]$")
+ax2.set_xlabel(r'$d[\sigma]$')
+ax2.set_xlim(zmin, zmax)
+ax2.set_ylim(0,ax2.get_ylim()[-1])
+ax2.set_xticks(np.arange(zmin, zmax, x_tick_distance))
+
+ax2.axhline(y=Cs_B, xmin=0, xmax=1,ls=':',c='black')
+ax2.axhline(y=Cf_B, xmin=0, xmax=1,ls=':',c='black')
+
+plt.tight_layout()
+fig2.savefig("density_dist.pdf")
