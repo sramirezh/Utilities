@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
+# Used for chunks that are already averaged.
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jul  2 13:47:42 2018

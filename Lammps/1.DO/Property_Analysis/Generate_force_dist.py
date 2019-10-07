@@ -17,9 +17,11 @@ import Lammps.core_functions as cf
 import Lammps.General.Log_Analysis.Thermo_Analyser as ta
 
 
+
 FProperties=cf.read_data_file("Fproperties_short.dat") #Solvent properties
 SProperties=cf.read_data_file("Sproperties_short.dat") #Solute properties
 AProperties=cf.read_data_file("properties_short.dat") #All properties
+
 
 # TODO this funtion could be replaced with the one that I used in the colloid/polymer theoretical mobility
 def PosConstant(x,y,Tol):
@@ -48,9 +50,9 @@ def PosConstant(x,y,Tol):
     return index
 
 
-def YForce(Cs,Cf,SProperties,FProperties,AProperties):
+def Force(Ns,Nf,SProperties,FProperties,AProperties):
     """
-    Yawei Force Calculation
+    Force calculation
     :param Cs: Solute Concentration in the Bulk
     :param Cf: Solvent Concentration in the Bulk
     :param SProperties: Solute Properties
@@ -60,39 +62,46 @@ def YForce(Cs,Cf,SProperties,FProperties,AProperties):
     The Force distribution only up to IntUp, after that it is assumed that the force is zero
 
     """
-    FsY = -T/Cs
-    FfY = -FsY * Cs / Cf
+    IntUp = 10
+    Fs = 1
+    Ff = -Fs * Ns / Nf
     Indexes=np.where(SProperties[:, 1]<=IntUp)[0]
     n=len(Indexes)
-    YForce = np.zeros((n, 2))
-    YForce[:, 0] = FProperties[Indexes, 1]
+    Force = np.zeros((n, 2))
+    Force[:, 0] = FProperties[Indexes, 1]
 
     for i in range(n):
         if AProperties[i, 4] == 0:
-            YForce[i, 1] = 0
+            Force[i, 1] = 0
 
         else:
-            YForce[i, 1] = (FfY * FProperties[i, 4] + FsY * SProperties[i, 4]) / AProperties[i, 4]
+            Force[i, 1] = (Ff * FProperties[i, 4] + Fs * SProperties[i, 4]) / AProperties[i, 4]
 
-    np.savetxt("YForce.dat", YForce)
+    np.savetxt("Force.dat", Force)
     print("\n*********************Running Yawei Calculations*********************\n")
-    print("The force on the Solutes is %f, on the Solvents %f" %(FsY,FfY))
-    print("Created Yawei Force distribution File YForce.dat ")
+    print("The force on the Solutes is %f, on the Solvents %f" %(Fs,Ff))
+    print("Created the force distribution File Force.dat ")
 
-    return YForce
-
-
-YForce = YForce(Cs,Cf,SProperties,FProperties,AProperties)
+    return Force
 
 
 
-Cut_off=PosConstant(MuForce[:,0],MuForce[:,1],0.001)+1
+# Obtaining the thermodynamic data
+    
+thermo_data = ta.thermo_analyser("log.lammps")
+Ns = float(thermo_data.at['v_cBSolu','Average'])
+Nf = float(thermo_data.at['v_cBSolv','Average'])
 
-Zpos =MuForce[:Cut_off+1, 0]+Zshift
-MuF = np.transpose(MuForce[:Cut_off, 1])
-YF = np.transpose(YForce[:Cut_off, 1])
+Force = Force(Ns,Nf,SProperties,FProperties,AProperties)
+
+Zshift = 0
+
+
+Cut_off=PosConstant(Force[:,0],Force[:,1],0.001)+1
+
+Zpos =Force[:Cut_off+1, 0]+Zshift
+MuF = np.transpose(Force[:Cut_off, 1])
 print("The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos))
 print("Creating the Files to iterate in Lammps")
 np.savetxt("Zpos_iterate.dat", Zpos)
-np.savetxt("MuForce_iterate.dat", MuF)
-np.savetxt("YForce_iterate.dat", YF)
+np.savetxt("Force_iterate.dat", MuF)
