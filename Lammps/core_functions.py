@@ -153,14 +153,14 @@ def extract_digits(strings,sort=True):
 
     """
     if isinstance(strings, str):
-        numbers=re.findall(r"[-+]?\d*\.?\d+",strings)
+        numbers=re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?",strings)
         output=([num.strip('.') for num in numbers])
 
 
     if isinstance(strings, list):
         output=[]
         for element in strings:
-            numbers=re.findall(r"[-+]?\d*\.?\d+",element)
+            numbers=re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?",element)
             output.append([num.strip('.') for num in numbers])
 
         if np.shape(output)[1]==1:

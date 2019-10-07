@@ -11,16 +11,17 @@ import sys
 import os
 from shlex import split
 import matplotlib.pyplot as plt
-
+import linecache
+import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.General.Log_Analysis.Thermo_Analyser as ta
 
 
 
-FProperties=cf.read_data_file("Fproperties_short.dat") #Solvent properties
-SProperties=cf.read_data_file("Sproperties_short.dat") #Solute properties
-AProperties=cf.read_data_file("properties_short.dat") #All properties
+FProperties=cf.read_data_file("Fproperties_short.dat").values #Solvent properties
+SProperties=cf.read_data_file("Sproperties_short.dat").values #Solute properties
+AProperties=cf.read_data_file("properties_short.dat").values #All properties
 
 
 # TODO this funtion could be replaced with the one that I used in the colloid/polymer theoretical mobility
@@ -78,17 +79,46 @@ def Force(Ns,Nf,SProperties,FProperties,AProperties):
             Force[i, 1] = (Ff * FProperties[i, 4] + Fs * SProperties[i, 4]) / AProperties[i, 4]
 
     np.savetxt("Force.dat", Force)
-    print("\n*********************Running Yawei Calculations*********************\n")
+    print("\n*********************Getting the force profile*********************\n")
     print("The force on the Solutes is %f, on the Solvents %f" %(Fs,Ff))
     print("Created the force distribution File Force.dat ")
 
     return Force
 
+def read_box_limits(log_name):
+    """
+    Copied from first_n_analysis
+    Reads the box limits from log.lammps
+    ONLY required for .xyz not for .dump
+    Args:
+        None: log_name name of the log file
+    returns:
+        volume
+        limits
 
+    """
+    if not os.path.exists(log_name):
+        print ("The log file specified does not exist")
+        
+        sys.exit("The log file specified does not exist")
+        
+        
+    out,err=cf.bash_command("""grep -n "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
+    line=int(out.split()[0])
+    limits=linecache.getline(log_name, line)
+    limits=re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits)
+    limits=np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
+    volume=(limits[1,0]-limits[0,0])*(limits[1,1]-limits[0,1])*(limits[1,2]-limits[0,2])
+
+    return volume,limits
 
 # Obtaining the thermodynamic data
-    
+
+
 thermo_data = ta.thermo_analyser("log.lammps")
+
+
+
 Ns = float(thermo_data.at['v_cBSolu','Average'])
 Nf = float(thermo_data.at['v_cBSolv','Average'])
 
