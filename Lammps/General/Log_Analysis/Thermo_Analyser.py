@@ -2,6 +2,7 @@
 This script reads the log file and gets the
 """
 import numpy as np
+import pandas as pd
 import os
 import sys
 import linecache
@@ -93,22 +94,48 @@ def discard_data(data,nmin):
 
     return data
 
-def thermo_analyser(file_name,minimum):
+def thermo_analyser(file_name,minimum = 0.3):
     """
     Args:
         file_name
         min Number or percentage (between 0-1) of samples to be discarded
     Returns:
-        thermo_data a dataframe that has the name and data of the results. eg thermo_data.names
+        thermo_data a dataframe that has the columns as the average, etc and the rows for each property
+        check the columns with thermo_data.index.values, thermo_data.column.values 
     """
 
     data,header=data_extract(file_name)
     save_file(data,header)
     stat.fast_averager("Parameters.dat",minimum,"thermo.dat")
 
-    thermo_data=cf.read_data_file("Parameters.dat")
+    thermo_data = read_thermo_output("thermo.dat")
 
     return thermo_data
+
+
+def read_thermo_output(file_thermo):
+    """
+    Creates a data frame from the file "file_thermo"
+
+    Returns:
+        df a dataframe that has the columns as the average, etc and the rows for each property
+        check the columns with thermo_data.index.values, thermo_data.column.values
+    """
+
+    f=open(file_thermo,'r')
+    g = open("thermo_mod.dat",'w')
+    lines=f.readlines()
+    separator = "="
+    array = []
+    for l in lines:
+        l = l.replace("=","\t")
+        l = l.split()
+        array.append(l)
+
+    df = pd.DataFrame(array[1::], columns = array[0])
+    df = df.set_index('Property')
+
+    return df
 
 
 
