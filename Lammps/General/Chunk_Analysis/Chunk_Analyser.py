@@ -27,7 +27,7 @@ warnings.filterwarnings("ignore")
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
-
+dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
 
 try:
     import matplotlib
@@ -72,12 +72,12 @@ def get_zshift():
     return zshift
 
 
-def split_trajectory(split):
+def split_trajectory(split,file_name):
     
     if split==True:
         print("\nSplitting the chunk series")
-        #make a general csplitter
-        #out,err=cf.bash_command("""bash %s/Trajectory_poly.sh -i %s bash"""%(dir_path,file_name))
+        #TODO make a general csplitter
+        out,err=cf.bash_command("""bash %s/Chunk_splitter.sh %s bash"""%(dir_path,file_name))
     else:
         print("\nThe chunk file was not splitted")
 
@@ -103,7 +103,7 @@ def get_parameters():
 """ main"""
 
 parser = argparse.ArgumentParser(description='This script analyses a times series of data from chunks',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('FileName', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
+parser.add_argument('filename', metavar='InputFile',help='Input filename',type=lambda x: cf.is_valid_file(parser, x))
 parser.add_argument('-split', help='True if trajectory file need to be splitter', default=False, type=bool)
 parser.add_argument('-nmin', help='Number or percentage (between 0-1) of timesteps to be discarded', default=300, type=float)
 
@@ -112,7 +112,7 @@ args = parser.parse_args()
 
 nmin=args.nmin
 
-split_trajectory(args.split)
+split_trajectory(args.split,args.filename)
 
 times=read_times(nmin)
 x=len(times)

@@ -245,6 +245,7 @@ print("\n Starting the Force Calculations\n")
 MuForce = MuForce(Ns,N,SProperties,FProperties,AProperties)
 YForce = YForce(Cs,Cf,SProperties,FProperties,AProperties)
 BinSize = MuForce[1, 0] - MuForce[0, 0]
+
 # ==============================================================================
 # Determining where there is no more variation
 # ==============================================================================

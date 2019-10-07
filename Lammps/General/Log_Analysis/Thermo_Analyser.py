@@ -98,11 +98,17 @@ def thermo_analyser(file_name,minimum):
     Args:
         file_name
         min Number or percentage (between 0-1) of samples to be discarded
+    Returns:
+        thermo_data a dataframe that has the name and data of the results. eg thermo_data.names
     """
 
     data,header=data_extract(file_name)
     save_file(data,header)
     stat.fast_averager("Parameters.dat",minimum,"thermo.dat")
+
+    thermo_data=cf.read_data_file("Parameters.dat")
+
+    return thermo_data
 
 
 
