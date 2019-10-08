@@ -111,6 +111,31 @@ def read_box_limits(log_name):
 
     return volume,limits
 
+# Todo put the read_box_limits and the read_bulk heigh as general functions that can read from the desired lin
+    #the numbers of lines and extract the digits from there. 
+def read_bulk_height(geom_name):
+    """
+    Reads the bulk limits from in.geom
+    Args:
+        None: in.geom name of the geometry file
+    returns:
+        height
+
+    """
+    if not os.path.exists(geom_name):
+        print ("The geometry file specified does not exist")
+        
+        sys.exit("The geometry file specified does not exist")
+        
+        
+    out,err=cf.bash_command("""grep -n "rBulk" %s | awk -F":" '{print $1}' """%geom_name)
+    line=int(out.split()[0])
+    limits=linecache.getline(geom_name, line)
+    limits=np.array(re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits),dtype = float)
+    height = limits[1]-limits[0]
+
+    return height
+
 # Obtaining the thermodynamic data
 
 
@@ -123,18 +148,26 @@ Nf = float(thermo_data.at['v_cBSolv','Average'])
 
 
 #Getting the concentrations in the bulk
-h_B=10  #height of the bulk as defined in in.geom
-v_B=(volume*(h_B/(limits[1][1]-limits[0][1])))/0.5 #Added the 0.5 because of the 2D correction
+h_B= read_bulk_height("in.geom")
+
+# Getting if its 2d or 3d
+input_name = "input.lmp"
+out,err = cf.bash_command("""grep -n "enforce2d" %s | awk -F":" '{print $1}' """%input_name)
+
+if out:
+    print("\nThis is a 2d Simulation\n")
+    v_B=(volume*(h_B/(limits[1][1]-limits[0][1])))/0.5 #Added the 0.5 because of the 2D correction
+    index  = 1
+    
+else:
+    print("\nThis is a 3d Simulation\n")
+    v_B=(volume*(h_B/(limits[1][2]-limits[0][2]))) 
+    index = 2
+
 Cs_B = Ns/v_B
 Cf_B = Nf/v_B
 
 Force = Force(Ns,Nf,SProperties,FProperties,AProperties)
-
-
-cf.beware_msg("Check that the shift is correct manually because you may use this for 2d or 3d, also h_B")
-
-
-
 cut_off=PosConstant(Force[:,0],Force[:,1],0.001)+1
 
 Zpos = Force[:cut_off+1, 0]
@@ -150,7 +183,7 @@ np.savetxt("Force_iterate.dat", MuF)
 
 #Plots without shifting
 zmin = 0
-zmax = limits[1][1]
+zmax = limits[1][index]
 x_tick_distance = 5
 
 cf.set_plot_appearance()
