@@ -54,8 +54,8 @@ def PosConstant(x,y,Tol):
 def Force(Ns,Nf,SProperties,FProperties,AProperties):
     """
     Force calculation
-    :param Cs: Solute Concentration in the Bulk
-    :param Cf: Solvent Concentration in the Bulk
+    :param Ns: Solute Number in the Bulk
+    :param Nf: Solvent Number in the Bulk
     :param SProperties: Solute Properties
     :param FProperties: Solvent Properties
     :param AProperties: Fluid Properties
