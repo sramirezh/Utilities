@@ -1,19 +1,21 @@
-*.dat
-*.eps
-*.xyz
-*.o
-*.cxyz
-*.param
-*.log
-*.atom
-*.pdf
-*.pyc
-*.swp
-*.DS_Store
-*.htlm
-*.mod
-*.lmp
-*.lammps
-*.melt
-*.png
-Lammps/3.Pore/qsub/run.qsub.sh
+#ignore everything
+*
+
+# But not these files...
+!*.qsub
+!.gitignore
+!*.lmp
+!in.*
+!*.sh
+!*.awk
+!*.lt
+!*.py
+!*.sh
+!*.c
+!*.cpp
+!*.h
+!*.ipynb
+
+# ...even if they are in subdirectories
+!*/
+
