@@ -174,6 +174,7 @@ Zpos = Force[:cut_off+1, 0]
 MuF = np.transpose(Force[:cut_off, 1])
 print("The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos))
 print("Creating the Files to iterate in Lammps")
+print ("In the bulk, the solute concentration is %s, the solvent is %s"%(Cs_B,Cf_B))
 np.savetxt("Zpos_iterate.dat", Zpos)
 np.savetxt("Force_iterate.dat", MuF)
 
