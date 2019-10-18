@@ -15,7 +15,9 @@
 !*.cpp
 !*.h
 !*.ipynb
-
+!tmux.conf
+!*.md
+!*.yml
 # ...even if they are in subdirectories
 !*/
 
