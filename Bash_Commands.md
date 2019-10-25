@@ -60,3 +60,7 @@ find . -type f -regextype sed -regex ".*.[0-9]$"   This was to delete the output
 
 find -type f -exec du -Sh {} + | sort -rh | head -n 5
 
+
+# Join PDF without rotation in MAC
+pdfjoin  --rotateoversize false -o out.pdf *.pdf
+
