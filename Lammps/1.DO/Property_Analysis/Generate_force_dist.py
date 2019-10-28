@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Oct  6 18:44:17 2019
+New script that uses the density distributions to plot the force profiles and theoretical quantities as gamma, K,L, and V.
+TODO this code assumes the surface at z = 0
 File created copying what is in Property analysis but just to generate the force distribution
 @author: sr802
 """
@@ -22,6 +23,8 @@ import Lammps.General.Log_Analysis.Thermo_Analyser as ta
 FProperties=cf.read_data_file("Fproperties_short.dat").values #Solvent properties
 SProperties=cf.read_data_file("Sproperties_short.dat").values #Solute properties
 AProperties=cf.read_data_file("properties_short.dat").values #All properties
+
+
 
 
 # TODO this funtion could be replaced with the one that I used in the colloid/polymer theoretical mobility
@@ -111,6 +114,8 @@ def read_box_limits(log_name):
 
     return volume,limits
 
+
+
 # Todo put the read_box_limits and the read_bulk heigh as general functions that can read from the desired lin
     #the numbers of lines and extract the digits from there. 
 def read_bulk_height(geom_name):
@@ -134,7 +139,7 @@ def read_bulk_height(geom_name):
     limits=np.array(re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits),dtype = float)
     height = limits[1]-limits[0]
 
-    return height
+    return height, limits
 
 # Obtaining the thermodynamic data
 
@@ -147,8 +152,14 @@ Ns = float(thermo_data.at['v_cBSolu','Average'])
 Nf = float(thermo_data.at['v_cBSolv','Average'])
 
 
-#Getting the concentrations in the bulk
-h_B= read_bulk_height("in.geom")
+
+
+# =============================================================================
+#  Getting the concentration in the bulk, using the results from log. lammps
+# =============================================================================
+
+#Getting the bulk limits
+h_B, limits_B = read_bulk_height("in.geom")
 
 # Getting if its 2d or 3d
 input_name = "input.lmp"
@@ -167,9 +178,29 @@ else:
 Cs_B = Ns/v_B
 Cf_B = Nf/v_B
 
-Force = Force(Ns,Nf,SProperties,FProperties,AProperties)
-cut_off=PosConstant(Force[:,0],Force[:,1],0.001)+1
 
+Force = Force(Ns,Nf,SProperties,FProperties,AProperties)
+
+
+# =============================================================================
+# Finding the cutoff for the force
+# =============================================================================
+
+# To find the plateau after the maximum, as before there might be a plateau
+imax =np.argmax(Force[:,1])
+
+cut_off = imax+min(cf.plateau_finder(Force[imax::,1]))[-1]
+
+zmax_force = SProperties[cut_off,0]
+
+
+
+
+
+
+# =============================================================================
+# Creating the force distribution
+# =============================================================================
 Zpos = Force[:cut_off+1, 0]
 MuF = np.transpose(Force[:cut_off, 1])
 print("The Force Cut-off is %f, this is where the region of applied forces finishes"%np.max(Zpos))
@@ -177,6 +208,47 @@ print("Creating the Files to iterate in Lammps")
 print ("In the bulk, the solute concentration is %s, the solvent is %s"%(Cs_B,Cf_B))
 np.savetxt("Zpos_iterate.dat", Zpos)
 np.savetxt("Force_iterate.dat", MuF)
+
+
+
+# =============================================================================
+# Computing important quantities
+# =============================================================================
+# TODO make this a class 
+
+z = SProperties[:,1]
+
+Cs_exc=SProperties[:,4]-Cs_B
+
+gamma=cf.integrate(z,Cs_exc,0,zmax_force)
+
+integrand_k=Cs_exc/Cs_B
+
+K=cf.integrate(z,integrand_k,0,zmax_force)
+
+integrand_1=integrand_k*z
+
+L=cf.integrate(z,integrand_1,0,zmax_force)
+
+integrand_2=0.5*integrand_k*z**2
+
+H=cf.integrate(z,integrand_2,0,zmax_force)/L
+
+
+def velocity(Cs_exc, zmax):
+    """
+    Computes the velocity for each position from the wall
+    
+    
+    
+    """
+    z = np.linspace(0,zmax)
+    
+    internal_values = [cf.integrate(z,Cs_exc,0,zlim) for zlim in z]
+    
+    return internal_values
+
+    
 
 # =============================================================================
 # Plots
@@ -205,6 +277,17 @@ plt.tight_layout()
 fig1.savefig("Force_dist.pdf")
 
 
+"""Plot Excess Solute concentration"""
+fig,ax=plt.subplots()
+ax.plot(SProperties[:,1],Cs_exc)
+ax.set_ylabel(r'$C_s(y)-C_s^B$')
+ax.set_xlabel(r'$y $')
+xmin,xmax=plt.xlim()
+ax.set_xlim(0,zmax)
+ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
+fig.tight_layout()
+plt.savefig("Excess.pdf")
+
 # Density distribution
 
 fig2,ax2=plt.subplots()
@@ -218,6 +301,6 @@ ax2.set_xticks(np.arange(zmin, zmax, x_tick_distance))
 
 ax2.axhline(y=Cs_B, xmin=0, xmax=1,ls=':',c='black')
 ax2.axhline(y=Cf_B, xmin=0, xmax=1,ls=':',c='black')
-
+plt.legend(loc = 'upper right')
 plt.tight_layout()
 fig2.savefig("density_dist.pdf")

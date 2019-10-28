@@ -97,7 +97,7 @@ def velocity_polymer(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     indexes=np.arange(0,plat_indexes[-1])
     
     cs_bulk=data[indexes[-1],3]
-    alpha=grad_mu*cs_bulk
+    alpha=beta*grad_mu*cs_bulk
     
     
     

@@ -37,16 +37,17 @@ for counter,directory in enumerate(directories):
     files=sorted(files)[::-1]
     
     for f in files:
-        key=f.split('_')[1][0]
+        key=f.split("/")[-1].split('_')[1][0]
+        print (key)
         data=cf.read_data_file(f).values
         plt.plot(data[:,1],data[:,3],color=colors[key],label=name[key],linestyle=ltype[key])
         
-    plt.legend(loc='upper right')
+    plt.legend(loc='bottom right')
     ax.set_ylabel(r'$c[\sigma^{-3}]$')
     ax.set_xlabel(r'$r[\sigma]$')
     ax.set_xlim(0,9)
     ax.set_ylim(0,ax.get_ylim()[1])
-    ax.axvline(x=Rh[counter], ymin=0, ymax=1,ls='-.',c='black')
+#    ax.axvline(x=Rh[counter], ymin=0, ymax=1,ls='-.',c='black')
     fig.tight_layout()
     fig.savefig('%s.pdf'%directory.split('/')[0])
 

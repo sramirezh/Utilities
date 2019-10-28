@@ -18,7 +18,7 @@ from scipy.spatial.distance import pdist,squareform
 # =============================================================================
 
 sphere_radius = 0.5
-N = 108
+N = 100
 vol_part = 4/3*np.pi*sphere_radius**3
 ff = 0.6
 

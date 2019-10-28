@@ -1,5 +1,5 @@
 """
-This script analyzes the solute concentraion file, either Raman style or my style.
+This OLD (for FYR) script analyzes the solute concentraion file, either Raman style or my style.
 
 It computes the diffusio-osmotic mobility and the velocity in the bulk. 
 

@@ -1,7 +1,7 @@
 """
 =============================================================================
-This is a script that performs all the analyses only using the Averages values
-All the units are scaled in LJ units, it is mentioned explicitly otherwise.
+This is an OLD script that performs all the analyses only using the Averages values
+All the units are scaled in LJ units, it is mentioned explicitly otherwise (FOR HIROAKI AND YAWEI STYLE)
 =============================================================================
 
 Inputs:

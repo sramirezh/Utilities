@@ -343,8 +343,46 @@ def str2list(input):
 
 
 def beware_msg(msg):
+    """
+    Prints a message that can be easily spotted
+    """
     print ("\n\n\n************************************************************")
     print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n")
     print (msg)
     print ("\n\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print ("************************************************************\n\n\n")
+
+
+def group_consecutive(data):
+    """
+    Groups consecutive indexes in an array an return a list with all the groups
+    Args:
+        data 1D data array
+    Returns:
+        results a list with all the consecutive indexes grouped
+    """
+    from itertools import groupby
+    from operator import itemgetter
+    results=[]
+    for k, g in groupby(enumerate(data), lambda i_x: i_x[0]-i_x[1]):
+        results.append(list(map(itemgetter(1), g)))
+        
+         
+    return results
+         
+
+def plateau_finder(data,tol=0.0003):
+    """
+    Function that finds the plateaus of a distribution y, that has x spacing constant
+    Args:
+        data 1D data that has delta in the other dimension constant
+        tol tolerance for the variance
+    """
+    from scipy.ndimage.filters import generic_filter
+    tol=0.0003
+    filt_data = generic_filter(data, np.std, size=3)
+    plat_index=np.where(filt_data<(np.min(filt_data)+tol))[0]
+    
+    plateaus=group_consecutive(plat_index)
+    
+    return plateaus
