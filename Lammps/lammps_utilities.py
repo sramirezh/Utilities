@@ -38,8 +38,8 @@ def read_box_limits(log_name):
 
     return volume,limits
 
-
-def read_region(domain_name, geom_file = "in.geom"):
+# TODO generalise to get all the dimension
+def read_region_height(domain_name, geom_file = "in.geom"):
     """
     Reads the bulk limits from in.geom
     Args:
@@ -62,3 +62,4 @@ def read_region(domain_name, geom_file = "in.geom"):
     height = limits[1]-limits[0]
 
     return height, limits
+# Create a class region and then  simulation box that is a inherits the rest with properties xmax,xmin, lx, vol, etc
