@@ -11,15 +11,8 @@ from cycler import cycler
 import warnings
 import pickle as pickle
 warnings.filterwarnings("ignore")
+import matplotlib.pyplot as plt
 
-
-try:
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-#    from matplotlib.backends.backend_pdf import PdfPages
-except ImportError as err:
-    print(err)
 
 def bash_command(cmd):
     """
