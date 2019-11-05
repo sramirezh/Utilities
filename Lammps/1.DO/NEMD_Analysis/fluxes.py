@@ -27,6 +27,7 @@ from Lammps.Pore.qsub import simulation_results as sr
 import pickle as pickle
 from uncertainties import ufloat,unumpy
 import glob
+import Lammps.lammps_utilities as lu
 
 cwd = os.getcwd() #current working directory
 
@@ -59,10 +60,10 @@ sim.add_properties(properties)
 
 
 
+# Getting the dimensions of the simulation box and the regions
+box_volume, box_limits = lu.read_box_limits('log.lammps')
 
-
-##The following two parameters are obtained from the knowledge of the bulk properties
-box_volume=8000 
+##The following two parameters are obtained from the knowledge of the bulk propertiesbox_volume=8000 
 rho_bulk= 0.752375
 cs_bulk=0.375332
 

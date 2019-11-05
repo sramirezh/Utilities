@@ -17,7 +17,7 @@ import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.General.Log_Analysis.Thermo_Analyser as ta
-
+import Lammps.lammps_utilities as lu
 
 
 FProperties=cf.read_data_file("Fproperties_short.dat").values #Solvent properties
@@ -87,59 +87,13 @@ def Force(Ns,Nf,SProperties,FProperties,AProperties):
 
     return Force
 
-def read_box_limits(log_name):
-    """
-    TODO make a lammps utilities function Copied from first_n_analysis
-    Reads the box limits from log.lammps
-    ONLY required for .xyz not for .dump
-    Args:
-        None: log_name name of the log file
-    returns:
-        volume
-        limits
 
-    """
-    if not os.path.exists(log_name):
-        print ("The log file specified does not exist")
-        
-        sys.exit("The log file specified does not exist")
-        
-        
-    out,err=cf.bash_command("""grep -n "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
-    line=int(out.split()[0])
-    limits=linecache.getline(log_name, line)
-    limits=re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits)
-    limits=np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
-    volume=(limits[1,0]-limits[0,0])*(limits[1,1]-limits[0,1])*(limits[1,2]-limits[0,2])
-
-    return volume,limits
 
 
 
 # Todo put the read_box_limits and the read_bulk heigh as general functions that can read from the desired lin
     #the numbers of lines and extract the digits from there. 
-def read_bulk_height(geom_name):
-    """
-    Reads the bulk limits from in.geom
-    Args:
-        None: in.geom name of the geometry file
-    returns:
-        height
 
-    """
-    if not os.path.exists(geom_name):
-        print ("The geometry file specified does not exist")
-        
-        sys.exit("The geometry file specified does not exist")
-        
-        
-    out,err=cf.bash_command("""grep -n "rBulk" %s | awk -F":" '{print $1}' """%geom_name)
-    line=int(out.split()[0])
-    limits=linecache.getline(geom_name, line)
-    limits=np.array(re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits),dtype = float)
-    height = limits[1]-limits[0]
-
-    return height, limits
 
 # Obtaining the thermodynamic data
 
