@@ -135,7 +135,7 @@ def calculations(data, min_limit,output_file, names=None, function=False):
     else:
         data1=discard_data(data,min_limit)
         #Excluding some data that does not need to be analysed
-        exclude=["time", "Chunk", "Coord1","step"]
+        exclude=["time", "Chunk", "Coord1","step","elapsed"]
         if isinstance(names[0],str)==True:
             try:
                 i_delete=exclude_parameters(names, exclude)

@@ -68,6 +68,7 @@ def check_terminated_simulation(folder_name):
         counter=0
     else:
         tail,error=cf.bash_command("""tail -2 log.lammps""")
+        tail = str(tail)
         if "Total wall" in tail:
             print("This simulation terminated")
         else:
@@ -171,7 +172,9 @@ def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
     
     print ("\nConstructing the simulation instances\n")
     
+    # If it is a single directory
     
+            
     for directory in directories:
         
         t=float(os.path.split(directory)[-1])
@@ -183,8 +186,7 @@ def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
         os.chdir(cwd)
     return times
 
-
-
+    
 
 
 
@@ -310,6 +312,11 @@ class check_n_analyse(object):
     TODO the markers have to have the same size as the files len(thermo_markers)=len(thermo_files), check this!
     """
     def __init__(self,root,directory_pattern):
+        """
+        To analyse a single directory, just be specific, as to run inside a desired directory:
+        root could be .
+        directory pattern could be . 
+        """
         self.root = root   # TODO As the root inside the loop below ex mu_force_0.001
         self.directory_pattern = directory_pattern
         self.directories = glob.glob('%s/%s'%(root,directory_pattern))
