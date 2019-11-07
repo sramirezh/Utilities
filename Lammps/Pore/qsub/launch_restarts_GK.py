@@ -12,7 +12,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import shutil
-from .simulation_utilities import simulation
+from simulation_utilities import simulation
 import argparse
 
 cwd = os.getcwd() #current working directory
