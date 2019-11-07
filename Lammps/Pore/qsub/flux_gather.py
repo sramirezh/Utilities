@@ -21,7 +21,7 @@ import numpy as np
 import copy
 import re
 from scipy import optimize
-from . import simulation_results as sr
+import simulation_results as sr
 import pickle as pickle
 from uncertainties import ufloat,unumpy
 import glob
@@ -139,7 +139,6 @@ for bund in final_p.simulations:
         n_solutes=sim.get_property('cSolu')[1][0][0]
         n_solvents=sim.get_property('cSolv')[1][0][0]
         c_solutes = n_solutes/box_volume
-        n_total=n_solutes+n_solvents
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
         J_s=c_solutes*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
@@ -162,19 +161,18 @@ for bund in final_p.simulations:
             
         
         
-        exc_sol_array.append(exc_sol_flux)
     
     bund.add_upd_properties() # To update the bundle
     Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
-    exc_solute.append(sum(exc_sol_array)/len(exc_sol_array))
+    exc_solute.append(bund.get_property('J_s_exc',exact=True)[1][0])
     
 
 # =============================================================================
 #   \Gamma_sq
 # =============================================================================
 grad_p= np.array(f_p)  #Without the minus
-y=[i.n for i in exc_solute]
-y_error=[i.s for i in exc_solute]
+y=[i[0]for i in exc_solute]
+y_error=[i[1] for i in exc_solute]
 
 
 fig,ax=plt.subplots()
@@ -284,7 +282,7 @@ for bund in final_mu.simulations:
     bund.add_upd_properties() # To update the bundle
     f_mu.extend(bund.get_property('mu',exact=True)[1])
     Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
-    exc_solute.append(sum(exc_sol_array)/len(exc_sol_array))
+    exc_solute.append(bund.get_property('J_s_exc',exact=True)[1][0])
 
 
 
@@ -324,8 +322,8 @@ plt.savefig('Gamma_qs.pdf')
 # =============================================================================
 # \Gamma_{ss}
 # =============================================================================
-y=[i.n for i in exc_solute]
-y_error=[i.s for i in exc_solute]
+y=[i[0]for i in exc_solute]
+y_error=[i[1] for i in exc_solute]
 
 grad_mu=(rho_bulk/(rho_bulk-cs_bulk))*np.array(f_mu)
 
