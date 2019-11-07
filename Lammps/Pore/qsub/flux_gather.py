@@ -100,6 +100,7 @@ if not glob.glob("p.pkl"):
 
 
 ##The following two parameters are obtained from the knowledge of the bulk properties
+# TODO this can be obtained with lammps_utilities.py, add this property to class
 box_volume=8000 
 rho_bulk= 0.752375
 cs_bulk=0.375332
@@ -136,14 +137,13 @@ for bund in final_p.simulations:
     for sim in bund.simulations:
 
         n_solutes=sim.get_property('cSolu')[1][0][0]
-        
-
         n_solvents=sim.get_property('cSolv')[1][0][0]
+        c_solutes = n_solutes/box_volume
         n_total=n_solutes+n_solvents
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
-        J_s=n_solutes/box_volume*vx_solu
+        J_s=c_solutes*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-        exc_sol_flux=J_s-cs_bulk*Q
+        exc_sol_flux=J_s-c_solutes*Q
         sim.add_property('Q',Q)
         sim.add_property('J_s',J_s)
         sim.add_property('J_s_exc',exc_sol_flux)
@@ -266,9 +266,10 @@ for bund in final_mu.simulations:
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
         time = sim.param_value
         n_solutes=sim.get_property('cSolu')[1][0][0]
-        J_s=n_solutes/box_volume*vx_solu
+        c_solutes = n_solutes/box_volume
+        J_s=c_solutes*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-        exc_sol_flux=J_s-cs_bulk*Q
+        exc_sol_flux=J_s-c_solutes*Q
         exc_sol_array.append(exc_sol_flux)
         sim.add_property('Q',Q)
         sim.add_property('J_s',J_s)
