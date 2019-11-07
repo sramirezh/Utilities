@@ -111,3 +111,6 @@ exc_s = J_s- cs*Q
 sim.add_property('Q',Q)
 sim.add_property('J_s',J_s)
 sim.add_property('J_s_exc',exc_s)
+
+
+

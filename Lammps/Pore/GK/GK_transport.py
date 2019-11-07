@@ -16,7 +16,7 @@ import Lammps.core_functions as cf
 import Lammps.Pore.qsub.simulation_results as sr
 import glob
 
-from .flux_correlation import flux, correlation
+from flux_correlation import flux, correlation
 
 
 try:

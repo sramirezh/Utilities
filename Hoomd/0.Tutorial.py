@@ -20,7 +20,7 @@ from scipy.spatial.distance import pdist,squareform
 sphere_radius = 0.5
 N = 100
 vol_part = 4/3*np.pi*sphere_radius**3
-ff = 0.6
+ff = 0.5
 
 
 # =============================================================================
@@ -78,7 +78,7 @@ print ("The system is made of %s" %mc.get_type_shapes())
 d = hoomd.dump.gsd("trajectory.gsd", period=10, group=hoomd.group.all(), overwrite=True)
 
 
-hoomd.run(10000)
+hoomd.run(100000)
 
 snap = system.take_snapshot(all=True)
 
