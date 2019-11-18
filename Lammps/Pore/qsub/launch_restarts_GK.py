@@ -39,7 +39,7 @@ def main(name,root,template,conf_folder,n_conf,identifier,run):
     
     conf_times=times[-n_conf:]
     home=root+'/'+name+'_%s'%identifier
-    files_analysis=cf.parameter_finder(files,conf_times)
+    files_analysis = cf.parameter_finder(files,conf_times)
     
     shutil.rmtree(home,ignore_errors=True)
     
@@ -75,7 +75,7 @@ def main(name,root,template,conf_folder,n_conf,identifier,run):
     # =============================================================================
         if run==True:
             sim.run_simulation()
-	    os.chdir(cwd)
+        os.chdir(cwd)
             
 if __name__ == "__main__":
     """
