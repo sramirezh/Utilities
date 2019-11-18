@@ -97,7 +97,7 @@ if not glob.glob("p.pkl"):
 
 ##The following two parameters are obtained from the knowledge of the bulk properties
 # TODO this can be obtained with lammps_utilities.py, add this property to class
-box_volume  =8000 
+box_volume  = 8000 
 rho_bulk =  0.752375
 cs_bulk = 0.375332
 
