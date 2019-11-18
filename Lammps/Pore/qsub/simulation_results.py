@@ -82,7 +82,7 @@ def check_terminated_simulation(folder_name):
             print("This simulation terminated")
         else:
             last_step=cf.extract_digits(tail)
-            print("This simulation stoped at %s" %last_step[0])
+            print("This simulation stopped at %s" %last_step[0])
     os.chdir(cwd)
     return counter
 
@@ -440,7 +440,7 @@ class simulation(object):
         self.properties.append(prop_value)
         self.property_names.append(prop_name)
 
-    def get_property(self,name,exact=False):
+    def get_property(self,name,exact=False, text = False ):
         """
         function to get the specific property
         Args:
@@ -452,10 +452,24 @@ class simulation(object):
         prop_values=[]
         
         for i in index:
+            error = 0
             prop_names.append(self.property_names[i])
             prop_values.append(self.properties[i])
-        return prop_names,prop_values
-    
+            
+            if text == True:
+                if isinstance(self.properties[i],list):
+                    error = self.properties[i][1]
+                    value = self.properties[i][0]
+                else:
+                    error = 0 
+                    value = self.properties[i]
+                    
+                print ("%s %s %s" %(self.property_names[i],value,error))
+            
+        if text == False:
+            return prop_names,prop_values
+        
+
     def save(self,file_name):
         """
         Saves the instance 

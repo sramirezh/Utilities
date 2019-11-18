@@ -14,12 +14,8 @@ import sys
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
-import Others.Statistics.FastAverager as stat
-import Lammps.General.Log_Analysis.Thermo_Analyser as thermo
 import matplotlib.pyplot as plt
 import numpy as np
-import copy
-import re
 from scipy import optimize
 import simulation_results as sr
 import pickle as pickle
@@ -101,9 +97,9 @@ if not glob.glob("p.pkl"):
 
 ##The following two parameters are obtained from the knowledge of the bulk properties
 # TODO this can be obtained with lammps_utilities.py, add this property to class
-box_volume=8000 
-rho_bulk= 0.752375
-cs_bulk=0.375332
+box_volume  =8000 
+rho_bulk =  0.752375
+cs_bulk = 0.375332
 
 cf.set_plot_appearance()
 
@@ -138,11 +134,15 @@ for bund in final_p.simulations:
 
         n_solutes=sim.get_property('cSolu')[1][0][0]
         n_solvents=sim.get_property('cSolv')[1][0][0]
+        c_total = (n_solutes+n_solvents)/box_volume
         c_solutes = n_solutes/box_volume
+        
         vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
         J_s=c_solutes*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-        exc_sol_flux=J_s-c_solutes*Q
+        pref = c_total*cs_bulk/rho_bulk
+        exc_sol_flux = J_s - pref * Q
+        
         sim.add_property('Q',Q)
         sim.add_property('J_s',J_s)
         sim.add_property('J_s_exc',exc_sol_flux)
@@ -245,6 +245,54 @@ for time in list(p_params_dict.keys()):
 plt.savefig('Gamma_qq_times.pdf')
 
 
+
+## =============================================================================
+## Some tests
+## =============================================================================
+#
+#
+#grad_p=np.array(f_p)
+#
+#fig,ax=plt.subplots()
+#
+#
+#y=[i[0] for i in Q_array]
+#y_error=[i[1] for i in Q_array]
+#
+#
+#plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o',label=r'$Q^{Total}$')
+#
+#y=[i[0]for i in exc_solute]
+#y_error=[i[1] for i in exc_solute]
+#
+#
+#plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o',label=r'$J_s^{exc}$')
+#
+#
+#
+## Js
+#
+#y=[i.get_property('J_s',True)[1][0][0] for i in final_p.simulations ]
+#plt.plot(grad_p,y,'o',label=r'$J_s^{Total}$')
+#
+#
+## Js_excess bulk
+#
+#
+#y=[i.get_property('J_s_exc_B',True)[1][0][0] for i in final_p.simulations ]
+#plt.plot(grad_p,y,'o',label=r'$J_s^{excB}$')
+#
+#
+#ax.set_xlabel(r'$-\nabla P$')
+#plt.legend()
+#plt.tight_layout()
+#plt.savefig('Test.pdf')
+
+
+
+
+
+
 # =============================================================================
 # Calculations of the transport coefficients from DP problem
 # =============================================================================
@@ -261,17 +309,22 @@ for bund in final_mu.simulations:
     exc_sol_array=[]
     
     for sim in bund.simulations:
-        vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
         time = sim.param_value
         n_solutes=sim.get_property('cSolu')[1][0][0]
+        n_solvents=sim.get_property('cSolv')[1][0][0]
+        c_total = (n_solutes+n_solvents)/box_volume
         c_solutes = n_solutes/box_volume
+        
+        vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
         J_s=c_solutes*vx_solu
         Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-        exc_sol_flux=J_s-c_solutes*Q
-        exc_sol_array.append(exc_sol_flux)
+        pref = c_total*cs_bulk/rho_bulk
+        exc_sol_flux = J_s - pref * Q
+        
         sim.add_property('Q',Q)
         sim.add_property('J_s',J_s)
         sim.add_property('J_s_exc',exc_sol_flux)
+
 
         
         count+=1
@@ -347,6 +400,10 @@ ax.set_ylabel(r'$J_s-c_s^BQ$')
 plt.tight_layout()
 plt.savefig('Gamma_ss.pdf')
 cf.save_instance(ax,"Gamma_ss")
+
+
+
+
 
 
 

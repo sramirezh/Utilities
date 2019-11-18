@@ -99,7 +99,7 @@ def Force(Ns,Nf,SProperties,FProperties,AProperties):
 
 
 thermo_data = ta.thermo_analyser("log.lammps")
-volume, limits  = read_box_limits("log.lammps")
+volume, limits  = lu.read_box_limits("log.lammps")
 
 
 Ns = float(thermo_data.at['v_cBSolu','Average'])
@@ -113,7 +113,7 @@ Nf = float(thermo_data.at['v_cBSolv','Average'])
 # =============================================================================
 
 #Getting the bulk limits
-h_B, limits_B = read_bulk_height("in.geom")
+h_B, limits_B = lu.read_region_height("rBulk")
 
 # Getting if its 2d or 3d
 input_name = "input.lmp"
@@ -145,7 +145,7 @@ imax =np.argmax(Force[:,1])
 
 cut_off = imax+min(cf.plateau_finder(Force[imax::,1]))[-1]
 
-zmax_force = SProperties[cut_off,0]
+zmax_force = SProperties[cut_off,1]
 
 
 
@@ -199,9 +199,27 @@ def velocity(Cs_exc, zmax):
     z = np.linspace(0,zmax)
     
     internal_values = [cf.integrate(z,Cs_exc,0,zlim) for zlim in z]
-    
+    integral = cf.integrate(z,internal_values,0,zlim)
     return internal_values
 
+
+def bulk_velocity(Cs_exc,z):
+    """
+    Computes the bulk velocity, should be 0.012
+    """
+    eta = 1.56
+    grad_mu = - 0.125
+    
+    integrand = Cs_exc*z
+    
+    integral = cf.integrate(z,integrand,0,25)
+    
+    vx = grad_mu/eta*integral
+    
+    return vx
+    
+print ("\nThe bulk velocity is %f"%bulk_velocity(Cs_exc,z))
+print ("Gamma is %f\n K is %f\n L is %f\n H is %f \n"%(gamma,K,L,H))
     
 
 # =============================================================================
@@ -213,7 +231,7 @@ zmin = 0
 zmax = limits[1][index]
 x_tick_distance = 5
 
-cf.set_plot_appearance()
+#cf.set_plot_appearance()
 
 
 # Force distribution
@@ -231,7 +249,7 @@ plt.tight_layout()
 fig1.savefig("Force_dist.pdf")
 
 
-"""Plot Excess Solute concentration"""
+#Excess Solute concentration
 fig,ax=plt.subplots()
 ax.plot(SProperties[:,1],Cs_exc)
 ax.set_ylabel(r'$C_s(y)-C_s^B$')

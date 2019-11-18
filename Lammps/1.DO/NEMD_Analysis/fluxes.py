@@ -15,18 +15,8 @@ import os
 import sys
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
-import Lammps.core_functions as cf
-import Others.Statistics.FastAverager as stat
-import Lammps.General.Log_Analysis.Thermo_Analyser as thermo
-import matplotlib.pyplot as plt
-import numpy as np
-import copy
-import re
-from scipy import optimize
 from Lammps.Pore.qsub import simulation_results as sr
-import pickle as pickle
 from uncertainties import ufloat,unumpy
-import glob
 import Lammps.lammps_utilities as lu
 
 cwd = os.getcwd() #current working directory
@@ -74,7 +64,9 @@ vol_bulk = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1
 vol_sys = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*sys_heigth[0]
 
 
+# =============================================================================
 # Quantities in the bulk
+# =============================================================================
 n_s_bulk = sim.get_property('cBSolu',True)[1][0][0]
 n_f_bulk = sim.get_property('cBSolv',True)[1][0][0]
 n_fluid_bulk = n_f_bulk + n_s_bulk
@@ -94,13 +86,15 @@ sim.add_property('J_s_exc_bulk',exc_s_bulk)
 
 
 
+# =============================================================================
 # Quantities in the entire Volume
+# =============================================================================
 n_s = sim.get_property('cSolu',True)[1][0][0]
 n_f = sim.get_property('cSolv',True)[1][0][0]
 n_fluid = n_f + n_s
 
 rho = n_fluid/vol_sys
-cs = n_s_bulk/vol_sys
+cs = n_s/vol_sys
 
 vx_s = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
 J_s = cs*vx_s
@@ -111,6 +105,33 @@ exc_s = J_s- cs*Q
 sim.add_property('Q',Q)
 sim.add_property('J_s',J_s)
 sim.add_property('J_s_exc',exc_s)
+
+
+# =============================================================================
+# Quantities in the entire Volume weighted by the bulk
+# =============================================================================
+
+exc_s_hyb = J_s- cs_bulk*Q
+sim.add_property('J_s_exc_hyb',exc_s_hyb)
+
+
+# =============================================================================
+# Quantities difference of velocities
+# =============================================================================
+
+exc_s_vel = cs_bulk*(vx_s-Q)
+exc_s_HY = J_s-(n_s_bulk/(n_s_bulk+n_f_bulk)*rho)*Q
+
+sim.add_property('J_s_exc_vel',exc_s_vel)
+sim.add_property('J_s_exc_HY',exc_s_HY)
+
+
+
+# Printing results to write on excel
+sim.get_property('J_s',text = True)
+sim.get_property('Q',text = True)
+
+
 
 
 
