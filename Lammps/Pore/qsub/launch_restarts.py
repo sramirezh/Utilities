@@ -79,7 +79,7 @@ def main(name,root,template,conf_folder,n_conf,epsilon,force,run):
     # =============================================================================
         if run==True:
             sim.run_simulation()
-	    os.chdir(cwd)
+        os.chdir(cwd)
             
 if __name__ == "__main__":
     """
