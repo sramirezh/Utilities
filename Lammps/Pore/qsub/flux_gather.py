@@ -82,7 +82,7 @@ if not glob.glob("mu.pkl"):
 ## =============================================================================
 #
 
-root_pattern="p_force*"
+root_pattern="p_force_rhoav*"
 directory_pattern='[0-9]*'
 parameter_id='p'
 

@@ -238,9 +238,13 @@ if len(glob.glob('c1*'))<1:
     c22.save('c22')
 
 else:
+    print ("loading c11\n")
     c11 = cf.load_instance("c11.pkl")
+    print ("loading c22\n")
     c22 = cf.load_instance("c22.pkl")
+    print ("loading c12\n")
     c12 = cf.load_instance("c12.pkl")
+    print ("loading c21\n")
     c21 = cf.load_instance("c21.pkl")
     
 
