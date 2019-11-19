@@ -101,7 +101,7 @@ box_volume  = 8000
 rho_bulk =  0.752375
 cs_bulk = 0.375332
 
-cf.set_plot_appearance()
+#cf.set_plot_appearance()
 
 
 
