@@ -25,13 +25,8 @@ except ImportError as err2:
     print(err2)
 
 
-# Put this inside the argparser
-try:
-    import matplotlib
-    matplotlib.use('agg')
-    import matplotlib.pyplot as plt
-except ImportError as err:
-    print(err)
+import matplotlib.pyplot as plt
+
 
 cwd = os.getcwd() #current working directory
 
