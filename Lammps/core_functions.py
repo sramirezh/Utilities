@@ -313,7 +313,8 @@ def save_instance(instance, file_name):
     """
     Saves the instance 
     args:
-        instance is the objet that is going to be saved, if it is for a plot, save the ax 
+        instance: is the objet that is going to be saved, if it is for a plot, save the ax 
+        file_name name without extension
     """
     afile = open(r'%s.pkl'%file_name, 'wb')
     pickle.dump(instance, afile)
