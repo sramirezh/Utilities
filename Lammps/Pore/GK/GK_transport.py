@@ -338,6 +338,13 @@ print("The c12 is %s\n" %c12.transport_coeff(1,V,0,xmax))
 print("The c21 is %s\n" %c21.transport_coeff(1,V,0,xmax))
 print("The c22 is %s\n" %c22.transport_coeff(1,V,0,xmax))
 
+f=open("GK.out",'w')
+    f.write("The c11 is %s\n" %c11.transport_coeff(1,V,0,xmax))
+    f.write("The c12 is %s\n" %c12.transport_coeff(1,V,0,xmax))
+    f.write("The c21 is %s\n" %c21.transport_coeff(1,V,0,xmax))
+    f.write("The c22 is %s\n" %c22.transport_coeff(1,V,0,xmax))
+    f.close
+
 
 
 
