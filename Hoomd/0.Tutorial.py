@@ -10,9 +10,13 @@ Created on Fri Oct 18 10:43:05 2019
 import numpy as np
 import hoomd
 import hoomd.hpmc
-
+import sys
+import os
 from scipy.spatial.distance import pdist,squareform
+import glob
+sys.path.append(os.path.join(os.path.dirname(__file__), '../')) #This falls into Utilities path
 
+import Lammps.core_functions as cf
 # =============================================================================
 # Input parameters
 # =============================================================================
@@ -77,7 +81,7 @@ def generate_configuration(steps, seed):
     
     mc = hoomd.hpmc.integrate.sphere(d=0.2, seed=seed)
     
-    mc.shape_param.set('A', diameter=2*sphere_radius)
+    mc.shape_param.set('A', diameter= 2*sphere_radius )
     print ("The system is made of %s" %mc.get_type_shapes())
     
     
@@ -89,27 +93,55 @@ def generate_configuration(steps, seed):
     snap = system.take_snapshot(all=True)
     
     
+   #cf.save_instance(snap, "snap.pkl")
+    
+    
     
     return snap
 
+
+# =============================================================================
+# Creating or loading the configuration
+# =============================================================================
+
+#if len(glob.glob("*.pkl"))>0:
+#    snap = cf.load_instance("snap.pkl")
+#else:
+    
 snap = generate_configuration(10000,1231432)
 positions = snap.particles.position
 
-np.savetxt("positions.dat",positions,header = "%s"%snap.box.Lx)
+real_radius = 150 *10**-3 #Radius in microns
+def convert_into_real(length,radius,dim):
+    """
+    Converts into microns
+    Args:
+        quantity: coulde be an array or single number, in length, area, volume
+        real_radius in microns
+        dim 1 if length, 3 if volume
+    """
+    scaling = radius*2
+    length = length * (scaling)**dim
+    
+    return length
+    
+positions = convert_into_real(positions, real_radius,1)
+
+np.savetxt("real_positions.txt",positions)
 
 pos_m = squareform(pdist(positions))
 np.fill_diagonal(pos_m,100)
 
 # =============================================================================
-# Basic checks
+# Basic checks in real units
 # =============================================================================
 
 print ("\nThe minimum distance between spheres is %s" %np.min(pos_m))
-print ("The box side is %f"%snap.box.Lx)
+print ("The box side is %f"%convert_into_real(snap.box.Lx,real_radius,1))
 
 new_ff = snap.particles.N*vol_part/snap.box.get_volume()
 
-print ("The new ff is %f" %new_ff)
+print ("The new ff is %lf" %new_ff)
 
 
 # =============================================================================
