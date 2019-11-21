@@ -13,6 +13,8 @@ import pickle as pickle
 warnings.filterwarnings("ignore")
 import matplotlib.pyplot as plt
 
+from distutils.spawn import find_executable
+
 
 def bash_command(cmd):
     """
@@ -216,7 +218,8 @@ def set_plot_appearance():
     #plt.rcParams['font.serif'] = 'Times New Roman'
     #plt.rcParams['font.weight'] = 'normal'
     plt.rcParams["mathtext.fontset"] = "cm"
-    plt.rcParams['text.usetex'] = True
+    if find_executable('latex'):
+        plt.rcParams['text.usetex'] = True
     #plt.rcParams['mathtext.rm'] = 'serif'
     #plt.rcParams['mathtext.it'] = 'serif:italic'
     #plt.rcParams['mathtext.fontset'] = 'stix'
