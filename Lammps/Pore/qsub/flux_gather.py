@@ -63,7 +63,7 @@ plt.close('all')
 ## Chemical potential simulations
 ## =============================================================================
 #
-root_pattern="mu_force*"
+root_pattern="mu_force_0.0*"
 directory_pattern='[0-9]*'
 parameter_id='mu'
 
@@ -82,7 +82,7 @@ if not glob.glob("mu.pkl"):
 ## =============================================================================
 #
 
-root_pattern="p_force_rhoav*"
+root_pattern="p_force_0.000*"
 directory_pattern='[0-9]*'
 parameter_id='p'
 
@@ -101,7 +101,7 @@ box_volume  = 8000
 rho_bulk =  0.752375
 cs_bulk = 0.375332
 
-#cf.set_plot_appearance()
+cf.set_plot_appearance()
 
 
 
