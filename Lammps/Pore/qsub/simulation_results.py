@@ -238,7 +238,7 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
 #    
 
         #Building the simulations
-        times=construct_simulations(cna.dir_fin)
+        times = construct_simulations(cna.dir_fin)
     
         #Creating the directory for the plots
         
@@ -489,7 +489,7 @@ Class Inheritage creating the superclass
 """
 
 class simulation_bundle(simulation):
-    def __init__(self,simulations,parameter_id,parameter_value,root,dictionary=None):
+    def __init__(self,simulations,parameter_id,parameter_value,root,dictionary = None,ave = True):
         """
         
         root is the directory where the plot folder and the statistic summary is going to be created
@@ -500,9 +500,11 @@ class simulation_bundle(simulation):
         self.properties=[]
         self.property_names=[]
         self.root=root
+        self.average = ave
         #Ask Shaltiel if this is oK?
         self.add_upd_properties()
         self.dictionary=dictionary
+        
         
     def add_upd_properties(self):
         """
@@ -524,8 +526,13 @@ class simulation_bundle(simulation):
                     array.append(un.ufloat(value[0],value[1])) 
                 else:
                     array.append(un.ufloat(value,0))
-            ave=sum(array)/len(array)
-            self.properties.append([ave.n,ave.s])
+            if self.average == True:
+                print ("I am here")
+                ave=sum(array)/len(array)
+                self.properties.append([ave.n,ave.s])
+            else:
+                self.properties.append(array)
+
         
         #Adding the property identifier
         if length_i == 0:
