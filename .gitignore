@@ -1,6 +1,6 @@
 #ignore everything
 *
-
+*.gsd
 # But not these files...
 !*.qsub
 !.gitignore
@@ -20,4 +20,3 @@
 !*.yml
 # ...even if they are in subdirectories
 !*/
-
