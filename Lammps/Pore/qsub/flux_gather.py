@@ -59,7 +59,6 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
     
     global f_mu, Q_array, bund, final_mu
     
-    parameter_id='mu_bundle'
 
     dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
 
@@ -67,8 +66,8 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
     #If the object was not saved
     if not glob.glob("mu.pkl"):
         print("\nAnalysing the mu grad simulations\n")
-        bundles_mu = sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
-        final_mu = sr.simulation_bundle(bundles_mu,parameter_id,3,cwd,dictionary = dictionary, ave = False)
+        bundles_mu = sr.initialise_sim_bundles(root_pattern,'mu',directory_pattern,dictionary)
+        final_mu = sr.simulation_bundle(bundles_mu,'mu_bundle',3,cwd,dictionary = dictionary, ave = False)
         final_mu.save("mu")
 
     # =============================================================================
@@ -184,15 +183,15 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
 
 
 def p_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,T_sq,T_qq):
-    global c_total
-    parameter_id='p_bundle'
+    global c_total, final_p, exc_solute
+
 
     dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
 
     if not glob.glob("p.pkl"):
 
-        bundles_p=sr.initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary)
-        final_p=sr.simulation_bundle(bundles_p,parameter_id,3,cwd,dictionary = dictionary)
+        bundles_p = sr.initialise_sim_bundles(root_pattern,'p',directory_pattern,dictionary)
+        final_p = sr.simulation_bundle(bundles_p,'p_bundle',3,cwd,dictionary = dictionary, ave = False)
         final_p.save("p")
 
 
@@ -228,27 +227,15 @@ def p_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,T
             sim.add_property('Q',Q)
             sim.add_property('J_s',J_s)
             sim.add_property('J_s_exc',exc_sol_flux)
-            
-            
-        #TODO once the final_p_simulation is an instance of the bundle class, create the time lines a method of the class
-        # =============================================================================
-        #         #Creating the time lines, i,e parameters for each times
-        # =============================================================================
-            time = sim.param_value
-            
-            if time not in list(p_params_dict.keys()):
-                p_params_dict[time] = [[pressure_grad,Q.n,exc_sol_flux.n]]
-            else:
-                p_params_dict[time].append([pressure_grad,Q.n,exc_sol_flux.n])
                 
                 
-                
-            
+        
         bund.add_upd_properties() # To update the bundle
         Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
         exc_solute.append(bund.get_property('J_s_exc',exact=True)[1][0])
+        
             
-
+    final_p.add_upd_properties()
     # =============================================================================
     #   \Gamma_sq
     # =============================================================================

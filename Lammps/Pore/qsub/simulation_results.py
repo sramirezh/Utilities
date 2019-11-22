@@ -527,7 +527,6 @@ class simulation_bundle(simulation):
                 else:
                     array.append(un.ufloat(value,0))
             if self.average == True:
-                print ("I am here")
                 ave=sum(array)/len(array)
                 self.properties.append([ave.n,ave.s])
             else:
@@ -543,7 +542,7 @@ class simulation_bundle(simulation):
             
     def plot_property(self,p_name,plot_name=None,x_name=None,y_name=None,fit=False):
         """
-        Could be extended to plot agains any parameter
+        Could be extended to plot against any parameter
         """
         print("%s/plots_%s/"%(self.root,self.param_id))
         directory="%s/plots_%s/"%(self.root,self.param_id)
@@ -559,12 +558,13 @@ class simulation_bundle(simulation):
         for sim in self.simulations:
             x.append(sim.param_value)
             
-            values = sim.get_property(p_name,exact=True)[1]
-            if len(values) == 0:
+            values = sim.get_property(p_name,exact=True)
+            
+            if len(values[1]) == 0:
                 print("The property does not exist")
                 return
                 
-            values=sim.get_property(p_name,exact=True)[1][0]
+            values = values[1][0]
             if np.size(values)>1: #Has error
                 y.append(values[0])
                 y_error.append(values[1])
