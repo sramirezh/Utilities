@@ -489,6 +489,9 @@ Class Inheritage creating the superclass
 """
 
 class simulation_bundle(simulation):
+    """
+    get_property should be generalised to return either the average or the values of each element of the bundle
+    """
     def __init__(self,simulations,parameter_id,parameter_value,root,dictionary = None,ave = True):
         """
         
@@ -498,6 +501,7 @@ class simulation_bundle(simulation):
         self.param_value=float(parameter_value)
         self.param_id=parameter_id
         self.properties=[]
+        self.ave_properties=[]
         self.property_names=[]
         self.root=root
         self.average = ave
@@ -509,6 +513,7 @@ class simulation_bundle(simulation):
     def add_upd_properties(self):
         """
         Adds or updates the properties based in the property names in the first simulation of the bundle
+        TODO make the get_property to return either the average or the list
         """
         
         length_i = len(self.property_names)

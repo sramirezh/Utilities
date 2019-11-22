@@ -22,6 +22,7 @@ import pickle as pickle
 from uncertainties import ufloat,unumpy
 import glob
 import argparse
+import re
 
 cwd = os.getcwd() #current working directory
 
@@ -57,7 +58,7 @@ errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error
 
 def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,T_qs, T_ss):
     
-    global f_mu, Q_array, bund, final_mu
+
     
 
     dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
@@ -77,9 +78,6 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
     final_mu=cf.load_instance("mu.pkl") 
     
     final_mu.average = False
-    f_mu=[] #DP body force
-    Q_array=[] #Total flow
-    exc_solute=[] #Excess solute flow
     count = 0
     for bund in final_mu.simulations:
         
@@ -97,93 +95,141 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
             pref = c_total*cs_bulk/rho_bulk
             exc_sol_flux = J_s - pref * Q
             
+            
+            #Adding specific properties to the individual simulations
+            
             sim.add_property('Q',Q)
-            sim.add_property('J_s',J_s)
-            sim.add_property('J_s_exc',exc_sol_flux)
+            sim.add_property('Js',J_s)
+            sim.add_property('Js_exc',exc_sol_flux)
 
-
-            
             count+=1
-            
-            
         
-        #Getting the applied forces
+        #Adding specific properties to the secondary bundle
+        
+        bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
         bund.add_upd_properties() # To update the bundle
-        f_mu.extend(bund.get_property('mu',exact=True)[1])
-        Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
-        exc_solute.append(bund.get_property('J_s_exc',exact=True)[1][0])
 
 
     final_mu.add_upd_properties()
-    # =============================================================================
-    # \Gamma_{qs}
-    # =============================================================================
+    
+    
+    return final_mu
+#    # =============================================================================
+#    # \Gamma_{qs}
+#    # =============================================================================
+#
+#
+#    y=[i[0] for i in Q_array]
+#    y_error=[i[1] for i in Q_array]
+#
+#    grad_mu=(rho_bulk/(rho_bulk-cs_bulk))*np.array(f_mu)
+#
+#
+#    fig,ax=plt.subplots()
+#
+#    plt.errorbar(grad_mu,y,yerr=y_error,xerr=None,fmt='o')
+#
+#
+#
+#    pinit=[1.0]
+#    out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
+#    pfinal = out[0] #fitting coefficients
+#    error = np.sqrt(out[1]) 
+#    print("The transport coefficient \Gamma_{qs} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
+#    grad_mu=np.insert(grad_mu,0,0)
+#    ax.plot(np.unique(grad_mu),fitfunc1(T_qs,np.unique(grad_mu)),linestyle='--')
+#
+#
+#    ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
+#    ax.set_ylabel(r'$Q$')
+#    plt.tight_layout()
+#    plt.savefig('Gamma_qs.pdf')
+#
+#
+#
+#    # =============================================================================
+#    # \Gamma_{ss}
+#    # =============================================================================
+#    y=[i[0]for i in exc_solute]
+#    y_error=[i[1] for i in exc_solute]
+#
+#    grad_mu=(rho_bulk/(rho_bulk-cs_bulk))*np.array(f_mu)
+#
+#
+#    fig,ax=plt.subplots()
+#
+#    plt.errorbar(grad_mu,y,yerr=y_error,xerr=None,fmt='o')
+#
+#
+#
+#    pinit=[1.0]
+#    out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
+#    pfinal = out[0] #fitting coefficients
+#    error = np.sqrt(out[1]) 
+#    print("The transport coefficient \Gamma_{ss} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
+#    grad_mu=np.insert(grad_mu,0,0)
+#    ax.plot(np.unique(grad_mu),fitfunc1(T_ss,np.unique(grad_mu)),linestyle='--')
+#
+#    ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
+#    ax.set_ylabel(r'$J_s-c_s^BQ$')
+#    plt.tight_layout()
+#    plt.savefig('Gamma_ss.pdf')
+#    cf.save_instance(ax,"Gamma_ss")
 
 
-    y=[i[0] for i in Q_array]
-    y_error=[i[1] for i in Q_array]
 
-    grad_mu=(rho_bulk/(rho_bulk-cs_bulk))*np.array(f_mu)
+
+
+
+def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, plot_name=None):
+    """
+    TODO this could be part of the class simulation_bundle, actually I could make the get_property to return either the average or the list
+    This is a partly based on simulation_bundle.plot_property that 
+    """
+    y=[i.n for i in instance.get_property(y_name, exact = True)[1][0]]
+    y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
+
+    x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
 
 
     fig,ax=plt.subplots()
 
-    plt.errorbar(grad_mu,y,yerr=y_error,xerr=None,fmt='o')
+    plt.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
 
 
 
     pinit=[1.0]
-    out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
+    out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
     pfinal = out[0] #fitting coefficients
     error = np.sqrt(out[1]) 
-    print("The transport coefficient \Gamma_{qs} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
-    grad_mu=np.insert(grad_mu,0,0)
-    ax.plot(np.unique(grad_mu),fitfunc1(T_qs,np.unique(grad_mu)),linestyle='--')
+    print("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name,x_name, pfinal[0],error[0][0]))
+        
+    #Checking if there are axis names
+    if x_label == None:
+        x_label = re.sub('_',' ', x_name)
+        ax.set_xlabel(x_label) #The zeroth-property is the param_id
+    else:
+        ax.set_xlabel(x_label)
+        
+    if y_label == None:
 
-
-    ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
-    ax.set_ylabel(r'$Q$')
+        if y_name in list(instance.dictionary.keys()):
+            y_label = instance.dictionary[y_name]
+        else:
+            y_label = re.sub('_',' ',y_name)
+        ax.set_ylabel(y_label)
+    else:
+        ax.set_ylabel(y_label)
+     
     plt.tight_layout()
-    plt.savefig('Gamma_qs.pdf')
-
-
-
-    # =============================================================================
-    # \Gamma_{ss}
-    # =============================================================================
-    y=[i[0]for i in exc_solute]
-    y_error=[i[1] for i in exc_solute]
-
-    grad_mu=(rho_bulk/(rho_bulk-cs_bulk))*np.array(f_mu)
-
-
-    fig,ax=plt.subplots()
-
-    plt.errorbar(grad_mu,y,yerr=y_error,xerr=None,fmt='o')
-
-
-
-    pinit=[1.0]
-    out = optimize.leastsq(errfunc1, pinit, args=(grad_mu, y, y_error), full_output=1)
-    pfinal = out[0] #fitting coefficients
-    error = np.sqrt(out[1]) 
-    print("The transport coefficient \Gamma_{ss} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
-    grad_mu=np.insert(grad_mu,0,0)
-    ax.plot(np.unique(grad_mu),fitfunc1(T_ss,np.unique(grad_mu)),linestyle='--')
-
-    ax.set_xlabel(r'$-\nabla \mu^\prime_s$')
-    ax.set_ylabel(r'$J_s-c_s^BQ$')
-    plt.tight_layout()
-    plt.savefig('Gamma_ss.pdf')
-    cf.save_instance(ax,"Gamma_ss")
-
-
+    
+    fig.savefig("%s.pdf"%plot_name, transparent=True)
 
 
 
 
 def p_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,T_sq,T_qq):
-    global c_total, final_p, exc_solute
+
 
 
     dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
@@ -201,16 +247,9 @@ def p_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,T
 
     final_p=cf.load_instance("p.pkl") 
 
-    f_p=[] #Pressure body force
-    exc_solute=[] #Excess solute flow
-    Q_array=[] #Total flow
-    p_params_dict = {} #Created a dictionary for the solutes for a given initial conf
     for bund in final_p.simulations:
         
-        #Getting the applied forces
-        pressure_grad = bund.get_property('p',exact=True)[1][0]
-        f_p.append(pressure_grad)
-        #Getting the solute excess
+
         for sim in bund.simulations:
 
             n_solutes=sim.get_property('cSolu')[1][0][0]
@@ -225,93 +264,96 @@ def p_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,T
             exc_sol_flux = J_s - pref * Q
             
             sim.add_property('Q',Q)
-            sim.add_property('J_s',J_s)
-            sim.add_property('J_s_exc',exc_sol_flux)
+            sim.add_property('Js',J_s)
+            sim.add_property('Js_exc',exc_sol_flux)
                 
-                
+        #Adding specific properties to the secondary bundle
+        bund.add_property("grad_p", bund.get_property('p',exact=True)[1][0])
         
         bund.add_upd_properties() # To update the bundle
-        Q_array.append(bund.get_property('vx_Sol',exact=True)[1][0])
-        exc_solute.append(bund.get_property('J_s_exc',exact=True)[1][0])
         
             
     final_p.add_upd_properties()
-    # =============================================================================
-    #   \Gamma_sq
-    # =============================================================================
-    grad_p= np.array(f_p)  #Without the minus
-    y=[i[0]for i in exc_solute]
-    y_error=[i[1] for i in exc_solute]
+    
+    
+    return final_p
 
-
-    fig,ax=plt.subplots()
-
-    plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o')
-
-    pinit=[1.0]
-    out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
-    pfinal = out[0] #fitting coefficients
-    error = np.sqrt(out[1]) 
-    print("The transport coefficient \Gamma_{sq} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
-    grad_p=np.insert(grad_p,0,0)
-    ax.plot(np.unique(grad_p),fitfunc1(T_sq,np.unique(grad_p)),linestyle='--')
-
-
-
-    ax.set_xlabel(r'$-\nabla P$')
-    ax.set_ylabel(r'$J_s-c_s^BQ$')
-    plt.tight_layout()
-    plt.savefig('Gamma_sq.pdf')
-
-
-    # Plotting the time lines 
-
-    for time in list(p_params_dict.keys()):
-        data = np.array(p_params_dict[time])
-        ax.plot(data[:,0], data[:,2], alpha = 0.2)
-        ax.set_xlim(0,0.0011)
-        ax.set_ylim(0,0.00006)
-        
-    plt.savefig('Gamma_sq_times.pdf')
-
-
-
-    # =============================================================================
-    #  \Gamma_qq
-    # =============================================================================
-    grad_p=np.array(f_p)  #Without the minus
-    y=[i[0] for i in Q_array]
-    y_error=[i[1] for i in Q_array]
-
-
-    fig,ax=plt.subplots()
-
-    plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o')
-
-    pinit=[1.0]
-    out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
-    pfinal = out[0] #fitting coefficients
-    error = np.sqrt(out[1]) 
-    print("The transport coefficient \Gamma_{qq} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
-    grad_p=np.insert(grad_p,0,0)
-    ax.plot(np.unique(grad_p),fitfunc1(T_qq,np.unique(grad_p)),linestyle='--')
-
-
-
-    ax.set_xlabel(r'$-\nabla P$')
-    ax.set_ylabel(r'$Q$')
-    plt.tight_layout()
-    plt.savefig('Gamma_qq.pdf')
-
-
-    # Plotting the time lines 
-
-    for time in list(p_params_dict.keys()):
-        data = np.array(p_params_dict[time])
-        ax.plot(data[:,0], data[:,1], alpha = 0.2)
-        
-        
-    plt.savefig('Gamma_qq_times.pdf')
+#    # =============================================================================
+#    #   \Gamma_sq
+#    # =============================================================================
+#    grad_p= np.array(f_p)  #Without the minus
+#    y=[i[0]for i in exc_solute]
+#    y_error=[i[1] for i in exc_solute]
+#
+#
+#    fig,ax=plt.subplots()
+#
+#    plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o')
+#
+#    pinit=[1.0]
+#    out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
+#    pfinal = out[0] #fitting coefficients
+#    error = np.sqrt(out[1]) 
+#    print("The transport coefficient \Gamma_{sq} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
+#    grad_p=np.insert(grad_p,0,0)
+#    ax.plot(np.unique(grad_p),fitfunc1(T_sq,np.unique(grad_p)),linestyle='--')
+#
+#
+#
+#    ax.set_xlabel(r'$-\nabla P$')
+#    ax.set_ylabel(r'$J_s-c_s^BQ$')
+#    plt.tight_layout()
+#    plt.savefig('Gamma_sq.pdf')
+#
+#
+#    # Plotting the time lines 
+#
+#    for time in list(p_params_dict.keys()):
+#        data = np.array(p_params_dict[time])
+#        ax.plot(data[:,0], data[:,2], alpha = 0.2)
+#        ax.set_xlim(0,0.0011)
+#        ax.set_ylim(0,0.00006)
+#        
+#    plt.savefig('Gamma_sq_times.pdf')
+#
+#
+#
+#    # =============================================================================
+#    #  \Gamma_qq
+#    # =============================================================================
+#    grad_p=np.array(f_p)  #Without the minus
+#    y=[i[0] for i in Q_array]
+#    y_error=[i[1] for i in Q_array]
+#
+#
+#    fig,ax=plt.subplots()
+#
+#    plt.errorbar(grad_p,y,yerr=y_error,xerr=None,fmt='o')
+#
+#    pinit=[1.0]
+#    out = optimize.leastsq(errfunc1, pinit, args=(grad_p, y, y_error), full_output=1)
+#    pfinal = out[0] #fitting coefficients
+#    error = np.sqrt(out[1]) 
+#    print("The transport coefficient \Gamma_{qq} is %.6f +/- %.6f"%(pfinal[0],error[0][0]))
+#    grad_p=np.insert(grad_p,0,0)
+#    ax.plot(np.unique(grad_p),fitfunc1(T_qq,np.unique(grad_p)),linestyle='--')
+#
+#
+#
+#    ax.set_xlabel(r'$-\nabla P$')
+#    ax.set_ylabel(r'$Q$')
+#    plt.tight_layout()
+#    plt.savefig('Gamma_qq.pdf')
+#
+#
+#    # Plotting the time lines 
+#
+#    for time in list(p_params_dict.keys()):
+#        data = np.array(p_params_dict[time])
+#        ax.plot(data[:,0], data[:,1], alpha = 0.2)
+#        
+#        
+#    plt.savefig('Gamma_qq_times.pdf')
 
 
 
@@ -396,10 +438,6 @@ def p_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,T
 
 
 def main(m_pat, p_pat, m_dir, p_dir):
-    plt.close('all')
-    cf.set_plot_appearance()
-
-    
 
 
     # =============================================================================
@@ -434,8 +472,14 @@ def main(m_pat, p_pat, m_dir, p_dir):
     
 
 
-    p_simulations(p_pat, p_dir, box_volume,rho_bulk,cs_bulk,T_sq,T_qq)
-    mu_simulations(m_pat, m_dir, box_volume,rho_bulk,cs_bulk,T_qs,T_ss)
+    final_p = p_simulations(p_pat, p_dir, box_volume,rho_bulk,cs_bulk,T_sq,T_qq)
+    final_mu = mu_simulations(m_pat, m_dir, box_volume,rho_bulk,cs_bulk,T_qs,T_ss)
+    
+    plot_properties(final_p, 'grad_p','Q' )
+    plot_properties(final_p, 'grad_p','Js_exc')
+    plot_properties(final_mu, 'grad_mu','Q' )
+    plot_properties(final_mu, 'grad_mu','Js_exc' )
+    
 
 
 # TODO change group pattern to something more flexible as just file_names
