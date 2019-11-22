@@ -79,9 +79,13 @@ def generate_configuration(steps, seed):
     
     #system.box = hoomd.data.boxdim(L = box_side)
     
-    mc = hoomd.hpmc.integrate.sphere(d=0.2, seed=seed)
+    mc = hoomd.hpmc.integrate.sphere(seed=seed)
+    
     
     mc.shape_param.set('A', diameter= 2*sphere_radius )
+    
+    
+    
     print ("The system is made of %s" %mc.get_type_shapes())
     
     
@@ -125,7 +129,7 @@ def convert_into_real(length,radius,dim):
     
     return length
     
-positions = convert_into_real(positions, real_radius,1)
+positions = convert_into_real(positions, real_radius,0.1)
 
 np.savetxt("real_positions.txt",positions)
 
