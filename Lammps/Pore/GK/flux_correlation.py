@@ -44,7 +44,7 @@ class flux(object):
 
 class correlation(object):
     """
-    BEWARE that the error is computed as a simple error 
+    TODO, here that the error is computed as a simple error 
     """
     def __init__(self,flux1,flux2, max_delta):
         self.flux1 = flux1
