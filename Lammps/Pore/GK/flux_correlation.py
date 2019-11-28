@@ -39,7 +39,7 @@ class flux(object):
         #To reshape in order to slice easier in the correlation
         if self.dimension==1: 
             self.components = np.reshape(self.components,(len(self.components),1))
-        
+    
 
 
 class correlation(object):
@@ -147,7 +147,63 @@ class correlation(object):
         pickle.dump(self, afile)
         afile.close()    
         
+
+
+class bundle_correlation(correlation):
+    def __init__(self,cor,times,flux1_name,flux2_name):
+        self.dimension=1
+        self.cor = [cor]
+        self.times = times
+        self.norm = cor[0].nominal_value
+        self.cor_norm = [cor/self.norm]
+        self.flux1_name = flux1_name
+        self.flux2_name = flux2_name
         
+        
+    def plot(self,fig,ax,dim=0,alpha=0.4,every=1,ax_label=True,norm=True):
+        """
+        Args:
+            ax axes object
+            fig Figure 
+            dim is the dimension, for example:in a 3D vector, 0-x, 1-y, 2-z and 3-total.
+            alpha is the transparency of the filling
+            every to not have so many points
+            norm True if normalised
+            The axis label is given here but it could be renamed later
+        """
+        if norm==True:
+            cor=self.cor_norm[dim]
+        else:
+            cor=self.cor[dim]
+            
+        
+        y=np.array([i.n for i in cor])
+        y_error=np.array([i.s for i in cor])
+        ax.plot(self.times[::every],y[::every])
+        ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
+        
+        # It mostly means that the plot will not be further used, for example not used to compare correlations
+        if ax_label==True:
+            ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+            ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1_name,self.flux2_name))
+            ax.set_xlabel('time')
+
+        return fig,ax
+    
+    def transport_coeff(self, T, pref, xmin, xmax):
+        """
+        T is the temperature
+        pref is the prefactor, eg.system volume etc
+        xmin
+        """
+    
+        y = np.array([i.n for i in self.cor[0]])
+        x = self.times
+        I = cf.integrate(x,y,xmin,xmax)
+        self.coeff= (pref/T)*I
+        
+        return self.coeff
+
         
 def compute_correlation_dt(var1,var2,delta):
     """
