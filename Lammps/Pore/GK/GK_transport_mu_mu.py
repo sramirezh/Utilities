@@ -147,8 +147,8 @@ def remove_pkl(root):
         os.remove(file)
     
 
-
-remove_pkl(root)
+# For testing ONLY
+#remove_pkl(root)
 
 # =============================================================================
 #  Checking the directories (SPECIFIC TO THE PROBLEM)

@@ -160,7 +160,7 @@ class bundle_correlation(correlation):
         self.flux2_name = flux2_name
         
         
-    def plot(self,fig,ax,dim=0,alpha=0.4,every=1,ax_label=True,norm=True):
+    def plot(self,fig,ax,dim=0,alpha=0.4,every=1,ax_label = True,norm = True):
         """
         Args:
             ax axes object
@@ -171,13 +171,14 @@ class bundle_correlation(correlation):
             norm True if normalised
             The axis label is given here but it could be renamed later
         """
-        if norm==True:
-            cor=self.cor_norm[dim]
+        if norm == True:
+            cor = self.cor_norm[dim]
         else:
-            cor=self.cor[dim]
+            cor = self.cor[dim]
             
         
         y=np.array([i.n for i in cor])
+        print(y)
         y_error=np.array([i.s for i in cor])
         ax.plot(self.times[::every],y[::every])
         ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
