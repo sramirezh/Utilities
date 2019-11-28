@@ -63,3 +63,25 @@ def read_region_height(domain_name, geom_file = "in.geom"):
 
     return height, limits
 # Create a class region and then  simulation box that is a inherits the rest with properties xmax,xmin, lx, vol, etc
+
+
+def read_value_from(input_file,key_phrase):
+    """
+    Extracts the numberical value from a line well specified by the key_phrase
+    Args:
+        input_file: name of the file to look for the value log_file, in.*, etc
+        key_phrase has to be very specific such that is not repeated in the file, ex "atoms in group gSolv"
+    returns:
+        value requested
+
+    """
+    if not os.path.exists(input_file):
+        print ("The file %s specified does not exist"%input_file)
+        
+        sys.exit("The file %s specified does not exist"%input_file)
+        
+        
+    out,err=cf.bash_command("""grep "%s" %s"""%(key_phrase,input_file,))
+    value = cf.extract_digits(str(out))
+
+    return value

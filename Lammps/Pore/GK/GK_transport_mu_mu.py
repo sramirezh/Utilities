@@ -14,90 +14,31 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.Pore.qsub.simulation_results as sr
+import Lammps.lammps_utilities as lu
 import glob
 
-from flux_correlation import flux, correlation
+from flux_correlation import flux, correlation, bundle_correlation
 
 
 
 from uncertainties import unumpy,ufloat
-
-
-
 import matplotlib.pyplot as plt
 
 
 cwd = os.getcwd() #current working directory
 
 
-# =============================================================================
-# Class definition
-# =============================================================================
-# A child class that i need just to plot the correlations
-class bundle_correlation(correlation):
-    def __init__(self,cor,times,flux1_name,flux2_name):
-        self.dimension=1
-        self.cor = [cor]
-        self.times = times
-        self.norm = cor[0].nominal_value
-        self.cor_norm = [cor/self.norm]
-        self.flux1_name = flux1_name
-        self.flux2_name = flux2_name
-        
-        
-    def plot(self,fig,ax,dim=0,alpha=0.4,every=1,ax_label=True,norm=True):
-        """
-        Args:
-            ax axes object
-            fig Figure 
-            dim is the dimension, for example:in a 3D vector, 0-x, 1-y, 2-z and 3-total.
-            alpha is the transparency of the filling
-            every to not have so many points
-            norm True if normalised
-            The axis label is given here but it could be renamed later
-        """
-        if norm==True:
-            cor=self.cor_norm[dim]
-        else:
-            cor=self.cor[dim]
-            
-        
-        y=np.array([i.n for i in cor])
-        y_error=np.array([i.s for i in cor])
-        ax.plot(self.times[::every],y[::every])
-        ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
-        
-        # It mostly means that the plot will not be further used, for example not used to compare correlations
-        if ax_label==True:
-            ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-            ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1_name,self.flux2_name))
-            ax.set_xlabel('time')
-
-        return fig,ax
-    
-    def transport_coeff(self, T, V, xmin, xmax):
-        """
-        T is the temperature
-        V is the system volume
-        xmin
-        """
-    
-        y = np.array([i.n for i in self.cor[0]])
-        x = self.times
-        I = cf.integrate(x,y,xmin,xmax)
-        self.coeff= V/T*I
-        
-        return self.coeff
-    
-
-
-
-
 def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
+    
+    global data
     """
-    Very specific function
+    ******************Very specific function*************************
+    
+    Here all the fluxes have to be defined and the correlations
     
     Computes the correlations using the general class correlation
+    *****************************************************************
+    
     Args:
         folder is where the input_file is located
         input_file is the name of the file containing the fluxes
@@ -106,33 +47,47 @@ def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     
     cwd = os.getcwd()
     os.chdir(folder)
-    Data=cf.read_data_file(input_file)
+    data=cf.read_data_file(input_file)
     
     
-    data1=Data.values
+    data1 = data.values
     times=(data1[:,0]-data1[0,0])*delta_t
     max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
     
+    
+    
+# =============================================================================
+#      Preprocessing the data to generate the fluxes
+# =============================================================================
     # Definitions of the fluxess
-    solute_flux = flux(data1[:,[3,7,11]],times,"J_s")
-    solvent_flux = flux(data1[:,[4,8,12]],times,"J_f")
+    # TODO the indexes of the fluxes could be found with core functions
+    
+    n_solv = lu.read_value_from("log.lammps", "atoms in group gSolv")
+    n_solu = lu.read_value_from("log.lammps", "atoms in group gSolu")
+    
+    v_s = n_solu * data1[:,[2,5,8]]
+    v_f = n_solv * data1[:,[1,4,7]]
+    
+    
+    solute_flux = flux(v_s,times,"v_s")
+    solvent_flux = flux(v_f,times,"v_f")
     
     
     
     
-    c11=correlation(solute_flux,solute_flux,max_delta)
+    c11 = correlation(solute_flux,solute_flux,max_delta)
     c11.evaluate()
 
     
-    c12=correlation(solute_flux,solvent_flux,max_delta)
+    c12 = correlation(solute_flux,solvent_flux,max_delta)
     c12.evaluate()
 
     
-    c21=correlation(solvent_flux,solute_flux,max_delta)
+    c21 = correlation(solvent_flux,solute_flux,max_delta)
     c21.evaluate()
 
     
-    c22=correlation(solvent_flux,solvent_flux,max_delta)
+    c22 = correlation(solvent_flux,solvent_flux,max_delta)
     c22.evaluate()
     
     
@@ -160,23 +115,48 @@ def load_correlations(folder):
     os.chdir(cwd)
     
     return [c11,c12,c21,c22]
+  
     
 
-# Input parameters
+
+
+'''****************************************************************************
+# =============================================================================
+# MAIN
+# =============================================================================
+****************************************************************************'''
+
+# =============================================================================
+# Input parameters (SPECIFIC TO THE PROBLEM)
+# =============================================================================
 
 delta_t=0.005
 root = "."
 directory_pattern='[0-9]*'
-input_file='fluxes.dat'
+input_file='vdata.dat'
 
 
+def remove_pkl(root):
+    
+    """
+    Removes all the pkl inside the directory recursively
+    TODO generalise and put in cf
+    """
+    files = glob.glob('%s/**/*.pkl'%root,  recursive = True)
+    for file in files:
+        os.remove(file)
+    
+
+
+remove_pkl(root)
 
 # =============================================================================
-#  Checking the directories
+#  Checking the directories (SPECIFIC TO THE PROBLEM)
 # =============================================================================
 
 prep_results = sr.check_n_analyse(root,directory_pattern)
-prep_results.check_finished("fluxes.dat")
+prep_results.check_finished("vdata.dat")
+# Checks inside each directory
 prep_results.check_stat("c11.pkl") #Assuming that if the first correlation is not ready, need to compute all
 
 finished_directories=prep_results.dir_fin
@@ -193,7 +173,7 @@ c21_array=[]
 c22_array=[]
 
 # perform the analysis if there are no instances saved in the main folder
-if len(glob.glob('c1*'))<1:
+if (len(glob.glob('c1*'))<1):
     for folder in finished_directories:
         #When Correlation still need to be run 
         #TODO change this to just gathering the results
@@ -217,19 +197,21 @@ if len(glob.glob('c1*'))<1:
     
     
     
-    c11_total=np.sum(np.array(c11_array),axis=0)/len(c11_array)
-    c12_total=np.sum(np.array(c12_array),axis=0)/len(c12_array)
-    c21_total=np.sum(np.array(c21_array),axis=0)/len(c21_array)
-    c22_total=np.sum(np.array(c22_array),axis=0)/len(c22_array)
+    # Averaging the correlations to create the bundle
+    
+    c11_total = np.sum(np.array(c11_array),axis=0)/len(c11_array)
+    c12_total = np.sum(np.array(c12_array),axis=0)/len(c12_array)
+    c21_total = np.sum(np.array(c21_array),axis=0)/len(c21_array)
+    c22_total = np.sum(np.array(c22_array),axis=0)/len(c22_array)
         
     
     
     
     #Creating the bundle instances 
-    c11=bundle_correlation(c11_total,times,"J_s","J_s")
-    c12=bundle_correlation(c12_total,times,"J_s","J_f")
-    c21=bundle_correlation(c21_total,times,"J_f","J_s")
-    c22=bundle_correlation(c22_total,times,"J_f","J_f")
+    c11 = bundle_correlation(c11_total,times,"v_s","v_s")
+    c12 = bundle_correlation(c12_total,times,"v_s","v_f")
+    c21 = bundle_correlation(c21_total,times,"v_f","v_s")
+    c22 = bundle_correlation(c22_total,times,"v_f","v_f")
     
     #TODO this could be done iterating over all the instances
     c11.save('c11')
@@ -330,19 +312,21 @@ plt.savefig("crossed.pdf")
 # =============================================================================
 
 V = 20**3 # Simulation box volume
-
+T = 1.0 # Temperature
+pref = 1/(3*V)
 #Todo, this could be added to each integral
 
-print("The c11 is %s\n" %c11.transport_coeff(1,V,0,xmax))
-print("The c12 is %s\n" %c12.transport_coeff(1,V,0,xmax))
-print("The c21 is %s\n" %c21.transport_coeff(1,V,0,xmax))
-print("The c22 is %s\n" %c22.transport_coeff(1,V,0,xmax))
+
+print("The c11 is %s\n" %c11.transport_coeff(1, pref, 0, xmax))
+print("The c12 is %s\n" %c12.transport_coeff(1, pref, 0, xmax))
+print("The c21 is %s\n" %c21.transport_coeff(1, pref, 0, xmax))
+print("The c22 is %s\n" %c22.transport_coeff(1, pref, 0, xmax))
 
 f=open("GK.out",'w')
-f.write("The c11 is %s\n" %c11.transport_coeff(1,V,0,xmax))
-f.write("The c12 is %s\n" %c12.transport_coeff(1,V,0,xmax))
-f.write("The c21 is %s\n" %c21.transport_coeff(1,V,0,xmax))
-f.write("The c22 is %s\n" %c22.transport_coeff(1,V,0,xmax))
+f.write("The c11 is %s\n" %c11.transport_coeff(1, pref, 0, xmax))
+f.write("The c12 is %s\n" %c12.transport_coeff(1, pref, 0, xmax))
+f.write("The c21 is %s\n" %c21.transport_coeff(1, pref, 0, xmax))
+f.write("The c22 is %s\n" %c22.transport_coeff(1, pref, 0, xmax))
 f.close
 
 
