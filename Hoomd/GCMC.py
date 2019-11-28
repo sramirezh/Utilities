@@ -133,3 +133,6 @@ print ("The box side is %f"%convert_into_real(snap.box.Lx,real_radius,1))
 new_ff = snap.particles.N*vol_part/snap.box.get_volume()
 
 print ("The new ff is %lf" %new_ff)
+
+
+

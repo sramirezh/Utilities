@@ -36,7 +36,7 @@ n = int(np.round(N**(1/3))) #Number of particles per dimension
 
 
 # getting the FCC lattice, following the jupyther nb
-rho = vol_part/ff
+rho = ff/vol_part
 
 vol_cell = 4*rho
 a = vol_cell**(1/3)
@@ -89,7 +89,7 @@ def generate_configuration(steps, seed):
     print ("The system is made of %s" %mc.get_type_shapes())
     
     
-    d = hoomd.dump.gsd("trajectory.gsd", period=10, group=hoomd.group.all(), overwrite=True)
+    d = hoomd.dump.gsd("trajectory.gsd", period=100, group=hoomd.group.all(), overwrite=True)
     
     
     hoomd.run(steps)
@@ -112,7 +112,7 @@ def generate_configuration(steps, seed):
 #    snap = cf.load_instance("snap.pkl")
 #else:
     
-snap = generate_configuration(10000,1231432)
+snap = generate_configuration(100000,1231432)
 positions = snap.particles.position
 
 real_radius = 150 *10**-3 #Radius in microns
@@ -152,7 +152,6 @@ print ("The new ff is %lf" %new_ff)
 # With MDAAnalysis
 # =============================================================================
 
-import MDAnalysis
 import MDAnalysis as mda
 from MDAnalysis.coordinates.GSD import GSDReader
 from MDAnalysis.analysis.rdf import InterRDF
