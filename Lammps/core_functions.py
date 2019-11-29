@@ -262,7 +262,7 @@ def integrate(x,y,xmin,xmax):
     ----------
     
         x : are the independent variables
-        y : the integrand
+        y : the integrand could be a unumpy object
         xmin : the lower limit of the integral
         xmax : the upper limit of the integral
     """
@@ -271,6 +271,9 @@ def integrate(x,y,xmin,xmax):
     I=np.trapz(y[MinIndex:MaxIndex],x[MinIndex:MaxIndex])
 
     return I
+
+
+
 
 
 
