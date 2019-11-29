@@ -244,7 +244,6 @@ fig,ax=plt.subplots()
 
 fig,ax = c11.plot(fig,ax)
 ax.set_xscale('log')
-ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 plt.tight_layout()
 plt.savefig("correlation11.pdf")
 
@@ -254,7 +253,6 @@ fig,ax=plt.subplots()
 
 fig,ax = c12.plot(fig,ax)
 ax.set_xscale('log')
-ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 plt.tight_layout()
 plt.savefig("correlation12.pdf")
 
@@ -265,7 +263,6 @@ fig,ax=plt.subplots()
 
 fig,ax = c21.plot(fig,ax)
 ax.set_xscale('log')
-ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 plt.tight_layout()
 plt.savefig("correlation21.pdf")
 
@@ -276,7 +273,6 @@ fig,ax=plt.subplots()
 
 fig,ax = c22.plot(fig,ax)
 ax.set_xscale('log')
-ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 plt.tight_layout()
 plt.savefig("correlation22.pdf")
 

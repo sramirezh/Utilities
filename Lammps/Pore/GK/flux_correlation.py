@@ -151,7 +151,7 @@ class correlation(object):
 
 class bundle_correlation(correlation):
     def __init__(self,cor,times,flux1_name,flux2_name):
-        self.dimension=1
+        self.dimension = 1
         self.cor = [cor]
         self.times = times
         self.norm = cor[0].nominal_value
@@ -160,7 +160,7 @@ class bundle_correlation(correlation):
         self.flux2_name = flux2_name
         
         
-    def plot(self,fig,ax,dim=0,alpha=0.4,every=1,ax_label = True,norm = True):
+    def plot(self, fig , ax ,dim = 0, alpha = 0.4, every = 1, ax_label = True,norm = True):
         """
         Args:
             ax axes object
@@ -177,9 +177,8 @@ class bundle_correlation(correlation):
             cor = self.cor[dim]
             
         
-        y=np.array([i.n for i in cor])
-        print(y)
-        y_error=np.array([i.s for i in cor])
+        y = np.array([i.n for i in cor])
+        y_error = np.array([i.s for i in cor])
         ax.plot(self.times[::every],y[::every])
         ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
         
@@ -187,7 +186,7 @@ class bundle_correlation(correlation):
         if ax_label==True:
             ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
             ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1_name,self.flux2_name))
-            ax.set_xlabel('time')
+            ax.set_xlabel(r'$\log (t)$ ')
 
         return fig,ax
     
@@ -197,10 +196,8 @@ class bundle_correlation(correlation):
         pref is the prefactor, eg.system volume etc
         xmin
         """
-    
-        y = np.array([i.n for i in self.cor[0]])
         x = self.times
-        I = cf.integrate(x,y,xmin,xmax)
+        I = cf.integrate(x,self.cor[0],xmin,xmax)
         self.coeff= (pref/T)*I
         
         return self.coeff
