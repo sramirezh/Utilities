@@ -17,7 +17,7 @@ import Lammps.Pore.qsub.simulation_results as sr
 import Lammps.lammps_utilities as lu
 import glob
 
-from flux_correlation import flux, correlation, bundle_correlation
+import flux_correlation as fc 
 
 
 
@@ -30,7 +30,6 @@ cwd = os.getcwd() #current working directory
 
 def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     
-    global data
     """
     ******************Very specific function*************************
     
@@ -69,25 +68,25 @@ def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     v_f = n_solv * data1[:,[1,4,7]]
     
     
-    solute_flux = flux(v_s,times,"v_s")
-    solvent_flux = flux(v_f,times,"v_f")
+    solute_flux = fc.flux(v_s,times,"v_s")
+    solvent_flux = fc.flux(v_f,times,"v_f")
     
     
     
     
-    c11 = correlation(solute_flux,solute_flux,max_delta)
+    c11 = fc.correlation(solute_flux,solute_flux,max_delta)
     c11.evaluate()
 
     
-    c12 = correlation(solute_flux,solvent_flux,max_delta)
+    c12 = fc.correlation(solute_flux,solvent_flux,max_delta)
     c12.evaluate()
 
     
-    c21 = correlation(solvent_flux,solute_flux,max_delta)
+    c21 = fc.correlation(solvent_flux,solute_flux,max_delta)
     c21.evaluate()
 
     
-    c22 = correlation(solvent_flux,solvent_flux,max_delta)
+    c22 = fc.correlation(solvent_flux,solvent_flux,max_delta)
     c22.evaluate()
     
     
@@ -130,7 +129,7 @@ def load_correlations(folder):
 # Input parameters (SPECIFIC TO THE PROBLEM)
 # =============================================================================
 
-delta_t=0.005
+delta_t = 0.005
 root = "."
 directory_pattern='[0-9]*'
 input_file='vdata.dat'
@@ -208,10 +207,10 @@ if (len(glob.glob('c1*'))<1):
     
     
     #Creating the bundle instances 
-    c11 = bundle_correlation(c11_total,times,"v_s","v_s")
-    c12 = bundle_correlation(c12_total,times,"v_s","v_f")
-    c21 = bundle_correlation(c21_total,times,"v_f","v_s")
-    c22 = bundle_correlation(c22_total,times,"v_f","v_f")
+    c11 = fc.bundle_correlation(c11_total,times,"v_s","v_s")
+    c12 = fc.bundle_correlation(c12_total,times,"v_s","v_f")
+    c21 = fc.bundle_correlation(c21_total,times,"v_f","v_s")
+    c22 = fc.bundle_correlation(c22_total,times,"v_f","v_f")
     
     #TODO this could be done iterating over all the instances
     c11.save('c11')
