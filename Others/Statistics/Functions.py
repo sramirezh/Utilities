@@ -47,9 +47,10 @@ def autocorrelation_error (A,av):
         val=10
         sign=True
         while val>tol and sign==True:    
-            for j in range(n-i):
-                C[i,k]=C[i,k]+(A[j,k]-av[k])*(A[j+i,k]-av[k])
-            C[i,k]=C[i,k]/(n-i)
+#            for j in range(n-i):
+#                C[i,k]=C[i,k]+(A[j,k]-av[k])*(A[j+i,k]-av[k])
+#            C[i,k]=C[i,k]/(n-i)
+            C[i,k] = np.cov(A[:,k],np.roll(A[:,k],i,axis=0))[0][0]
             val=C[i,k]
             if i>0:
                 sign=C[i,k]<C[i-1,k]
