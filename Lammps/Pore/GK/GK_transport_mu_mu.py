@@ -64,12 +64,12 @@ def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     n_solv = lu.read_value_from("log.lammps", "atoms in group gSolv")
     n_solu = lu.read_value_from("log.lammps", "atoms in group gSolu")
     
-    v_s = n_solu * data1[:,[2,5,8]]
-    v_f = n_solv * data1[:,[1,4,7]]
+    J_s = n_solu * data1[:,[2,5,8]]
+    J_f = n_solv * data1[:,[1,4,7]]
     
     
-    solute_flux = fc.flux(v_s,times,"v_s")
-    solvent_flux = fc.flux(v_f,times,"v_f")
+    solute_flux = fc.flux(J_s,times,"J_s")
+    solvent_flux = fc.flux(J_f,times,"J_f")
     
     
     
@@ -207,10 +207,10 @@ if (len(glob.glob('c1*'))<1):
     
     
     #Creating the bundle instances 
-    c11 = fc.bundle_correlation(c11_total,times,"v_s","v_s")
-    c12 = fc.bundle_correlation(c12_total,times,"v_s","v_f")
-    c21 = fc.bundle_correlation(c21_total,times,"v_f","v_s")
-    c22 = fc.bundle_correlation(c22_total,times,"v_f","v_f")
+    c11 = fc.bundle_correlation(c11_total,times,"J_s","J_s")
+    c12 = fc.bundle_correlation(c12_total,times,"J_s","J_f")
+    c21 = fc.bundle_correlation(c21_total,times,"J_f","J_s")
+    c22 = fc.bundle_correlation(c22_total,times,"J_f","J_f")
     
     #TODO this could be done iterating over all the instances
     c11.save('c11')
@@ -312,18 +312,17 @@ pref = 1/(3*V)
 #Todo, this could be added to each integral
 
 
-print("The c11 is %s\n" %c11.transport_coeff(1, pref, 0, xmax))
-print("The c12 is %s\n" %c12.transport_coeff(1, pref, 0, xmax))
-print("The c21 is %s\n" %c21.transport_coeff(1, pref, 0, xmax))
-print("The c22 is %s\n" %c22.transport_coeff(1, pref, 0, xmax))
+print("The c11 is %s\n" %c11.transport_coeff(T, pref, 0, xmax))
+print("The c12 is %s\n" %c12.transport_coeff(T, pref, 0, xmax))
+print("The c21 is %s\n" %c21.transport_coeff(T, pref, 0, xmax))
+print("The c22 is %s\n" %c22.transport_coeff(T, pref, 0, xmax))
 
 f=open("GK.out",'w')
-f.write("The c11 is %s\n" %c11.transport_coeff(1, pref, 0, xmax))
-f.write("The c12 is %s\n" %c12.transport_coeff(1, pref, 0, xmax))
-f.write("The c21 is %s\n" %c21.transport_coeff(1, pref, 0, xmax))
-f.write("The c22 is %s\n" %c22.transport_coeff(1, pref, 0, xmax))
+f.write("The c11 is %s\n" %c11.transport_coeff(T, pref, 0, xmax))
+f.write("The c12 is %s\n" %c12.transport_coeff(T, pref, 0, xmax))
+f.write("The c21 is %s\n" %c21.transport_coeff(T, pref, 0, xmax))
+f.write("The c22 is %s\n" %c22.transport_coeff(T, pref, 0, xmax))
 f.close
-
 
 
 

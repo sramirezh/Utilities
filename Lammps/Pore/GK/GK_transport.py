@@ -16,7 +16,7 @@ import Lammps.core_functions as cf
 import Lammps.Pore.qsub.simulation_results as sr
 import glob
 
-from flux_correlation import flux, correlation
+import flux_correlation as fc 
 
 
 try:
@@ -29,70 +29,6 @@ import matplotlib.pyplot as plt
 
 
 cwd = os.getcwd() #current working directory
-
-
-# =============================================================================
-# Class definition
-# =============================================================================
-# A child class that i need just to plot the correlations
-class bundle_correlation(correlation):
-    def __init__(self,cor,times,flux1_name,flux2_name):
-        self.dimension=1
-        self.cor = [cor]
-        self.times = times
-        self.norm = cor[0].nominal_value
-        self.cor_norm = [cor/self.norm]
-        self.flux1_name = flux1_name
-        self.flux2_name = flux2_name
-        
-        
-    def plot(self,fig,ax,dim=0,alpha=0.4,every=1,ax_label=True,norm=True):
-        """
-        Args:
-            ax axes object
-            fig Figure 
-            dim is the dimension, for example:in a 3D vector, 0-x, 1-y, 2-z and 3-total.
-            alpha is the transparency of the filling
-            every to not have so many points
-            norm True if normalised
-            The axis label is given here but it could be renamed later
-        """
-        if norm==True:
-            cor=self.cor_norm[dim]
-        else:
-            cor=self.cor[dim]
-            
-        
-        y=np.array([i.n for i in cor])
-        y_error=np.array([i.s for i in cor])
-        ax.plot(self.times[::every],y[::every])
-        ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
-        
-        # It mostly means that the plot will not be further used, for example not used to compare correlations
-        if ax_label==True:
-            ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
-            ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1_name,self.flux2_name))
-            ax.set_xlabel('time')
-
-        return fig,ax
-    
-    def transport_coeff(self, T, V, xmin, xmax):
-        """
-        T is the temperature
-        V is the system volume
-        xmin
-        """
-    
-        y = np.array([i.n for i in self.cor[0]])
-        x = self.times
-        I = cf.integrate(x,y,xmin,xmax)
-        self.coeff= V/T*I
-        
-        return self.coeff
-    
-
-
-
 
 def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     """
@@ -115,24 +51,24 @@ def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
     
     # Definitions of the fluxes
-    total_flux=flux(data1[:,[1,3,5]],times,"Q")
-    solute_excess=flux(data1[:,[2,4,6]],times,"J_s-c_s^BQ")
+    total_flux=fc.flux(data1[:,[1,3,5]],times,"Q")
+    solute_excess=fc.flux(data1[:,[2,4,6]],times,"J_s-c_s^BQ")
     
     
     
-    c11=correlation(total_flux,total_flux,max_delta)
+    c11=fc.correlation(total_flux,total_flux,max_delta)
     c11.evaluate()
 
     
-    c12=correlation(total_flux,solute_excess,max_delta)
+    c12=fc.correlation(total_flux,solute_excess,max_delta)
     c12.evaluate()
 
     
-    c21=correlation(solute_excess,total_flux,max_delta)
+    c21=fc.correlation(solute_excess,total_flux,max_delta)
     c21.evaluate()
 
     
-    c22=correlation(solute_excess,solute_excess,max_delta)
+    c22=fc.correlation(solute_excess,solute_excess,max_delta)
     c22.evaluate()
     
     
@@ -226,10 +162,10 @@ if len(glob.glob('c1*'))<1:
     
     
     #Creating the bundle instances 
-    c11=bundle_correlation(c11_total,times,"Q","Q")
-    c12=bundle_correlation(c12_total,times,"Q","J_s-c_s^BQ")
-    c21=bundle_correlation(c21_total,times,"J_s-c_s^BQ","Q")
-    c22=bundle_correlation(c22_total,times,"J_s-c_s^BQ","J_s-c_s^BQ")
+    c11=fc.bundle_correlation(c11_total,times,"Q","Q")
+    c12=fc.bundle_correlation(c12_total,times,"Q","J_s-c_s^BQ")
+    c21=fc.bundle_correlation(c21_total,times,"J_s-c_s^BQ","Q")
+    c22=fc.bundle_correlation(c22_total,times,"J_s-c_s^BQ","J_s-c_s^BQ")
     
     #TODO this could be done iterating over all the instances
     c11.save('c11')

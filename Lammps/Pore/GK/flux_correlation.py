@@ -221,15 +221,10 @@ def compute_correlation_dt(var1,var2,delta):
     """
     cf.blockPrint()
     if delta != 0:
-        var1 = var1[::delta]
-        var2 = var2[::delta]
-        cor = (var1*np.roll(var2,-1,axis=0))
-        cor = cor[:-1]#The last contribution is the last-the initial msd
+        cor = np.cov(var1[:-delta],np.roll(var2[:-delta],-delta,axis=0))[0][1]
     else:
-        cor = var1*var2 
-    
-    average = stat.fast_averager(cor)[0]
-    
+        cor = np.cov(var1,var2)[0][1] 
+
     cf.enablePrint()
     
-    return ufloat(average[1],average[2]) 
+    return ufloat(cor,0) 
