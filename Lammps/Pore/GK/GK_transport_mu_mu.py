@@ -186,6 +186,7 @@ if (len(glob.glob('c1*'))<1):
             print("Loading the results in %s\n"%folder)
             c11,c12,c21,c22 = load_correlations(folder)
             
+        # Appending only the average of x,y,z
         c11_array.append(c11.cor[-1])
         c12_array.append(c12.cor[-1])
         c21_array.append(c21.cor[-1])
@@ -194,23 +195,11 @@ if (len(glob.glob('c1*'))<1):
         #Extracting the times from one of the correlation
         times = c11.times
     
-    
-    
-    # Averaging the correlations to create the bundle
-    
-    c11_total = np.sum(np.array(c11_array),axis=0)/len(c11_array)
-    c12_total = np.sum(np.array(c12_array),axis=0)/len(c12_array)
-    c21_total = np.sum(np.array(c21_array),axis=0)/len(c21_array)
-    c22_total = np.sum(np.array(c22_array),axis=0)/len(c22_array)
-        
-    
-    
-    
     #Creating the bundle instances 
-    c11 = fc.bundle_correlation(c11_total,times,"J_s","J_s")
-    c12 = fc.bundle_correlation(c12_total,times,"J_s","J_f")
-    c21 = fc.bundle_correlation(c21_total,times,"J_f","J_s")
-    c22 = fc.bundle_correlation(c22_total,times,"J_f","J_f")
+    c11 = fc.bundle_correlation(c11_array,times,"J_s","J_s")
+    c12 = fc.bundle_correlation(c12_array,times,"J_s","J_f")
+    c21 = fc.bundle_correlation(c21_array,times,"J_f","J_s")
+    c22 = fc.bundle_correlation(c22_array,times,"J_f","J_f")
     
     #TODO this could be done iterating over all the instances
     c11.save('c11')
