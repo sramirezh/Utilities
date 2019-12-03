@@ -12,6 +12,7 @@ from joblib import Parallel, delayed
 import pickle as pickle
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
+from scipy.stats import sem
 
 try:
     from uncertainties import unumpy,ufloat
@@ -85,7 +86,7 @@ class correlation(object):
         var2 = self.flux2.components[:,dim]
         max_delta = self.max_delta
         cor = Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)(var1,var2,i) for i in tqdm(range(max_delta)))
-        norm = cor[0].nominal_value
+        norm = cor[0]
         self.norm[dim] = norm
         self.cor[dim] = np.array(cor)
         self.cor_norm[dim]=np.array(cor)/norm
@@ -101,8 +102,8 @@ class correlation(object):
             total = total + self.cor[dim]
         total = total/3
         self.cor[-1] = total
-        self.norm[-1] = total[0].nominal_value
-        self.cor_norm[-1]=total/total[0].nominal_value
+        self.norm[-1] = total[0]
+        self.cor_norm[-1]=total/total[0]
         
         
     def plot_individual(self,fig,ax,dim=0,alpha=0.4,every=1,norm=True):
@@ -150,15 +151,27 @@ class correlation(object):
 
 
 class bundle_correlation(correlation):
-    def __init__(self,cor,times,flux1_name,flux2_name):
+    """
+    The bundle is made of an array of correlations
+    """
+    def __init__(self,array,times,flux1_name,flux2_name):
+        self.arrays = array
+        self.averaging()
         self.dimension = 1
-        self.cor = [cor]
         self.times = times
-        self.norm = cor[0].nominal_value
-        self.cor_norm = [cor/self.norm]
+        self.norm = self.cor[0].nominal_value
+        self.cor_norm = [self.cor/self.norm]
         self.flux1_name = flux1_name
         self.flux2_name = flux2_name
-        
+    
+    
+    def averaging(self):
+        ddof = 1
+        array = self.arrays
+        if len(array):
+            ddof = 0
+        self.cor = unumpy.uarray(np.average(array,axis = 0), sem(array,axis = 0, ddof = ddof))
+            
         
     def plot(self, fig , ax ,dim = 0, alpha = 0.4, every = 1, ax_label = True,norm = True):
         """
@@ -197,7 +210,7 @@ class bundle_correlation(correlation):
         xmin
         """
         x = self.times
-        I = cf.integrate(x,self.cor[0],xmin,xmax)
+        I = cf.integrate(x,self.cor,xmin,xmax)
         self.coeff= (pref/T)*I
         
         return self.coeff
@@ -227,4 +240,4 @@ def compute_correlation_dt(var1,var2,delta):
 
     cf.enablePrint()
     
-    return ufloat(cor,0) 
+    return cor
