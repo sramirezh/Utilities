@@ -45,7 +45,7 @@ class flux(object):
 
 class correlation(object):
     """
-    TODO, here that the error is computed as a simple error 
+    TODO, I could compute all the correlations for the given delta just with one np.covariance
     """
     def __init__(self,flux1,flux2, max_delta):
         self.flux1 = flux1
