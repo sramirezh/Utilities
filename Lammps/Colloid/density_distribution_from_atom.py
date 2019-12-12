@@ -2,13 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Dec 12 14:23:36 2019
-Analyse the particle density distribution using ovito:
+Analyse the particle density distribution using ovito!
     
     
 Useful links
 
 https://ovito.org/manual/python/modules/ovito_data.html
 https://www.ovito.org/manual/python/modules/ovito_modifiers.html
+
+
+An important modifier is 
+class ovito.modifiers.ComputePropertyModifier
 
 @author: sr802
 """
@@ -25,13 +29,16 @@ import Lammps.core_functions as cf
 
 
 from ovito.modifiers import *
-from ovito.io import *
+import ovito.io as ov
 import numpy as np
 
 num_bins = 100
 cutoff = 5.0
 
-node = import_file("all.atom", multiple_frames = True)
+node = ov.import_file("all.atom", multiple_frames = True)
+
+
+
 data = node.compute(0)
 list(data.particle_properties.keys())
 
@@ -39,7 +46,25 @@ box = data.cell
 #get the simulation box sides 
 L = np.diag(box.matrix)
 
+center = L/2.0
+
 pos = data.particle_properties.position.array
+types = data.particle_properties.particle_type.array
+
+indexes = np.where(types == 2)[0]
+
+pos_type = pos[indexes]
+
+r = np.linalg.norm(pos_type-L/2,axis = 1 )
+
+hist, bin_edges = np.histogram(r, bins = num_bins)
+radii = bin_edges[:-1]
+radii_right = bin_edges[1:]
+
+factor = 4./3. * np.pi
+rho_dist = hist / (factor * (radii_right**3 - radii**3))
+
+result = np.column_stack((radii,rho_dist))
 
 #node.add_to_scene()
 #
