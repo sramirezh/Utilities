@@ -264,7 +264,7 @@ plt.savefig("Excess.pdf")
 
 fig2,ax2=plt.subplots()
 ax2.plot(FProperties[:,1],FProperties[:,4],label = 'Solvents', c ='b')
-ax2.plot(SProperties[:,1],SProperties[:,4],label = 'Solvents', c ='r')
+ax2.plot(SProperties[:,1],SProperties[:,4],label = 'Solutes', c ='r')
 ax2.set_ylabel(r"$c[\sigma^{-3}]$")
 ax2.set_xlabel(r'$d[\sigma]$')
 ax2.set_xlim(zmin, zmax)

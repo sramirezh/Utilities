@@ -15,11 +15,11 @@ import numpy as np
 import argparse
 import os
 import sys
-from .Functions import autocorrelation_error, blocking_error
 from scipy import stats
 import time as t
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+from Others.Statistics.Functions import autocorrelation_error, blocking_error
 import Lammps.core_functions as cf
 
 """
