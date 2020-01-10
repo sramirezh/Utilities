@@ -17,66 +17,67 @@ import numpy as np
 from scipy.optimize import curve_fit
 import Others.Statistics as stat
 import copy
+from Lammps.Pore.qsub import simulation_results as sr
 
 cwd = os.getcwd() #current working directory
 
 
 
-def check_terminated_simulation(folder_name):
-    """
-    GENERIC FUNCTION
-    First checks if the simulation started
-    then checks if it finished or the last step
-    Returns a counter that is 0 if the simulation chrashed before starting.
-    """
-    counter=1
-    cwd=os.getcwd()
-    os.chdir(folder_name)
-    if os.path.isfile("log.lammps")==False:
-        print("The simulation crashed before starting")
-        counter=0
-    else:
-        tail,error=cf.bash_command("""tail -2 log.lammps""")
-        if "Total wall" in tail:
-            print("This simulation terminated")
-        else:
-            last_step=cf.extract_digits(tail)
-            print("This simulation stoped at %s" %last_step[0])
-    os.chdir(cwd)
-    return counter
-
-
-def check_terminated_by_file(file_name):
-    """
-    GENERIC FUNCTION
-    Checks for the existance of the file
-    """
-    counter=1
-    if not os.path.exists(file_name):
-        print(("The file %s does not exist!" % file_name))
-        counter=0
-    
-    return counter
-    
-
-def filter_directories(directories,key_file):
-    """
-    THIS IS A VERY SPECIFIC FUNCTION
-    checks if all the simulations inside all the directories finished, if not, deletes the directory from the analysis
-    Args:
-        key_file: is the file that is checked inside the directories, if it is not there the directory is delated.
-    """
-    os.chdir(cwd)
-    directories=copy.copy(directories)
-    for directory in directories:
-        print('\n %s' %directory)
-        finished=1
-        finished*=check_terminated_simulation(directory)
-        finished*=check_terminated_by_file(directory+'/'+key_file)
-        if finished==0:
-            directories.remove(directory)
-        
-    return directories
+#def check_terminated_simulation(folder_name):
+#    """
+#    GENERIC FUNCTION
+#    First checks if the simulation started
+#    then checks if it finished or the last step
+#    Returns a counter that is 0 if the simulation chrashed before starting.
+#    """
+#    counter=1
+#    cwd=os.getcwd()
+#    os.chdir(folder_name)
+#    if os.path.isfile("log.lammps")==False:
+#        print("The simulation crashed before starting")
+#        counter=0
+#    else:
+#        tail,error=cf.bash_command("""tail -2 log.lammps""")
+#        if "Total wall" in tail:
+#            print("This simulation terminated")
+#        else:
+#            last_step=cf.extract_digits(tail)
+#            print("This simulation stoped at %s" %last_step[0])
+#    os.chdir(cwd)
+#    return counter
+#
+#
+#def check_terminated_by_file(file_name):
+#    """
+#    GENERIC FUNCTION
+#    Checks for the existance of the file
+#    """
+#    counter=1
+#    if not os.path.exists(file_name):
+#        print(("The file %s does not exist!" % file_name))
+#        counter=0
+#    
+#    return counter
+#    
+#
+#def filter_directories(directories,key_file):
+#    """
+#    THIS IS A VERY SPECIFIC FUNCTION
+#    checks if all the simulations inside all the directories finished, if not, deletes the directory from the analysis
+#    Args:
+#        key_file: is the file that is checked inside the directories, if it is not there the directory is delated.
+#    """
+#    os.chdir(cwd)
+#    directories=copy.copy(directories)
+#    for directory in directories:
+#        print('\n %s' %directory)
+#        finished=1
+#        finished*=check_terminated_simulation(directory)
+#        finished*=check_terminated_by_file(directory+'/'+key_file)
+#        if finished==0:
+#            directories.remove(directory)
+#        
+#    return directories
 
     
 
@@ -90,7 +91,7 @@ def gather_statistics(directories):
     os.chdir(cwd)
     
     
-    directories=filter_directories(directories)
+    directories=sr.filter_directories(directories)
     
     f=open(cwd+"/Statistic_summary.dat",'w')
     
@@ -147,19 +148,36 @@ fitfunc = lambda  x,*p: p[0] * x**2 + p[1]*x + p[2] #Fitting to parabola
 directories=glob.glob('mu_variation/mu_*')
 
 
-directories=filter_directories(directories)
+directories=sr.filter_directories(directories, "thermo.dat")
 
 
 
-pressure=[]
-mu=[]
+pressure = []
+mu = []
+density = []
+
 for d in directories:
     f=d+'/thermo.dat'
     pressure.append(extract_property_file('Press',f))
     mu.append(cf.extract_digits(d)[0])
+    density.append(extract_property_file('Density',f))
+
     
-pressure=np.array(pressure)
+pressure = np.array(pressure)
+density = np.array(density)
+
+
+
+# =============================================================================
+# Plots
+# =============================================================================
+
 cf.set_plot_appearance()
+
+"""
+Pressure vs mu
+"""
+
 
 
 #Fitting to a curve
@@ -183,11 +201,40 @@ ax.set_ylabel(r'$P$')
 
 fig.tight_layout()
 
-fig.savefig("mu_vs_p.pdf")
+fig.savefig("p_vs_mu.pdf")
 
 print(('\nThe desired chemical potential is %s' %mu_desired))
 
-#Now need to fit and get the mu, print it in the plot
+
+"""
+Density vs mu
+"""
+#Fitting to a curve
+
+popt, pcov=curve_fit(fitfunc, density[:,0], mu, sigma=pressure[:,1] ,p0=[0]*3)
+
+
+mu_fit=np.polyval(popt,np.sort(density[:,0]))
+
+rho_target=0.75
+
+mu_desired=np.polyval(popt,rho_target)
+
+plt.close('all')
+fig,ax=plt.subplots()
+ax.errorbar(mu,density[:,0],yerr=density[:,1],fmt='o')
+ax.plot(mu_fit,np.sort(density[:,0]))
+ax.axhline(y=rho_target,c='black',ls=':')
+ax.plot()
+ax.set_xlabel(r'$\mu$')
+ax.set_ylabel(r'$c_B$')
+
+fig.tight_layout()
+
+fig.savefig("rho_vs_mu.pdf")
+
+print(('\nThe desired chemical potential is %s' %mu_desired))
+
 
 
 

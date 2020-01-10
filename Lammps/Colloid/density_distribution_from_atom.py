@@ -4,7 +4,8 @@
 Created on Thu Dec 12 14:23:36 2019
 Analyse the particle density distribution using ovito!
     
-    
+This scripts plots the density distribution of the solvents and solutes using a lammps trajectory
+
 Useful links
 
 https://ovito.org/manual/python/modules/ovito_data.html
@@ -32,8 +33,7 @@ from ovito.modifiers import *
 import ovito.io as ov
 import numpy as np
 
-num_bins = 100
-cutoff = 5.0
+nbins = 100
 
 node = ov.import_file("all.atom", multiple_frames = True)
 
@@ -42,52 +42,90 @@ node = ov.import_file("all.atom", multiple_frames = True)
 data = node.compute(0)
 list(data.particle_properties.keys())
 
-box = data.cell
-#get the simulation box sides 
-L = np.diag(box.matrix)
 
+#Getting the properties of the box
+
+#Assuming that the box does not change size
+box = node.compute(0).cell # getting the properties of the box
+L = np.diag(box.matrix) 
 center = L/2.0
 
-pos = data.particle_properties.position.array
-types = data.particle_properties.particle_type.array
 
-indexes = np.where(types == 2)[0]
+def density_distribution(pos, center, nbins = 40, rmin = 0, rmax = 8):
+    """
+    Get the density distribution of particles measured from the center
+    Args:
+        pos: numpy arry with the particles position
+        center: vector with the center position [X,Y,Z]
+        
+    returns:
+        positions
+        density
+    """
+    r = np.linalg.norm(pos-center,axis = 1 )
+    hist, bin_edges = np.histogram(r, bins = nbins,range = [rmin,rmax])
+    radii = bin_edges[:-1]
+    radii_right = bin_edges[1:]
+    factor = 4./3. * np.pi
+    rho_dist = hist / (factor * (radii_right**3 - radii**3))
+    
+    return radii, rho_dist
 
-pos_type = pos[indexes]
 
-r = np.linalg.norm(pos_type-L/2,axis = 1 )
+m_density_solu = []
+m_density_solv = []
 
-hist, bin_edges = np.histogram(r, bins = num_bins)
-radii = bin_edges[:-1]
-radii_right = bin_edges[1:]
+for frame in range(node.source.num_frames):
+    
+    data = node.compute(frame)
+    pos = data.particle_properties.position.array
+    types = data.particle_properties.particle_type.array
 
-factor = 4./3. * np.pi
-rho_dist = hist / (factor * (radii_right**3 - radii**3))
+    ind_solute = np.where(types == 2)[0]
+    ind_solvent = np.where(types == 1)[0]
+    
+    pos_solute = pos[ind_solute]
+    pos_solvent = pos[ind_solvent]
+    
+    radii, density_solu = density_distribution(pos_solute, center)
+    radii, density_solv = density_distribution(pos_solvent, center)
+    
+    m_density_solu.append(density_solu)
+    m_density_solv.append(density_solv)
+    
 
-result = np.column_stack((radii,rho_dist))
+rho_solu = np.average(m_density_solu, axis = 0)
+rho_solv = np.average(m_density_solv, axis = 0)
+rho_total = rho_solu+rho_solv
 
-#node.add_to_scene()
-#
-#create_bonds_modifier = CreateBondsModifier(cutoff=cutoff, mode=CreateBondsModifier.Mode.Pairwise)
-#create_bonds_modifier.set_pairwise_cutoff('Type 1', 'Type 1', cutoff)
-#node.modifiers.append(create_bonds_modifier)
-#node.modifiers.append(ComputeBondLengthsModifier())
-#
-#output = node.compute()
-#hist, bin_edges = np.histogram(output.bond_properties.length.array, bins=num_bins)
-#
-#rho = output.number_of_particles / output.cell.volume
-#factor = 4./3. * np.pi * rho * output.number_of_particles
-#
-#radii = bin_edges[:-1]
-#radii_right = bin_edges[1:]
-#rdf = hist / (factor * (radii_right**3 - radii**3))
-#
-#result = np.column_stack((radii,rdf))
-#
-#print(result)
-#np.savetxt("partial_rdf.dat", result)
+# Getting the averages concentrations in the bulk assumed to be outside r=6
 
-#
-#import MDAnalysis as mda
-#from MDAnalysis.coordinates import Lammps
+ind_bulk =np.where(radii>6)
+
+cs_b = np.average(rho_solu[ind_bulk])
+ct_b = np.average(rho_total[ind_bulk])
+
+#Plotting the results
+
+cf.set_plot_appearance()
+
+fig,ax = plt.subplots()
+
+
+ax.plot(radii,rho_solu, label='Solutes')
+ax.plot(radii,rho_solv, label='Solvents')
+ax.plot(radii,rho_solu+rho_solv, label='Total')
+ax.set_xlim(0, 8)   
+ax.set_xlabel(r"$r$")
+ax.set_ylabel(r"$c(r)$")
+ax.axvline(x=3.23, ymin = 0, ymax=1, ls=':',c='black')
+ax.legend()
+plt.tight_layout()
+plt.savefig("conc.pdf")
+
+
+
+
+
+
+

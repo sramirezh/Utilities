@@ -23,7 +23,7 @@ import pandas as pd
 
 
 
-def velocity_colloid(a,T,mu,box_size,alpha):
+def velocity_colloid(a,T,nu,box_size,alpha):
 
     data_limit=(box_size/2) #Where the sampling volumes are outside the box
     beta=1/T
@@ -50,7 +50,7 @@ def velocity_colloid(a,T,mu,box_size,alpha):
     integrand_1=integrand_k*y
     
     
-    U_0=alpha/(beta*mu)*cf.integrate(y,integrand_1,0,y[-1])
+    U_0=alpha/(beta*nu)*cf.integrate(y,integrand_1,0,y[-1])
     
     integrand_2=0.5*integrand_k*y**2
     
@@ -107,12 +107,15 @@ print("Remember to define the viscosity, box_size,Rh...")
 
 
 """Colloid data"""
-alpha=0.002
-box_size=16
-a=4.225 #Hydrodynamic radius
-mu=1.2
-T=0.845
+grad_mu = 0.04
+cs_bulk = 0.38
+alpha = grad_mu*cs_bulk
+alpha = 0.05375444955
+box_size = 9
+a = 3.23 #Hydrodynamic radius
+nu = 2.3 # As per Sharifi
+T = 1
 
-U_0,K,H,U=velocity_colloid(a,T,mu, box_size,alpha)
+U_0,K,H,U=velocity_colloid(a,T,nu, box_size,alpha)
 print(U_0,K,H,U)
 
