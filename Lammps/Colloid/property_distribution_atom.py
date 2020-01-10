@@ -31,7 +31,8 @@ import matplotlib.pyplot as plt
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
-
+from joblib import Parallel, delayed
+import multiprocessing
 
 from Lammps.PDP.Plots.LJ_plotter import LJ
 import Lammps.core_functions as cf
@@ -41,22 +42,7 @@ from ovito.modifiers import *
 import ovito.io as ov
 
 
-nbins = 100
 
-node = ov.import_file("all.atom", multiple_frames = True)
-
-
-
-data = node.compute(0)
-list(data.particle_properties.keys())
-
-
-#Getting the properties of the box
-
-#Assuming that the box does not change size
-box = node.compute(0).cell # getting the properties of the box
-L = np.diag(box.matrix) 
-center = L/2.0
 
 
 def density_distribution(pos, center, nbins = 40, rmin = 0, rmax = 8):
@@ -80,51 +66,110 @@ def density_distribution(pos, center, nbins = 40, rmin = 0, rmax = 8):
     return radii, rho_dist
 
 
-def property_chunk(prop,region_limits,n_bins = 50, v_weight = True ):
-    
+def property_chunk(pos, prop ,region_limits,n_bins = 50, v_weight = True ):
+    global prop_dist, count,bin_edges,hist, edges
     """
     computes the property distribution for now only on the x direction
     Args:
         pos: numpy arry with the particles position
+        property : property to be measured, BE careful that if you want the number density, the property is a ones array
         region_limits array with the definitions of the region [xmin,xmax,ymin,ymax...]
         v_weight True if we want to weight the property by the volume of the chunck
     
     """
-    indexes = np.where((prop[:,0]> region_limits[0] )&(prop[:,0] < region_limits[1])
-              &(prop[:,1]> region_limits[2] )&(prop[:,1] < region_limits[3])
-              &(prop[:,2]> region_limits[4] )&(prop[:,2] < region_limits[5]))
-
-    hist, bin_edges = np.histogram(prop[indexes,0], bins = nbins,range = [region_limits[0],region_limits[1]])
+    ind_region = np.where((pos[:,0]> region_limits[0] )&(pos[:,0] < region_limits[1])
+              &(pos[:,1]> region_limits[2] )&(pos[:,1] < region_limits[3])
+              &(pos[:,2]> region_limits[4] )&(pos[:,2] < region_limits[5]))
+    
+    # Reducing the arrays to the values withing the region
+    prop = prop[ind_region]
+    pos = pos[ind_region]
+    
+    bin_edges = np.linspace(region_limits[0],region_limits[1],n_bins+1)
     left_edge = bin_edges[:-1] 
     right_edge = bin_edges[1:]
     
-    vol = 1
-    if v_weight == True:
-        vol = ((right_edge-left_edge)*(region_limits[3]-region_limits[2])*(region_limits[5]-region_limits[4]))
+    hist, edges = np.histogram(pos[:,0],bins =n_bins, range=[region_limits[0],region_limits[1]])
+    prop_dist = np.zeros(n_bins)
+    count = np.zeros(n_bins)
+
+    for i,left in enumerate(left_edge):
+        indexes = np.where((pos[:,0]>left) & (pos[:,0] <= right_edge[i]))[0]
+        count[i] = len(indexes)
+        prop_dist[i] = np.sum(prop[indexes])
+        
     
-    prop_dist = hist/ vol
+    if v_weight == True: #Normalising with the volume
+        norm = ((right_edge-left_edge)*(region_limits[3]-region_limits[2])*(region_limits[5]-region_limits[4]))
+    else:
+        count[count == 0 ] = 1 # To avoid dividing by zero
+        norm = count
+    
+    prop_dist = prop_dist/ norm
     
     
     return left_edge, prop_dist
     
 
 
-m_density_solu = []
-m_density_solv = []
+# =============================================================================
+# MAIN
+# =============================================================================
+
+num_cores = multiprocessing.cpu_count()
 
 
-m_density_c_solu = []
-m_density_c_solv = []
 
-discard = 0.3
+
+
+
+node = ov.import_file("all.atom", multiple_frames = True)
+
+#Getting the properties of the box
+
+#Assuming that the box does not change size
+
+data = node.compute(0)
+list(data.particle_properties.keys())
+
+box = node.compute(0).cell # getting the properties of the box
+L = np.diag(box.matrix) 
+center = L/2.0
+
+
+
+discard = 0.9
 n_frames = node.source.num_frames
 
 region = [-L[0]/2, L[0]/2, -L[1]/2, L[1]/2, -L[2]/2, L[2]/2] #for swol type
-region = [0, L[0], 0, L[1], 25, L[2]]
+region = [0, L[0], 0, L[1], 25, L[2]] # In the top bulk
 
 
-ave_vel_m = []
-ave_vel_solu_m = []
+
+# density Arrays
+m_density_solu = []
+m_density_solv = []
+m_density_c_solu = []
+m_density_c_solv = []
+
+
+# velocity arrays
+m_velocity_c_solu = []
+m_velocity_c_solv = []
+m_velocity_c_solu = []
+
+
+vel_m = []
+vel_solu_m = []
+vel_solv_m = []
+
+#Parallel(n_jobs=num_cores,verbose=10)(delayed(compute_one_time)(pos_init,fil) for fil in input_files)
+
+
+
+#frame = frame[discard*n_frames:]
+
+
 for frame in range(n_frames):
     print ("Analysing frame %s of %s)"%(frame,n_frames))
     
@@ -138,17 +183,16 @@ for frame in range(n_frames):
         ind_solute = np.where(types == 2)[0]
         ind_solvent = np.where(types == 1)[0]
         
-        # Velocities
-        ave_vel = (np.sum(velocity[ind_solute])+np.sum(velocity[ind_solvent]))/(len(velocity[ind_solute])+len(velocity[ind_solvent]))
-        ave_vel_m.append(ave_vel)
-        ave_vel_solu_m.append(np.average(velocity[ind_solute]))
-        
+
         pos_solute = pos[ind_solute]
         pos_solvent = pos[ind_solvent]
         
-        x,density_c_solu = property_chunk(pos_solute, region)
-        x,density_c_solv = property_chunk(pos_solvent, region)
+        # Chunk density Analysis 
+        x,density_c_solu = property_chunk(pos_solute, np.ones(len(ind_solute)), region)
+        x,density_c_solv = property_chunk(pos_solvent, np.ones(len(ind_solvent)), region)
         
+        
+        # Radial density Analysis
         radii, density_solu = density_distribution(pos_solute, center)
         radii, density_solv = density_distribution(pos_solvent, center)
         
@@ -157,12 +201,31 @@ for frame in range(n_frames):
         
         m_density_c_solu.append(density_c_solu)
         m_density_c_solv.append(density_c_solv)
-    
+        
+#        
+#        # Chunk velocity analysis
+#        
+#        velocity_solute = velocity[ind_solute]
+#        velocity_solvent = velocity[ind_solvent]
+#
+#        
+#        x,velocity_c_solu = property_chunk(velocity_solute, region, v_weight = False)
+#        x,velocity_c_solv = property_chunk(velocity_solvent, region, v_weight = False)
+#        x,velocity_c_sol = property_chunk(velocity, region, v_weight = False)
+#        
+#        m_velocity_c_solu.append(velocity_c_solu)
+#        m_velocity_c_solv.append(velocity_c_solv)
+#        
+#        # Velocities for the entire system
+#        vel = (np.sum(velocity[ind_solute])+np.sum(velocity[ind_solvent]))/(len(velocity[ind_solute])+len(velocity[ind_solvent]))
+#        vel_m.append(vel)
+#        vel_solu_m.append(np.average(velocity[ind_solute]))
+#    
 
 # Velocities
 
-print ("The velocity for the solution in all the system is %s"%np.average(ave_vel_m))
-print ("The velocity for the solutes in all the system is %s"%np.average(ave_vel_solu_m))
+print ("The velocity for the solution in all the system is %s"%np.average(vel_m))
+print ("The velocity for the solutes in all the system is %s"%np.average(vel_solu_m))
 
 
 rho_solu = np.average(m_density_solu, axis = 0)
