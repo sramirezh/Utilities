@@ -25,13 +25,8 @@ warnings.filterwarnings("ignore")
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
+import matplotlib.pyplot as plt
 
-try:
-    import matplotlib
-    matplotlib.use('agg')
-    import matplotlib.pyplot as plt
-except ImportError as err:
-    print(err)
 
 """
 *******************************************************************************
@@ -39,42 +34,47 @@ Functions
 *******************************************************************************
 """
 
-"""
-Linear fit
-"""
-
-fitfunc = lambda p, x: p[1] * x+p[0]
-errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
 
 
-
-def plot_results(all_data,interactions,theory=False):
+def plot_results(all_data, interactions, theory = False, out_results = False):
+    """
+    return the plot, and if asked the an object with all the result.
+    
+    Args:
+    
+    Returns:
+        results is an object that has for each epsilon, sigma those values in 
+        the first entry and in the second, the lenght, mobility and the error
+    """
     cf.set_plot_appearance()
     fig,ax=plt.subplots()
-
+    
+    results = []
+    
     for j,interaction in enumerate(interactions):
         mobility=[]
         error_mobility=[]
+        one_set = []
         for i,ave_data in enumerate(all_data):
             mobility.append(ave_data[j,0])
             error_mobility.append(ave_data[j,1])
         
-        if theory==True:
+        if theory == True:
             mobility=np.abs(mobility)
         
         
-        if j<len(colors):color=colors[j]
+        if j<len(colors):color = colors[j]
         else: color=np.random.rand(3)
     
-        x=np.array(lengths).astype(np.float)
-        y=np.array(mobility).astype(np.float)
-
-    
-        yerror=error_mobility
-        pinit = [1.0,-1.0]
-        out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
-        cov=out[1] #Covariance in the
-        pfinal = out[0] #fitting coefficients
+#        x=np.array(lengths).astype(np.float)
+#        y=np.array(mobility).astype(np.float)
+#
+#    
+#        yerror=error_mobility
+        #pinit = [1.0,-1.0]
+        #out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
+        #cov=out[1] #Covariance in the
+        #pfinal = out[0] #fitting coefficients
         #print "for %s The slope is %f error is %f" %(interaction,pfinal,np.sqrt(cov))
     
         epsilon=float(cf.extract_digits(interaction)[0])
@@ -88,7 +88,12 @@ def plot_results(all_data,interactions,theory=False):
 #
 #        color=ax.lines[-1].get_color() #Color of the last line ploted, it takes each point in error bar a a different line
         
-
+        
+        #To use the results later
+        one_set.append([epsilon,sigma])
+        one_set.append(np.column_stack((lengths, mobility, error_mobility)))
+        
+        results.append(one_set)
         ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o')
     
         """
@@ -96,11 +101,16 @@ def plot_results(all_data,interactions,theory=False):
         """
     
         print("For epsilon=%s and sigma=%s" %(epsilon,sigma))
-        print("The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1])))
-        print("The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0])))
+#        print("The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1])))
+#        print("The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0])))
         
+    if out_results == True:
+        return fig, ax, results
+    else:
+        return fig, ax
+    
         
-    return fig,ax
+
 
 
 
@@ -151,11 +161,11 @@ Starting the plot
 """
 plt.close('all')
 
-interactions=[ r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
+interactions = [ r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 #interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 
-fig,ax=plot_results(all_data,interactions)
-fig2,ax2=plot_results(all_data,interactions,True) #Including theoretical results
+fig,ax = plot_results(all_data, interactions, theory = False, out_results =False)
+fig2,ax2,results = plot_results(all_data, interactions, theory = True, out_results =True) #Including theoretical results
 
 
 
@@ -228,17 +238,15 @@ deltay=ymax-ymin
 
 ax2.set_ylim(ymin,ymax+deltay*y2offset)
 
+
+
+
 #The original legend
 #ax2.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],frameon=True, fancybox=False, edgecolor='k',ncol=2)
 
 #Rewriting the legend
-ax2.legend(['Theo '+r'$\epsilon=0.5$','Theo '+r'$\epsilon=1.5$','Sim '+r'$\epsilon=0.5$','Sim '+r'$\epsilon=1.5$'],loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+ax2.legend(['Theo '+r'$\varepsilon=0.5$','Theo '+r'$\varepsilon=1.5$','Sim '+r'$\varepsilon=0.5$','Sim '+r'$\varepsilon=1.5$'],loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
            frameon=True, fancybox=False, edgecolor='k',ncol=2)
-
-
-
-
-
 
 
 
@@ -251,6 +259,101 @@ plt.close()
 
 
 
+
+# =============================================================================
+# Results including the slip correction
+# =============================================================================
+
+
+def fitfunc(p,x):
+    """
+    This gets the value of the theory and fit them to the simulation, with -p being the fitting parameter
+    """
+    index = np.where(x_vect == x)[0]
+    y = theory_vect[index]*p   # theory - fitting parameter that is a displacement
+
+    return y
+    
+    
+    
+errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err #To include the error in the least squares
+
+
+theory = [theory_dep,theory_ads]
+
+
+if args.theory==True:
+    
+    
+    fig3, ax3 = plt.subplots()
+
+    color = ["red", "blue"]
+    color2 = ["black","green"]
+    for i,interaction in enumerate(results):
+    
+        ax3.errorbar(interaction[1][:,0],interaction[1][:,1],yerr=interaction[1][:,2],label="Simulations", color=color[i], fmt='o')
+        
+        
+
+        
+        ax3.scatter(theory[i][:,0],np.abs(theory[i][:,1]),marker = 'v',color=color[i],label=r'$R_h^K$')
+        ax3.scatter(theory[i][:,0],np.abs(theory[i][:,2]),marker = 'x',color=color[i],label=r'$R_h^{\lambda}$')
+        
+        # Insert for the theoretical results
+        left, bottom, width, height = [0.55, 0.25, 0.4, 0.30]
+        ax2 = fig.add_axes([left, bottom, width, height])
+    
+        ax2.set_ylabel(r'$V(r)$',fontsize =17, labelpad=-5)
+        ax2.set_xlabel(r'$r$' ,fontsize =17, labelpad=-5)
+        ax2.plot(potentials[:,0],potentials[:,1],label="SRLJ")
+        ax2.plot(potentials[:,0],potentials[:,2],label="LJ")
+        ax2.tick_params(axis='both', which='major', labelsize=14)
+        ax2.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+
+        
+        
+        
+        
+        #Finding the slip length
+        # naming things, reducing to the simulations that have equivalent in the theory
+        indexes = [i for i, e in enumerate(interaction[1][:,0]) if e in theory[1][:,0]]
+        
+        theory_ind = 1 # 1 for Kirkwood, 2 lambda
+        x_vect = theory[i][:,0]
+        theory_vect = np.abs(theory[i][:,theory_ind])
+        simulation_vect = interaction[1][indexes,1]
+        error_vect = interaction[1][indexes,2]
+        
+        pinit = 0
+        out = optimize.leastsq(errfunc, pinit, args=(x_vect, simulation_vect, error_vect), full_output=1)
+        #cov=out[1] #Covariance in the
+        pfinal = out[0] #fitting coefficients
+        
+        print (pfinal[0])
+        
+        ax3.scatter(theory[i][:,0],pfinal[0]*np.abs(theory[i][:,theory_ind]),marker = 's',color=color2[i],label=r'slip')
+    ymin,ymax=ax3.get_ylim()
+    ax3.set_ylim(0,ymax*1.4)
+    ax3.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+           frameon=True, fancybox=False, edgecolor='k',ncol=2, fontsize = 10)
+    
+    ax3.set_xlabel(r'$N_m $')
+    ax3.grid(False)
+    ax3.set_ylabel(r'$\ln |\Gamma_{ps}|$')
+    fig3.tight_layout()
+    
+    
+    fig3.savefig("Theoretical_comparison_improved.pdf",transparent=True)
+
+
+#    L=ax2.legend()
+#    
+#    theory_ads=cf.read_data_file("Theoretical_1.5.dat").values
+#    theory_dep=cf.read_data_file("Theoretical_0.5.dat").values
+##    ax2.scatter(theory_ads[:,0],theory_ads[:,1],marker='v',color="blue",label=r'$R_h^K$')
+#    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,2]),marker='x',color="red",label=' '+r'$\epsilon=0.5$')
+#    ax2.scatter(theory_ads[:,0],theory_ads[:,2],marker='x',color="blue",label=r'$R_h^{\lambda}$')
+##    ax2.scatter(theory_dep[:,0],np.abs(theory_dep[:,1]),marker='v',color="red",label=r'$R_h^K$')
 
 
 
