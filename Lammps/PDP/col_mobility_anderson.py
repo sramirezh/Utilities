@@ -20,19 +20,84 @@ warnings.filterwarnings("ignore")
 import Lammps.core_functions as cf
 import pandas as pd
 
-
-
-
-def velocity_colloid(a,T,nu,box_size,alpha):
-
-    data_limit=(box_size/2) #Where the sampling volumes are outside the box
-    beta=1/T
+def plateau_finder(data,tol=0.0003):
+    """
+    Function that finds the plateaus of a distribution y, that has x spacing constant
+    Args:
+        data 1D data that has delta in the other dimension constant
+        tol tolerance for the variance
+    """
+    from scipy.ndimage.filters import generic_filter
+    filt_data = generic_filter(data, np.std, size=3)
+    plat_index=np.where(filt_data<(np.min(filt_data)+tol))[0]
     
-    data_file="prof_u.dat"
-    data=pd.read_csv(data_file,sep=" ",header=None,skiprows=4).dropna(axis=1,how='all').values
+    plateaus=group_consecutive(plat_index)
     
-    indexes=np.where(data[:,1]<data_limit)[0] 
+    return plateaus
+
+
+def group_consecutive(data):
+    """
+    Groups consecutive indexes in an array an return a list with all the groups
+    Args:
+        data 1D data array
+    Returns:
+        results a list with all the consecutive indexes grouped
+    """
+    from itertools import groupby
+    from operator import itemgetter
+    results=[]
+    for k, g in groupby(enumerate(data), lambda i_x: i_x[0]-i_x[1]):
+        results.append(list(map(itemgetter(1), g)))
+        
+         
+    return results
+
+def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
+    if rh_origin=='K':
+        name='plateau_k.pdf'
+    if rh_origin=='md':
+        name='plateau_md.pdf'
+        
+    cs_bulk=data[plat_indexes[-1],3]
+    fig,ax=plt.subplots()
+    ax.plot(data[indexes_box,1],data[indexes_box,3])
+    ax.plot(data[plat_indexes,1],data[plat_indexes,3],'--')
+    ax.set_xlabel(r'$r[\sigma] $')
+    ax.set_ylabel(r'$c_s^B [\sigma^{-3}]$')
+    ymin,ymax=plt.ylim()
+    ax.axhline(y=cs_bulk, xmin=0, xmax=1,ls='--',c='black')
+    fig.tight_layout()
+    #ax.set_xlim(6,box_size/2)
+    #ax.set_ylim(0.37,0.38)
+    ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
+
+    plt.savefig(name)
+    plt.show()
+    
+
+
+def velocity_colloid(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
+    data_limit=box_size/2 #Where the sampling volumes are outside the box
+    
+    #Uncomment to deal with Lammps data
+
+    #data_file="prof_u.dat"
+    
+    #data=pd.read_csv(data_file,sep=" ",header=None,skiprows=4).dropna(axis=1,how='all').values
+    
+    # created with density distribution_from atom
+    data =np.loadtxt("prof_u_atom.dat")
+    #Indexes inside the box, to avoid spherical shells outside the box
+    indexes_box=np.where(data[:,1]<data_limit)[0] 
+    
+
+    plat_indexes=max(plateau_finder(data[indexes_box,3],tol = 0.03))
+
+    indexes=np.arange(0,plat_indexes[-1])
+    
     cs_bulk=data[indexes[-1],3]
+    alpha=beta*grad_mu*cs_bulk
     
     
     
@@ -49,36 +114,47 @@ def velocity_colloid(a,T,nu,box_size,alpha):
     
     integrand_1=integrand_k*y
     
-    
-    U_0=alpha/(beta*nu)*cf.integrate(y,integrand_1,0,y[-1])
+    L=cf.integrate(y,integrand_1,0,y[-1])
+    U_0=alpha/(beta*eta)*L
     
     integrand_2=0.5*integrand_k*y**2
     
-    H=cf.integrate(y,integrand_2,0,data_limit)/cf.integrate(y,integrand_1,0,y[-1])
+    H=cf.integrate(y,integrand_2,0,data_limit)/L
     
-    U=U_0*(1-(H+K)/a)
-    
-    plots(indexes,data,data_limit,y,c_excess)
-    
-    return U_0,K,H,U
+    U_1=-U_0*(H+K)/a
+    U=U_0+U_1
+    if plot == True:
+        plots(a,indexes,data,data_limit,y,c_excess,rh_origin)
+        plot_plateau(a,data,plat_indexes,indexes_box,rh_origin)
+        
+    return K,L,H,U_0,U_1,U
 
 
-def plots(indexes,data,data_limit,y,c_excess):
+def plots(a,indexes,data,data_limit,y,c_excess,rh_origin):
+    
+    if rh_origin=='K':
+        name1='Solute_concentration_k.pdf'
+        name2='Solute_excess_k.pdf'
+    if rh_origin=='md':
+        name1='Solute_concentration_md.pdf'
+        name2='Solute_excess_md.pdf'
+    
     """Plots"""
     plt.close('all')
     cf.set_plot_appearance()
+    cs_bulk=data[indexes[-1],3]
     
     """Plot Solute concentration"""
     fig,ax=plt.subplots()
-    print(data_limit)
     ax.set_xlim(0,data_limit)
     ax.plot(data[indexes,1],data[indexes,3])
     ax.set_xlabel(r'$r[\sigma] $')
     ax.set_ylabel(r'$c_s^B [\sigma^{-3}]$')
     ymin,ymax=plt.ylim()
+    ax.axhline(y=cs_bulk, xmin=0, xmax=1,ls='--',c='black')
     fig.tight_layout()
     ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
-    plt.savefig("Solute_concentration.pdf")
+    plt.savefig(name1)
     
     
     """Plot Excess_solute"""
@@ -90,10 +166,9 @@ def plots(indexes,data,data_limit,y,c_excess):
     ax.set_xlim(0,xmax)
     ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
     fig.tight_layout()
-    plt.savefig("Solute_excess.pdf")
+    plt.savefig(name2)
     
     plt.show()
-
 
 
 print("Remember to define the viscosity, box_size,Rh...")
@@ -107,14 +182,17 @@ print("Remember to define the viscosity, box_size,Rh...")
 
 
 """Colloid data"""
-grad_mu = 0.06
+grad_mu = 0.1
 cs_bulk = 0.38
-alpha = grad_mu*cs_bulk
-box_size = 9
+T = 1
+beta = 1/T
+alpha=beta*grad_mu*cs_bulk
+box_size = 14
 a = 3.23 #Hydrodynamic radius
-nu = 2.3 # As per Sharifi
+eta = 2.3 # As per Sharifi
 T = 1
 
-U_0,K,H,U=velocity_colloid(a,T,nu, box_size,alpha)
-print(U_0,K,H,U)
+results=velocity_colloid(a,T,eta, box_size,grad_mu,'md')
+print('K,L,H,U_0,U_1,U')
+print(results)
 
