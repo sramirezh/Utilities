@@ -82,8 +82,7 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
         for sim in bund.simulations:
             n_solutes=sim.get_property('cSolu')[1][0][0]
             n_solvents=sim.get_property('cSolv')[1][0][0]
-            c_total = (n_solutes+n_solvents)/box_volume
-            c_solutes = n_solutes/box_volume
+            c_total = (n_solutes+n_solvents)/box_vf )
             c_solvents = n_solvents/box_volume
             
             vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
@@ -202,8 +201,8 @@ def main(ms_pat, mf_pat, ms_dir, mf_dir):
     
     
     plot_properties(final_mus, 'grad_mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
-    plot_properties(final_muf, 'grad_mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
     plot_properties(final_mus, 'grad_mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
+    plot_properties(final_muf, 'grad_mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
     plot_properties(final_muf, 'grad_mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
     
 

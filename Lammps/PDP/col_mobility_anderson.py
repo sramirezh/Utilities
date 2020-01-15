@@ -107,10 +107,9 @@ print("Remember to define the viscosity, box_size,Rh...")
 
 
 """Colloid data"""
-grad_mu = 0.04
+grad_mu = 0.06
 cs_bulk = 0.38
 alpha = grad_mu*cs_bulk
-alpha = 0.05375444955
 box_size = 9
 a = 3.23 #Hydrodynamic radius
 nu = 2.3 # As per Sharifi

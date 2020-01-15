@@ -30,11 +30,12 @@ solvents_t = cf.read_data_file("Fproperties_t.dat").values
 solutes_b = cf.read_data_file("Sproperties_b.dat").values
 solvents_b = cf.read_data_file("Fproperties_b.dat").values
 
+sol = cf.read_data_file("properties_b.dat").values
 
 solutes = 0.5*(solutes_t+solutes_b)
 solvents = 0.5*(solvents_t+solvents_b)
 
-vx_total = solutes[:,5]+solvents[:,5]
+vx_total = sol[:,5]
 # determining the space between the reservoirs
 
 node = ov.import_file("equil.dat", multiple_frames = False)
