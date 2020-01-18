@@ -284,6 +284,7 @@ theory = [theory_dep,theory_ads]
 
 if args.theory==True:
     
+    theory_ind = 2 # 1 for Kirkwood, 2 lambda
     
     fig3, ax3 = plt.subplots()
 
@@ -291,24 +292,21 @@ if args.theory==True:
     color2 = ["black","green"]
     for i,interaction in enumerate(results):
     
-        ax3.errorbar(interaction[1][:,0],interaction[1][:,1],yerr=interaction[1][:,2],label="Simulations", color=color[i], fmt='o')
+        ax3.errorbar(interaction[1][:,0],interaction[1][:,1],yerr=interaction[1][:,2],label="Simulation", color=color[i], fmt='o')
         
         
 
         
-        ax3.scatter(theory[i][:,0],np.abs(theory[i][:,1]),marker = 'v',color=color[i],label=r'$R_h^K$')
-        ax3.scatter(theory[i][:,0],np.abs(theory[i][:,2]),marker = 'x',color=color[i],label=r'$R_h^{\lambda}$')
+
         
         # Insert for the theoretical results
-        left, bottom, width, height = [0.55, 0.25, 0.4, 0.30]
-        ax2 = fig.add_axes([left, bottom, width, height])
+        left, bottom, width, height = [0.55, 0.25, 0.4, 0.25]
+        ax4 = fig3.add_axes([left, bottom, width, height])
     
-        ax2.set_ylabel(r'$V(r)$',fontsize =17, labelpad=-5)
-        ax2.set_xlabel(r'$r$' ,fontsize =17, labelpad=-5)
-        ax2.plot(potentials[:,0],potentials[:,1],label="SRLJ")
-        ax2.plot(potentials[:,0],potentials[:,2],label="LJ")
-        ax2.tick_params(axis='both', which='major', labelsize=14)
-        ax2.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
+    
+        ax4.plot(theory[i][:,0],np.abs(theory[i][:,theory_ind]),marker = 'v', ls = '--' , color=color[i],label=r'$R_h^K$')
+        ax4.tick_params(axis='both', which='major', labelsize=14)
+    
 
         
         
@@ -318,7 +316,7 @@ if args.theory==True:
         # naming things, reducing to the simulations that have equivalent in the theory
         indexes = [i for i, e in enumerate(interaction[1][:,0]) if e in theory[1][:,0]]
         
-        theory_ind = 1 # 1 for Kirkwood, 2 lambda
+        
         x_vect = theory[i][:,0]
         theory_vect = np.abs(theory[i][:,theory_ind])
         simulation_vect = interaction[1][indexes,1]
@@ -331,15 +329,16 @@ if args.theory==True:
         
         print (pfinal[0])
         
-        ax3.scatter(theory[i][:,0],pfinal[0]*np.abs(theory[i][:,theory_ind]),marker = 's',color=color2[i],label=r'slip')
+        ax3.plot(theory[i][:,0],pfinal[0]*np.abs(theory[i][:,theory_ind]),marker = 's', ls = '--', color=color[i],
+                 label=r'1+b/L= %1.2f'%pfinal[0])
     ymin,ymax=ax3.get_ylim()
-    ax3.set_ylim(0,ymax*1.4)
+    ax3.set_ylim(0,ymax*1.05)
     ax3.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
            frameon=True, fancybox=False, edgecolor='k',ncol=2, fontsize = 10)
     
     ax3.set_xlabel(r'$N_m $')
     ax3.grid(False)
-    ax3.set_ylabel(r'$\ln |\Gamma_{ps}|$')
+    ax3.set_ylabel(r'$|\Gamma_{ps}|$')
     fig3.tight_layout()
     
     
