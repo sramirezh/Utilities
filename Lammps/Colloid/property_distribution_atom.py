@@ -185,13 +185,21 @@ vel_solv_r = []
 
 
 
-#frame = frame[discard*n_frames:]
+
+discard = 0.3
+
+
+n_frames = node.source.num_frames
+
+# To use either total number or percentage to discard
+if discard< 1:
+    discard = discard*n_frames
 
 
 for frame in range(n_frames):
     print ("Analysing frame %s of %s)"%(frame,n_frames))
     
-    if frame>discard*n_frames:
+    if frame >= discard:
     
         data = node.compute(frame)
         pos = data.particle_properties.position.array
@@ -249,7 +257,7 @@ for frame in range(n_frames):
         vel_solv_r.append(np.average(velocity[ind_solvent_r]))
     
         ind_solution_r = np.append(ind_solute_r[0],ind_solvent_r[0])
-        vel_r.append(np.average(velocity[ind_solution]))
+        vel_r.append(np.average(velocity[ind_sol_r]))
         
 #    
 
@@ -314,19 +322,22 @@ fig,ax = plt.subplots()
 
 
 
-ax.plot(x,rho_solu_c, label='Solutes')
-ax.plot(x,rho_solv_c, label='Solvents')
-ax.plot(x, rho_total_c, label='Total')  
-#ax.axhline(y=0.6, xmin = 0, xmax=1, ls=':',c='black')
-#ax.axhline(y=0.15, xmin = 0, xmax=1, ls=':',c='black')
-ax.axvline(x=L[0]/2, ymin = 0, ymax=1, ls=':',c='black')
+ax.plot(x,rho_solu_c, label='Solutes', ls = '--')
+ax.plot(x,rho_solv_c, label='Solvents', ls = '--')
+#ax.plot(x, rho_total_c, label='Total')  
+ax.axhline(y=0.6, xmin = 0, xmax=1, ls='--',c='black')
+ax.axhline(y=0.15, xmin = 0, xmax=1, ls='--',c='black')
+#ax.axvline(x=L[0]/2, ymin = 0, ymax=1, ls=':',c='black')
 ax.set_xlim(0, L[0])   
 ax.axvspan(L[0]/2-r_colloid,L[0]/2+r_colloid, alpha=0.5, color='green')
-#ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
-#ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
+ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
+ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
+
+ymin,ymax=ax.get_ylim()
+ax.set_ylim(0,ymax*1.3)
 
 ax.set_xlabel(r"$x$")
-ax.set_ylabel(r"$c(x)$")
+ax.set_ylabel(r"$c^B(x)$")
 ax.legend()
 plt.tight_layout()
 plt.savefig("conc_chunks.pdf")
@@ -368,8 +379,8 @@ ax.plot(x, vel_sol_c*rho_total_c, label='Total')
 ax.axvline(x=L[0]/2, ymin = 0, ymax=1, ls=':',c='black')
 ax.set_xlim(0, L[0])   
 ax.axvspan(L[0]/2-r_colloid,L[0]/2+r_colloid, alpha=0.5, color='green')
-#ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
-#ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
+ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
+ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
 
 ax.set_xlabel(r"$x$")
 ax.set_ylabel(r"$J_x(x)$")

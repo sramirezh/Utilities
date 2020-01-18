@@ -75,23 +75,38 @@ def density_distribution(pos, center, nbins = 40, rmin = 0, rmax = 8):
 m_density_solu = []
 m_density_solv = []
 
-for frame in range(node.source.num_frames):
-    
-    data = node.compute(frame)
-    pos = data.particle_properties.position.array
-    types = data.particle_properties.particle_type.array
 
-    ind_solute = np.where(types == 2)[0]
-    ind_solvent = np.where(types == 1)[0]
+discard = 0
+
+
+n_frames = node.source.num_frames
+
+# To use either total number or percentage to discard
+if discard< 1:
+    discard = discard*n_frames
+
+for frame in range(n_frames):
     
-    pos_solute = pos[ind_solute]
-    pos_solvent = pos[ind_solvent]
+    if frame >= discard:
     
-    radii, density_solu = density_distribution(pos_solute, center)
-    radii, density_solv = density_distribution(pos_solvent, center)
-    
-    m_density_solu.append(density_solu)
-    m_density_solv.append(density_solv)
+        print ("Analysing frame %s of %s)"%(frame,n_frames))
+        
+        
+        data = node.compute(frame)
+        pos = data.particle_properties.position.array
+        types = data.particle_properties.particle_type.array
+        print ("The number of solutes is %s"%len(np.where(types == 2)[0]))
+        ind_solute = np.where(types == 2)[0]
+        ind_solvent = np.where(types == 1)[0]
+        
+        pos_solute = pos[ind_solute]
+        pos_solvent = pos[ind_solvent]
+        
+        radii, density_solu = density_distribution(pos_solute, center)
+        radii, density_solv = density_distribution(pos_solvent, center)
+        
+        m_density_solu.append(density_solu)
+        m_density_solv.append(density_solv)
     
 
 rho_solu = np.average(m_density_solu, axis = 0)
@@ -112,6 +127,8 @@ cf.set_plot_appearance()
 fig,ax = plt.subplots()
 
 
+
+
 ax.plot(radii,rho_solu, label='Solutes')
 ax.plot(radii,rho_solv, label='Solvents')
 ax.plot(radii,rho_solu+rho_solv, label='Total')
@@ -124,7 +141,12 @@ plt.tight_layout()
 plt.savefig("conc.pdf")
 
 
+#To analyse with colmobility need to add some columns to not change the col_mobility_anderson.py
 
+n = len(radii)
+filler = np.zeros(n)
+data_save = np.column_stack((filler,radii,filler,rho_solu))
+np.savetxt("prof_u_atom.dat", data_save )
 
 
 
