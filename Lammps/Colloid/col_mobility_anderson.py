@@ -97,6 +97,8 @@ def velocity_colloid(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     indexes=np.arange(0,plat_indexes[-1])
     
     cs_bulk=data[indexes[-1],3]
+    
+    print (cs_bulk)
     alpha=beta*grad_mu*cs_bulk
     
     
@@ -182,7 +184,7 @@ print("Remember to define the viscosity, box_size,Rh...")
 
 
 """Colloid data"""
-grad_mu = 0.1
+grad_mu = 0.6
 cs_bulk = 0.38
 T = 1
 beta = 1/T
