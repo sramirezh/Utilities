@@ -59,10 +59,10 @@ def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
     if rh_origin=='md':
         name='plateau_md.pdf'
         
-    cs_bulk=data[plat_indexes[-1],3]
-    fig,ax=plt.subplots()
+    cs_bulk = data[plat_indexes[-1],3]
+    fig,ax = plt.subplots()
     ax.plot(data[indexes_box,1],data[indexes_box,3])
-    ax.plot(data[plat_indexes,1],data[plat_indexes,3],'--')
+    ax.plot(data[plat_indexes,1],data[plat_indexes,3],'--', label = "plateau" )
     ax.set_xlabel(r'$r[\sigma] $')
     ax.set_ylabel(r'$c_s^B [\sigma^{-3}]$')
     ymin,ymax=plt.ylim()
@@ -71,7 +71,7 @@ def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
     #ax.set_xlim(6,box_size/2)
     #ax.set_ylim(0.37,0.38)
     ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
-
+    ax.legend()
     plt.savefig(name)
     plt.show()
     
@@ -87,18 +87,18 @@ def velocity_colloid(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     #data=pd.read_csv(data_file,sep=" ",header=None,skiprows=4).dropna(axis=1,how='all').values
     
     # created with density distribution_from atom
-    data =np.loadtxt("prof_u_atom.dat")
+    data =cf.read_data_file("prof_u.dat").values
     #Indexes inside the box, to avoid spherical shells outside the box
     indexes_box=np.where(data[:,1]<data_limit)[0] 
     
 
-    plat_indexes=max(plateau_finder(data[indexes_box,3],tol = 0.03))
+    plat_indexes=max(plateau_finder(data[indexes_box,3],tol = 0.003))
 
     indexes=np.arange(0,plat_indexes[-1])
     
     cs_bulk=data[indexes[-1],3]
     
-    print (cs_bulk)
+    print ("The concentration in the bulk is %s"%cs_bulk)
     alpha=beta*grad_mu*cs_bulk
     
     
@@ -106,7 +106,7 @@ def velocity_colloid(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     c_excess=data[indexes,3]-cs_bulk
     y=(data[indexes,1]-a)
     
-    gamma=cf.integrate(y,c_excess,0,data_limit)
+#    gamma=cf.integrate(y,c_excess,0,data_limit)
     
     integrand_k=c_excess/cs_bulk
     
@@ -185,13 +185,11 @@ print("Remember to define the viscosity, box_size,Rh...")
 
 """Colloid data"""
 grad_mu = 0.6
-cs_bulk = 0.38
 T = 1
 beta = 1/T
-alpha=beta*grad_mu*cs_bulk
-box_size = 14
-a = 3.23 #Hydrodynamic radius
-eta = 2.3 # As per Sharifi
+box_size = 20
+a = 7.542431653 #Hydrodynamic radius
+eta = 2.249983808
 T = 1
 
 results=velocity_colloid(a,T,eta, box_size,grad_mu,'md')
