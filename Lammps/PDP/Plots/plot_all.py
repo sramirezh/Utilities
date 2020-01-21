@@ -284,7 +284,7 @@ theory = [theory_dep,theory_ads]
 
 if args.theory==True:
     
-    theory_ind = 2 # 1 for Kirkwood, 2 lambda
+    theory_ind = 1 # 1 for Kirkwood, 2 lambda
     
     fig3, ax3 = plt.subplots()
 
@@ -330,7 +330,7 @@ if args.theory==True:
         print (pfinal[0])
         
         ax3.plot(theory[i][:,0],pfinal[0]*np.abs(theory[i][:,theory_ind]),marker = 's', ls = '--', color=color[i],
-                 label=r'1+b/L= %1.2f'%pfinal[0])
+                 label=r'$1+b/L= %1.2f$'%pfinal[0])
     ymin,ymax=ax3.get_ylim()
     ax3.set_ylim(0,ymax*1.05)
     ax3.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],

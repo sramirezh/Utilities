@@ -79,7 +79,7 @@ def reduce_to_region(pos,region_limits):
     
     
     
-def property_chunk(pos, prop ,region_limits,n_bins = 50, v_weight = True ):
+def property_chunk(pos, prop ,region_limits, n_bins = 50, v_weight = True ):
     global prop_dist, count,bin_edges,hist, edges, ind_region
     """
     computes the property distribution for now only on the x direction
@@ -150,8 +150,6 @@ center = L/2.0
 
 
 
-discard = 0.3
-n_frames = node.source.num_frames
 
 region = [-L[0]/2, L[0]/2, -L[1]/2, L[1]/2, -L[2]/2, L[2]/2] #for swol type
 region = [0, L[0], 0, L[1], 25, L[2]] # In the top bulk
@@ -161,6 +159,7 @@ region = [0, L[0], 0, L[1], 25, L[2]] # In the top bulk
 # density Arrays
 m_density_solu = []
 m_density_solv = []
+
 m_density_c_solu = []
 m_density_c_solv = []
 
@@ -186,16 +185,32 @@ vel_solv_r = []
 
 
 
-discard = 0.3
+
+
+
+
+
+
+#
+#def analyse_one_frame(frame,region):
+#    
+#    """
+#    Analyses the radial distribution of densities and chunk distribution of velocities and densities in a chunk
+#    
+#    Args:
+#        Frame is just the 
+#    """
+    
+
+discard = 0.5
 
 
 n_frames = node.source.num_frames
 
 # To use either total number or percentage to discard
 if discard< 1:
-    discard = discard*n_frames
-
-
+    discard = discard*n_frames 
+    
 for frame in range(n_frames):
     print ("Analysing frame %s of %s)"%(frame,n_frames))
     
@@ -239,9 +254,10 @@ for frame in range(n_frames):
         x,velocity_c_solv = property_chunk(pos_solvent, velocity_solvent, region, v_weight = False)
         x,velocity_c_sol = property_chunk(pos, velocity, region, v_weight = False)
         
+        
         m_velocity_c_solu.append(velocity_c_solu)
         m_velocity_c_solv.append(velocity_c_solv)
-        m_velocity_c_sol.append(velocity_c_sol)
+        m_velocity_c_sol.append(velocity_c_sol)  
         
         # Velocities for the entire system
         vel = (np.sum(velocity[ind_solute])+np.sum(velocity[ind_solvent]))/(len(velocity[ind_solute])+len(velocity[ind_solvent]))
@@ -259,6 +275,8 @@ for frame in range(n_frames):
         ind_solution_r = np.append(ind_solute_r[0],ind_solvent_r[0])
         vel_r.append(np.average(velocity[ind_sol_r]))
         
+
+  
 #    
 
 # Velocities
@@ -330,8 +348,8 @@ ax.axhline(y=0.15, xmin = 0, xmax=1, ls='--',c='black')
 #ax.axvline(x=L[0]/2, ymin = 0, ymax=1, ls=':',c='black')
 ax.set_xlim(0, L[0])   
 ax.axvspan(L[0]/2-r_colloid,L[0]/2+r_colloid, alpha=0.5, color='green')
-ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
-ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
+#ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
+#ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
 
 ymin,ymax=ax.get_ylim()
 ax.set_ylim(0,ymax*1.3)
@@ -342,6 +360,9 @@ ax.legend()
 plt.tight_layout()
 plt.savefig("conc_chunks.pdf")
 
+
+epsilon =os.getcwd().split('/')[-1]
+np.savetxt("distribution_%s.dat"%epsilon, np.column_stack((x,rho_solu_c,rho_solv_c)), header = "x rho_solu rho_solv" )
 
 #Plotting the velocities for the chunk
 
@@ -356,8 +377,8 @@ ax.plot(x, vel_sol_c, label='Total')
 ax.axvline(x=L[0]/2, ymin = 0, ymax=1, ls=':',c='black')
 ax.set_xlim(0, L[0])   
 ax.axvspan(L[0]/2-r_colloid,L[0]/2+r_colloid, alpha=0.5, color='green')
-ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
-ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
+#ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
+#ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
 
 ax.set_xlabel(r"$x$")
 ax.set_ylabel(r"$v_x(x)$")

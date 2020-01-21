@@ -37,7 +37,7 @@ def compute_one_msd(pos,delta,out_type):
         delta: evert this number, we take the positions to compute the msd
         out_type= "complete" to return msd_comp and msd or "single" to return only msd 
     """
-    global msd_comp,msd_comp_u,msd_u
+    
     pos = pos[::delta]
     delta_sqr_components = (pos-np.roll(pos,-1,axis=0))**2
     delta_sqr_components = delta_sqr_components[:-1]#The last contribution is the last-the initial msd

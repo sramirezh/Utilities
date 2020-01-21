@@ -76,7 +76,7 @@ m_density_solu = []
 m_density_solv = []
 
 
-discard = 0
+discard = 1000
 
 
 n_frames = node.source.num_frames
