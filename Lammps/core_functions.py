@@ -145,11 +145,18 @@ def extract_digits(strings,sort=True):
     Returns:
          An array of all the digits in a string
          if it is an array of strings, extracts the numbers and returns them sorted
+         indexes is contains the indexes to run the input strings such that they are organised
+
+        later the strings can be organised as 
+        a = cf.extract_digits(files)
+        index_files = a[1]
+        files = [files[i] for i in index_files]
 
     """
     if isinstance(strings, str):
         numbers=re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?",strings)
         output=([num.strip('.') for num in numbers])
+        return np.array(output,dtype=float)
 
 
     if isinstance(strings, list):
@@ -162,12 +169,20 @@ def extract_digits(strings,sort=True):
             """
             If there are several parameters it is difficult to reshape
             """
-            if sort==True:
-                output=np.sort(np.array(output,dtype=float).reshape((len(output))))
-            else:
-                output=np.array(output,dtype=float).reshape((len(output)))
+            if sort == True:
+                unsorted = np.array(output,dtype=float).reshape((len(output)))
+                columns = np.column_stack(([unsorted,np.arange(0,len(unsorted))]))
+                columns = columns[columns[:,0].argsort()]
+                index_sorted = columns[:,1].astype(int)
 
-    return np.array(output,dtype=float)
+
+
+                return np.array(unsorted[index_sorted] ,dtype=float),index_sorted
+            else:
+                output = np.array(output,dtype=float).reshape((len(output)))
+                return np.array(output,dtype=float)
+
+    
 
 
 def blockPrint():
