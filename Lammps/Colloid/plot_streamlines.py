@@ -41,7 +41,7 @@ import os
 from joblib import Parallel, delayed
 import multiprocessing
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 
@@ -76,7 +76,12 @@ data_rho = np.loadtxt("prof2d_con.dat",skiprows=4)
 
 data_f = np.loadtxt("prof2d_force.dat", skiprows = 4)
 
-R_h = 3.23 #4.67520164
+#External parameters 
+lattice_constant = (4/0.8)**(1/3)
+R_h  = 3.23
+
+
+
 print((("Remember to define the Hydrodynamic radius, at the moment it is %s")%R_h))
 
 
@@ -94,14 +99,20 @@ n_r = len(np.unique(r))
 #Deleting the last 
 r = r[:-n_x]
 x = x[:-n_x]
-density = data_rho[:-n_x,4]
+density_col = data_rho[:-n_x,4]
 vx = data[:-n_x,5]
 vr = data[:-n_x,6]
 
+
 fx = data_f[:-n_x,5]
 fr = data_f[:-n_x,6]
+rho_solution =  data_f[:-n_x,4]
 
-xmesh,rmesh,density = data_contour(x,r,density)
+Fx = fx*rho_solution
+Fr = fr*rho_solution
+
+
+xmesh,rmesh,density = data_contour(x,r,density_col)
 
 
 
@@ -133,7 +144,7 @@ cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
 cbar.ax.tick_params(labelsize=10) 
 cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
-ax.quiver(x,r,vx,vr)
+ax.quiver(x,r,vx,vr )
 ax.plot(circle[0],circle[1],color='black')
 ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')
@@ -155,11 +166,18 @@ cbar=fig.colorbar(cntr1, cax = cax, orientation='horizontal')
 cbar.ax.tick_params(labelsize=10) 
 cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
-ax.quiver(x,r,fx,fr,scale =200)
+ax.quiver(x,r,Fx,np.zeros(len(Fx)), scale = 50, angles = 'uv')
 ax.plot(circle[0],circle[1],color='black')
 ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')
 ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
+ax.axvline(x = 6*lattice_constant,ymin = 0, ymax=1, color='blue')
+ax.axvline(x = 9*lattice_constant,ymin = 0, ymax=1, color='blue')
+ax.axvline(x = 21*lattice_constant,ymin = 0, ymax=1, color='red')
+ax.axvline(x = 24*lattice_constant,ymin = 0, ymax=1, color='red')
+
+
+
 fig.tight_layout()
 fig.savefig('force_field.pdf')
 
