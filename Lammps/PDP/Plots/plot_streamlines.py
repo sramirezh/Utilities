@@ -45,6 +45,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This fall
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 
+
+from ovito.modifiers import *
+import ovito.io as ov
+
 def semi_circle(origin,r):
     tetha=np.linspace(0,np.pi,1000)
     x=r*np.cos(tetha)+origin[0]
@@ -100,7 +104,15 @@ fr = data_f[:-n_x,6]
 xmesh,rmesh,density = data_contour(x,r,density)
 
 
-circle = semi_circle([10,0],R_h)
+
+# Getting the box properties using Ovito
+node = ov.import_file("equil.dat", multiple_frames = False)
+box = node.compute(0).cell # getting the properties of the box
+L = np.diag(box.matrix) 
+center = L/2.0
+
+
+circle = semi_circle([center[0],0],R_h)
 
 cf.set_plot_appearance()
 
@@ -110,7 +122,7 @@ cf.set_plot_appearance()
 
 """
 Velocity field and density contour
-Here the velocities do not have the polymer velocity substracted.
+Here the velocities do  have the polymer velocity substracted, as it was done in LAMMPS in the in.velprof
 """
 delta_r=0.2
 fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
