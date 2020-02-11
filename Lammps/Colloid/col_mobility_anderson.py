@@ -77,7 +77,11 @@ def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
     
 
 
-def velocity_colloid(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
+def velocity_colloid(input_data,a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
+    """
+    Contribution to the velocity of the colloid from the species in the prof_x.dat where x is for each species
+    """
+    
     data_limit=box_size/2 #Where the sampling volumes are outside the box
     
     #Uncomment to deal with Lammps data
@@ -87,7 +91,7 @@ def velocity_colloid(a,T,eta,box_size,grad_mu,rh_origin='K',plot=True):
     #data=pd.read_csv(data_file,sep=" ",header=None,skiprows=4).dropna(axis=1,how='all').values
     
     # created with density distribution_from atom
-    data =cf.read_data_file("prof_u.dat").values
+    data =cf.read_data_file(input_data).values
     #Indexes inside the box, to avoid spherical shells outside the box
     indexes_box=np.where(data[:,1]<data_limit)[0] 
     
@@ -156,7 +160,7 @@ def plots(a,indexes,data,data_limit,y,c_excess,rh_origin):
     ax.axhline(y=cs_bulk, xmin=0, xmax=1,ls='--',c='black')
     fig.tight_layout()
     ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
-    plt.savefig(name1)
+    plt.savefig(name1, transparent = True)
     
     
     """Plot Excess_solute"""
@@ -188,11 +192,11 @@ grad_mu = 0.6
 T = 1
 beta = 1/T
 box_size = 20
-a = 7.542431653 #Hydrodynamic radius
+a = 3.23 #Hydrodynamic radius
 eta = 2.249983808
 T = 1
 
-results=velocity_colloid(a,T,eta, box_size,grad_mu,'md')
+results = velocity_colloid("prof_u.dat",a,T,eta, box_size,grad_mu,'md')
 print('K,L,H,U_0,U_1,U')
 print(results)
 
