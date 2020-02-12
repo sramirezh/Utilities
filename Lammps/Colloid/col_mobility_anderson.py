@@ -68,8 +68,8 @@ def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
     ymin,ymax=plt.ylim()
     ax.axhline(y=cs_bulk, xmin=0, xmax=1,ls='--',c='black')
     fig.tight_layout()
-    #ax.set_xlim(6,box_size/2)
-    #ax.set_ylim(0.37,0.38)
+    ax.set_xlim(0,box_size/2-1)
+    ax.set_ylim(0,np.max(data[indexes_box[:-1],3]))
     ax.axvline(x=a, ymin=0, ymax=1,ls='--',c='black')
     ax.legend()
     plt.savefig(name)
@@ -91,49 +91,50 @@ def velocity_colloid(input_data,a,T,eta,box_size,grad_mu,rh_origin='K',plot=True
     #data=pd.read_csv(data_file,sep=" ",header=None,skiprows=4).dropna(axis=1,how='all').values
     
     # created with density distribution_from atom
-    data =cf.read_data_file(input_data).values
+    data = cf.read_data_file(input_data).values
     #Indexes inside the box, to avoid spherical shells outside the box
-    indexes_box=np.where(data[:,1]<data_limit)[0] 
+    indexes_box = np.where(data[:,1]<data_limit)[0] 
     
 
-    plat_indexes=max(plateau_finder(data[indexes_box,3],tol = 0.003))
+    plat_indexes = max(plateau_finder(data[indexes_box,3],tol = 0.003))
 
-    indexes=np.arange(0,plat_indexes[-1])
+    indexes = np.arange(0,plat_indexes[-1])
     
-    cs_bulk=data[indexes[-1],3]
+    cs_bulk = data[indexes[-1],3]
     
     print ("The concentration in the bulk is %s"%cs_bulk)
-    alpha=beta*grad_mu*cs_bulk
+    alpha =  beta*grad_mu*cs_bulk
     
     
     
-    c_excess=data[indexes,3]-cs_bulk
-    y=(data[indexes,1]-a)
+    c_excess = data[indexes,3]-cs_bulk
+    y = (data[indexes,1]-a)
     
 #    gamma=cf.integrate(y,c_excess,0,data_limit)
     
-    integrand_k=c_excess/cs_bulk
+    integrand_k = c_excess/cs_bulk
     
     
     """There is a mistake as H << K"""
-    K=cf.integrate(y,integrand_k,0,y[-1])
+    K = cf.integrate(y,integrand_k,0,y[-1])
     
-    integrand_1=integrand_k*y
+    integrand_1 = integrand_k*y
     
-    L=cf.integrate(y,integrand_1,0,y[-1])
-    U_0=alpha/(beta*eta)*L
+    L = cf.integrate(y,integrand_1,0,y[-1])
+    U_0 = alpha/(beta*eta)*L
     
-    integrand_2=0.5*integrand_k*y**2
+    integrand_2 = 0.5*integrand_k*y**2
     
-    H=cf.integrate(y,integrand_2,0,data_limit)/L
+    moment_2 = cf.integrate(y,integrand_2,0,data_limit)
+    H = moment_2/L
     
-    U_1=-U_0*(H+K)/a
-    U=U_0+U_1
+    U_1 = -U_0*(H+K)/a
+    U = U_0+U_1
     if plot == True:
         plots(a,indexes,data,data_limit,y,c_excess,rh_origin)
         plot_plateau(a,data,plat_indexes,indexes_box,rh_origin)
         
-    return K,L,H,U_0,U_1,U
+    return K,L,moment_2,U_0,U_1,U
 
 
 def plots(a,indexes,data,data_limit,y,c_excess,rh_origin):
@@ -188,15 +189,33 @@ print("Remember to define the viscosity, box_size,Rh...")
 
 
 """Colloid data"""
-grad_mu = 0.6
+grad_mu_s = 0.6
 T = 1
 beta = 1/T
 box_size = 20
-a = 3.23 #Hydrodynamic radius
+a = 2.97500e+00 # 3.23 #Hydrodynamic radius
 eta = 2.249983808
 T = 1
 
-results = velocity_colloid("prof_u.dat",a,T,eta, box_size,grad_mu,'md')
-print('K,L,H,U_0,U_1,U')
-print(results)
+results_solu = velocity_colloid("prof_u.dat",a,T,eta, box_size,grad_mu_s,'md')
 
+
+grad_mu_f = -0.381398/0.393903*grad_mu_s
+results_solv = velocity_colloid("prof_v.dat",a,T,eta, box_size,-grad_mu_f,'md')
+
+print('For the solutes K,L,moment_2,U_0,U_1,U')
+print(results_solu)
+print('For the solvents K,L,moment_2,U_0,U_1,U')
+print(results_solv)
+
+
+U_0 = results_solu[-3]+results_solv[-3]
+K = results_solu[0]+results_solv[0]
+L = results_solu[1]+results_solv[1]
+moment_2 = results_solu[2]+results_solv[2]
+H = moment_2/L
+
+
+U_1 = -U_0*(H+K)/a
+
+print (U_0,U_1,U_0+U_1)
