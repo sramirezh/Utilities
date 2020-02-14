@@ -284,15 +284,16 @@ theory = [theory_dep,theory_ads]
 
 if args.theory==True:
     
-    theory_ind = 1 # 1 for Kirkwood, 2 lambda
+    theory_ind = 2 # 1 for Kirkwood, 2 lambda
     
     fig3, ax3 = plt.subplots()
 
-    color = ["red", "blue"]
+    color = ["blue","red"]
     color2 = ["black","green"]
     for i,interaction in enumerate(results):
+        print(interaction,color[i])
     
-        ax3.errorbar(interaction[1][:,0],interaction[1][:,1],yerr=interaction[1][:,2],label="Simulation", color=color[i], fmt='o')
+        ax3.errorbar(interaction[1][:,0],interaction[1][:,1],yerr=interaction[1][:,2],label=r'Simulation $\varepsilon_{ms}=%s$'%interaction[0][0], color=color[i], fmt='o')
         
         
 

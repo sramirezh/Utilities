@@ -117,7 +117,7 @@ xmesh,rmesh,density = data_contour(x,r,density_col)
 
 
 # Getting the box properties using Ovito
-node = ov.import_file("equil.dat", multiple_frames = False)
+node = ov.import_file("all.atom", multiple_frames = False)
 box = node.compute(0).cell # getting the properties of the box
 L = np.diag(box.matrix) 
 center = L/2.0
@@ -166,7 +166,7 @@ cbar=fig.colorbar(cntr1, cax = cax, orientation='horizontal')
 cbar.ax.tick_params(labelsize=10) 
 cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
-ax.quiver(x,r,Fx,np.zeros(len(Fx)), scale = 50, angles = 'uv')
+ax.quiver(x,r,Fx,Fr, scale = 50, angles = 'uv')
 ax.plot(circle[0],circle[1],color='black')
 ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')

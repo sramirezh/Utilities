@@ -136,6 +136,7 @@ lattice_constant = (4/0.8)**(1/3)
 r_colloid  = 3.23
 
 node = ov.import_file("all.atom", multiple_frames = True)
+#node = ov.import_file("equil.dat", multiple_frames = False)
 
 #Getting the properties of the box
 
@@ -202,7 +203,7 @@ vel_solv_r = []
 #    """
     
 
-discard = 0.5
+discard = 0
 
 
 n_frames = node.source.num_frames

@@ -29,7 +29,7 @@ def LJ(r, epsilon, sigma, x, y):
     A=((x/y)**(x/(x-y))/((x/y)-1))
 
 
-    V=A*epsilon*((sigma/r)**x-(sigma/r)**y) #-4*Epsilon*((Sigma/Rc)**12-(Sigma/Rc)**6)
+    V=A*epsilon*((sigma/r)**x-(sigma/r)**y) #4*Epsilon*((Sigma/Rc)**12-(Sigma/Rc)**6)
 
     return V
 
