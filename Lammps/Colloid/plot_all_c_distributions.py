@@ -61,13 +61,20 @@ ax.set_ylabel(r"$c_s^B(x)$")
 xmin,xmax = ax.get_xlim()
 ymin,ymax = ax.get_ylim()
 ax.set_xlim(0, x[-1]) 
-ax.set_ylim(0,ymax*1.34)
+ax.set_ylim(0,0.87)
 #ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
 #ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
-ax.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
-           frameon=True, fancybox=False, edgecolor='k',ncol=2, fontsize = 10)
+
+#ax.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+#           frameon=True, fancybox=False, edgecolor='k',ncol=2, fontsize = 10)
+
+# For more information about the legendloc
+# https://stackoverflow.com/questions/39803385/what-does-a-4-element-tuple-argument-for-bbox-to-anchor-mean-in-matplotlib
+#ax.legend(loc= 1,labelspacing=0.2,borderpad=0.4,scatteryoffsets=[0.2],
+#           frameon=True, fancybox=False, edgecolor='k',ncol=3, fontsize = 14, 
+#           columnspacing = 0.5, bbox_to_anchor=(0.025, 0.42, 0.95, 0.6), mode="expand")
 plt.tight_layout()
-plt.savefig("conc_chunks_all.pdf")
+plt.savefig("conc_chunks_%s.pdf"%(i+1), transparent = True)
 
 
 
