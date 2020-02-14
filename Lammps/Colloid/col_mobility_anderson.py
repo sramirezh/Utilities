@@ -193,9 +193,20 @@ grad_mu_s = 0.6
 T = 1
 beta = 1/T
 box_size = 20
-a = 2.97500e+00 # 3.23 #Hydrodynamic radius
+a = 3.23 #2.97500e+00 # 3.23 #Hydrodynamic radius
 eta = 2.249983808
 T = 1
+
+epsilon =str(cf.extract_digits(os.getcwd().split('/')[-2])[0])
+
+#Non-slip radius
+dict_rh_s={"1.0":2.392497896,"0.5":2.968989327,"1.5":3.128326152,"2.0":3.454442382,"2.5":4.46401508,"3.0":5.049559688,"4.0":7.246634705,"5.0":7.542431653}
+
+#Slip radius
+dict_rh_ns={"1.0":1.594998597,"0.5":1.979326218,"1.5":2.085550768,"2.0":2.302961588,"2.5":2.976010054,"3.0":3.366373125,"4.0":4.831089803,"5.0":5.028287768}
+
+a = dict_rh_ns[epsilon]
+
 
 results_solu = velocity_colloid("prof_u.dat",a,T,eta, box_size,grad_mu_s,'md')
 
@@ -209,13 +220,18 @@ print('For the solvents K,L,moment_2,U_0,U_1,U')
 print(results_solv)
 
 
-U_0 = results_solu[-3]+results_solv[-3]
-K = results_solu[0]+results_solv[0]
-L = results_solu[1]+results_solv[1]
-moment_2 = results_solu[2]+results_solv[2]
+print ("Becareful with these expressions, when U_0 has a minus, it does not take into account the sign of the gradient")
+U_0 = results_solu[-3]-results_solv[-3]
+K = results_solu[0]-results_solv[0]
+L = results_solu[1]-results_solv[1]
+moment_2 = results_solu[2]-results_solv[2]
 H = moment_2/L
+
 
 
 U_1 = -U_0*(H+K)/a
 
-print (U_0,U_1,U_0+U_1)
+U_12 = -U_0*(results_solu[2]/results_solu[1]+results_solu[0])/a
+U_2 = U_0-U_12
+
+print (U_0,U_1,U_0+U_1, U_2)
