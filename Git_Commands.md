@@ -62,4 +62,9 @@ You’ll probably want to create a .gitignore file right away, to indicate all o
 Type git commit
 
 
+# Finding how many lines of code are in a project
+
+git ls-files | grep "\.sh$" | xargs wc -l   this is for bash files
+
+
 
