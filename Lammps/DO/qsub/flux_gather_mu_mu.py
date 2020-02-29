@@ -3,7 +3,7 @@
 """
 Created on Sat Jun  1 17:35:55 2019
 
-Gathers the flow from diffusio-osmotic simulations, both from Pressure and chemical potential simulations
+Gathers the flow from diffusio-osmotic simulations, both from chemical potentials of solutes and solvents
 Uses the classes in simulation_results.py
 
 @author: sr802
