@@ -17,7 +17,7 @@ import Lammps.core_functions as cf
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
-import simulation_results as sr
+import Lammps.Pore.qsub.simulation_results as sr
 from uncertainties import ufloat,unumpy
 import glob
 import argparse
@@ -214,8 +214,8 @@ if __name__ == "__main__":
     The arguments of this depend on the application
     """
     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='mus_force_*')
-    parser.add_argument('-mf_pat', metavar='mf_pat',help='Generic name of the directories with mu_f gradient',default='muf_force_*')
+    parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='6.*')
+    parser.add_argument('-mf_pat', metavar='mf_pat',help='Generic name of the directories with mu_f gradient',default='7.*')
     parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
     parser.add_argument('-mf_dir', metavar='mf_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
     args = parser.parse_args()
