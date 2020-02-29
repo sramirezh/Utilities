@@ -138,7 +138,7 @@ def read_data_file(input_file):
 
     return data
 
-def extract_digits(strings,sort=True):
+def extract_digits(strings,sort = True):
     """
     input:
         strings: Array or single string
@@ -162,10 +162,10 @@ def extract_digits(strings,sort=True):
     if isinstance(strings, list):
         output=[]
         for element in strings:
-            numbers=re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?",element)
+            numbers = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?",element)
             output.append([num.strip('.') for num in numbers])
 
-        if np.shape(output)[1]==1:
+        if np.shape(output)[1] == 1:
             """
             If there are several parameters it is difficult to reshape
             """
@@ -180,7 +180,7 @@ def extract_digits(strings,sort=True):
                 return np.array(unsorted[index_sorted] ,dtype=float),index_sorted
             else:
                 output = np.array(output,dtype=float).reshape((len(output)))
-                return np.array(output,dtype=float)
+        return np.array(output,dtype=float)
 
     
 
