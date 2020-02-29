@@ -19,7 +19,7 @@ import multiprocessing
 
 from Lammps.PDP.Plots.LJ_plotter import LJ
 import Lammps.core_functions as cf
-
+import Others.Statistics.FastAverager as stat
 #import Lammps.PDP.trajectory_analysis.poly_analysis as pa
 
 from ovito.modifiers import *
@@ -42,17 +42,18 @@ import ovito.io as ov
 
 def fdivr(r, epsilon, sigma):
     """
+    See Frenekl Pag 68-69
     computes the lennard-jones force divided by r (f/r)
     Args:
         r       : the position at which the potential is computed..
         epsilon : Energy of the minimum.
-        sigma   : Radiuos at which the potential goes to zero.
+        sigma   : Radius at which the potential goes to zero.
     Returns:
         F Lennard Jones force
     """
     r2 = sigma/r**2
     r6 = r2**3
-    virial = 48*epsilon*r6*(r6 - 0.5)/r2
+    virial = 48*epsilon*r6*r2*(r6 - 0.5)
 
     return virial
 
@@ -94,7 +95,13 @@ r_cut = 2.5
 r_max = r_colloid+r_cut
 
 
+# LJ parameters
+epsilon1 = 1
+epsilon2 = 1.5
+sigma2 = r_colloid
+sigma1 = r_colloid
 
+print ("Beware that epsilon is %s"%epsilon2)
 
 
 discard = 0
@@ -104,10 +111,13 @@ f_x_time = []
 solu_count_time = []
 
 
+# To use either total number or percentage to discard
+if discard< 1:
+    discard = discard*n_frames 
+
 for frame in range(n_frames):
-    print ("Analysing frame %s of %s)"%(frame,n_frames))
-    
     if frame >= discard:
+        print ("Analysing frame %s of %s)"%(frame,n_frames))
         data = node.compute(frame)
         pos = data.particle_properties.position.array
         types = data.particle_properties.particle_type.array
@@ -140,10 +150,7 @@ for frame in range(n_frames):
 
         
         
-        epsilon1 = 1
-        epsilon2 = 1.5
-        sigma2 = r_colloid
-        sigma1 = r_colloid
+
         
         #Angular distribution of partilces and forces
         
@@ -165,7 +172,7 @@ for frame in range(n_frames):
                 if types[i] == 2:
                     r = pos_sphe[i,0]
                     dx = relative_pos[i,0]
-                    f_x += - fdivr(r,epsilon1,sigma1)*dx 
+                    f_x += - fdivr(r,epsilon2,sigma2)*dx 
                     solu_count += 1
             solute.append(solu_count)
             force.append(f_x)
@@ -183,8 +190,8 @@ ftotal = np.sum(f_dist)
 total_force_time = np.sum(f_x_time, axis =1)
 
 
-#print("The average total force is %s",ftotal)
-
+print("\nThe average total force in x is %s\n"%np.average(total_force_time))
+print (stat.fast_averager(total_force_time))
 
 #
 ## Figures
