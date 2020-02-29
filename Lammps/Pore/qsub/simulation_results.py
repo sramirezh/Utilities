@@ -171,12 +171,12 @@ def run_thermo_directories(directories,log_name,dmin):
 
 
 
-def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
+def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
     """
 
     """
     global properties
-    times=[]
+    times = []
     os.chdir(cwd)
     
     print ("\nConstructing the simulation instances\n")
@@ -186,11 +186,13 @@ def construct_simulations(directories,files=["statistics.dat","thermo.dat"]):
             
     for directory in directories:
         
-        t=float(os.path.split(directory)[-1])
+        t = float(os.path.split(directory)[-1])
+        print ("times is %s" %t)
         times.append(simulation("time",t))
+        
         print(os.path.split(directory)[-1])
         
-        properties=read_properties(directory,files)
+        properties = read_properties(directory,files)
         times[-1].add_properties(properties)
         os.chdir(cwd)
     return times
@@ -208,6 +210,8 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
     Initialises the instances of
     Args:
         root_pattern: Is the patter of the folders that contain each simulation that forms the bundle ex:"mu_force*"
+                        Regarding this, the digit that is assumed to describe the simulation is taken as the last numerical value in the name
+                        for instance 6.Applying_force_s_0.125, would have 0.125
         parameter_id: The name of the parameter that defines the simulation folders, it is free to choose  "Number"
         directory_pattern: The numbering that goes in the * root_pattern , ex for restart files like 2020000, is '[0-9]*'
         dictionary: Dictionary for the variables that are inside the analysis_markers below ex: dictionary={'vx_Solv':r'$v^x_{f}$'}
@@ -218,14 +222,14 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
     """
     global cna
     #Needed parameters
-    roots=glob.glob(root_pattern)
-    digits=cf.extract_digits(roots, sort=False)
+    roots = glob.glob(root_pattern)
+    digits = cf.extract_digits(roots, sort = False)[-1] 
     
     
     bundles=[]
 
     for i,root in enumerate(roots):
-        directories=glob.glob('%s/%s'%(root,directory_pattern))
+        directories = glob.glob('%s/%s'%(root,directory_pattern))
         
         cna = check_n_analyse(root,directory_pattern)
         cna.check_finished("vdata.dat")
@@ -234,7 +238,7 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
         cna.check_thermo("thermo.dat")
         cna.thermo_analysis("log.lammps")
         
-        array=gather_statistics(cna.dir_fin,'Time',root)
+        array = gather_statistics(cna.dir_fin,'Time',root)
 #    
 
         #Building the simulations
@@ -248,7 +252,7 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
     
         
         #Creating the bundle
-        bundles.append(simulation_bundle(times,parameter_id,digits[i],root,dictionary=dictionary))
+        bundles.append(simulation_bundle(times, parameter_id, digits[i], root, dictionary = dictionary))
         
         bundles[-1].plot_all_properties()
         
