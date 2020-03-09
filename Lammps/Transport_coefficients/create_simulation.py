@@ -74,31 +74,6 @@ def create_init(box_limits,T, x , v, n = 2, ntypes = 2):
     
     f.close()
     
-    
-
-
-##Main
-#    
-#T = 1
-#m = [1,1] # Vector with all the masses of the particles
-#
-#m_red =  m[0]*m[1]/(m[0]+m[1]) #Reduced mass
-#scale = np.sqrt(T/m_red)
-#
-#b = -6 #Impact parameter
-#vx = maxwell.rvs(size = 1, scale = scale)[0]
-#
-#v = [vx, 0 , 0]
-#x = [b, 0, 0]
-#
-#
-#L = 30 # Half lenght of the simulation box
-#create_init([-L, L, -L, L, -L, L,], 1, x, v)
-#    
-
-
-
-
 
 # =============================================================================
 # Main
@@ -107,7 +82,7 @@ def main(name, root, template, n_vel , Temperature , b, run):
     #Getting the path to all the restart files
     #files=glob.glob('%s/*'%conf_folder)
     
-    home=root+'/'+name
+    home=root+'/'+name+'_%s'%b
     
     # =============================================================================
     #     Additional calculations
@@ -127,7 +102,7 @@ def main(name, root, template, n_vel , Temperature , b, run):
         
         sim = simulation(home,template,i)
         sim.create_folder()
-        sim.create_qsub('short',1,16,24,'input.lmp')
+        sim.create_qsub('short',1,1,0.02,'input.lmp')
     # =============================================================================
     #     #Mofications to the files here (THIS IS SPECIFIC)
     # =============================================================================
