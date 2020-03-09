@@ -20,6 +20,7 @@ import copy
 import re
 from scipy import optimize
 import pickle as pickle
+import Lammps.lammps_utilities as lu
 
 import uncertainties as un
 
@@ -194,6 +195,9 @@ def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
         
         properties = read_properties(directory,files)
         times[-1].add_properties(properties)
+        box_volume, box_limits = lu.read_box_limits('log.lammps')
+        
+        times[-1].volume = box_volume
         os.chdir(cwd)
     return times
 
@@ -223,14 +227,13 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
     global cna
     #Needed parameters
     roots = glob.glob(root_pattern)
-    digits = cf.extract_digits(roots, sort = False)[-1] 
     
     
     bundles=[]
 
     for i,root in enumerate(roots):
         directories = glob.glob('%s/%s'%(root,directory_pattern))
-        
+        digits = cf.extract_digits(root, sort = False)[-1] 
         cna = check_n_analyse(root,directory_pattern)
         cna.check_finished("vdata.dat")
         cna.check_stat("statistics.dat")
@@ -252,7 +255,7 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
     
         
         #Creating the bundle
-        bundles.append(simulation_bundle(times, parameter_id, digits[i], root, dictionary = dictionary))
+        bundles.append(simulation_bundle(times, parameter_id, digits, root, dictionary = dictionary))
         
         bundles[-1].plot_all_properties()
         
@@ -406,6 +409,7 @@ class simulation(object):
         simulation.total += 1
         self.properties=[]
         self.property_names=[]
+        self.volume = 0
 
     def __str__(self):
         self.name=("time=%s" %(self.time))
@@ -501,17 +505,17 @@ class simulation_bundle(simulation):
         
         root is the directory where the plot folder and the statistic summary is going to be created
         """
-        self.simulations=simulations
-        self.param_value=float(parameter_value)
-        self.param_id=parameter_id
-        self.properties=[]
-        self.ave_properties=[]
-        self.property_names=[]
-        self.root=root
+        self.simulations = simulations
+        self.param_value = float(parameter_value)
+        self.param_id = parameter_id
+        self.properties = []
+        self.ave_properties = []
+        self.property_names = []
+        self.root = root
         self.average = ave
         #Ask Shaltiel if this is oK?
         self.add_upd_properties()
-        self.dictionary=dictionary
+        self.dictionary = dictionary
         
         
     def add_upd_properties(self):
