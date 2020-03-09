@@ -43,10 +43,10 @@ class simulation(object):
         name ex. DP_0020, the name of the folder that contains everything
         initial_conf is the initial configuration file if it is required
         """
-        self.initial_conf=initial_conf
-        self.home=home
-        self.template=template
-        self.name=name
+        self.initial_conf = initial_conf
+        self.home = home
+        self.template = template
+        self.name = name
 
     def clean_template(self,keep_qsub = False):
         """
