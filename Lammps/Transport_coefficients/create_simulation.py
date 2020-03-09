@@ -107,7 +107,7 @@ def main(name, root, template, n_vel , Temperature , b, run):
     #     #Mofications to the files here (THIS IS SPECIFIC)
     # =============================================================================
         os.chdir(sim.folder)
-        v = [vel, 0 , 0]
+        v = [-vel, 0 , 0]
         create_init([-L, L, -L, L, -L, L,], 1, x, v)
         os.chdir(cwd)
         
