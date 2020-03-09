@@ -88,9 +88,10 @@ def main(name, root, template, n_vel , Temperature , b, run):
     #     Additional calculations
     # =============================================================================
     L = 30 # Half lenght of the simulation box
+    Rc = 2.5 # Cuttoff radius
     m = [1,1]
     m_red =  m[0]*m[1]/(m[0]+m[1]) #Reduced mass
-    x = [b, 0, 0]
+    x = [Rc, b, 0]
     scale = np.sqrt(Temperature/m_red)
     velocities =  maxwell.rvs(size = n_vel, scale = scale)
     
