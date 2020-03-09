@@ -48,14 +48,14 @@ class simulation(object):
         self.template=template
         self.name=name
 
-    def clean_template(self,keep_qsub=False):
+    def clean_template(self,keep_qsub = False):
         """
         Clean the template files except for in* or optionally the qsub file
         """
-        useful_files=glob.glob(self.template+'/in*')
-        if keep_qsub==True:
+        useful_files = glob.glob(self.template+'/in*')
+        if keep_qsub == True:
             useful_files.extend(glob.glob(self.template+'/*.qsub'))
-        all_files=glob.glob(self.template+'/*')
+        all_files = glob.glob(self.template+'/*')
         remove_files=[f for f in all_files if f not in useful_files]
         for fil in remove_files:
             os.remove(fil)
