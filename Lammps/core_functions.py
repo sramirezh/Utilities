@@ -33,9 +33,9 @@ def bash_command(cmd):
 
     for i in range(n_pipes):
         if i==0:
-            p=Popen(split(chain[0]),stdout=PIPE)
+            p=Popen(split(chain[0]),stdout = PIPE)
         else:
-            p=Popen(split(chain[i]), stdin=p.stdout, stdout=PIPE)
+            p=Popen(split(chain[i]), stdin = p.stdout, stdout = PIPE)
 
     return p.communicate()
 
