@@ -94,6 +94,7 @@ def main(name, root, template, n_vel , Temperature , b, run):
     x = [Rc, b, 0]
     scale = np.sqrt(Temperature/m_red)
     velocities =  maxwell.rvs(size = n_vel, scale = scale)
+    np.savetxt("velocities_%s.dat"%b, velocities)
     
     for i,vel in enumerate(velocities):
           
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     parser.add_argument('-root', metavar='root directory',help='Directory to create the folder for the simulations',default=cwd)
     parser.add_argument('-n_vel',metavar='n conf',help='number of velocities',default=5,type = int)
     parser.add_argument('-Temperature',metavar='Temperature',help='Temperature of the system',default=1.0,type=float)
-    parser.add_argument('-b',metavar='b',help='inpact parameter', default = 6.0, type=float)
+    parser.add_argument('-b',metavar='b',help='inpact parameter', default = 2.0, type=float)
     parser.add_argument('-run',metavar='run',help='Define if run simulations or not. If not, just creates the folder structure',default = False,type=cf.str2bool)
     
     args = parser.parse_args()
