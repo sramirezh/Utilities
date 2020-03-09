@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Jun  1 17:35:55 2019
-
+THIS IS A VERY SPECIFIC FILE THAT HAS TO BE MODIFIED DEPENDING ON THE PROBLEM
 Gathers the flow from diffusio-osmotic simulations, both from chemical potentials of solutes and solvents
 Uses the classes in simulation_results.py
 
@@ -22,6 +22,7 @@ from uncertainties import ufloat,unumpy
 import glob
 import argparse
 import re
+import Lammps.lammps_utilities as lu
 
 cwd = os.getcwd() #current working directory
 
@@ -55,9 +56,9 @@ errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error
 
 
 
-def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,species):
+def mu_simulations(root_pattern, directory_pattern,rho_bulk,cs_bulk,species):
 
-    dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+    dictionary = {'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
 
     # TODO This function could be included inside the class simulation_bundle
     #If the object was not saved
@@ -71,7 +72,7 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
     # Calculations of the transport coefficients from DP problem
     # =============================================================================
 
-    final_mu=cf.load_instance("mu%s.pkl"%species) 
+    final_mu = cf.load_instance("mu%s.pkl"%species) 
     
     final_mu.average = False
     count = 0
@@ -80,33 +81,35 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
         #This is just to compute the excess of solute flux
         
         for sim in bund.simulations:
-            n_solutes=sim.get_property('cSolu')[1][0][0]
-            n_solvents=sim.get_property('cSolv')[1][0][0]
-            c_total = (n_solutes+n_solvents)/box_vf 
-            c_solvents = n_solvents/box_volume
+            n_solutes = sim.get_property('cSolu')[1][0][0]
+            n_solvents = sim.get_property('cSolv')[1][0][0]
+            #c_total =  (n_solutes+n_solvents)/sim.volume 
+            c_solvents = n_solvents/sim.volume
+            c_solutes = n_solutes/sim.volume
             
-            vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
-            vx_solv=ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
+            vx_solu = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
+            vx_solv = ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
             
             J_s = c_solutes*vx_solu
+            print (J_s, vx_solu)
             J_f = c_solvents*vx_solv
-            Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-            pref = c_total*cs_bulk/rho_bulk
-            exc_sol_flux = J_s - pref * Q
+            #Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
+            #pref = c_total*cs_bulk/rho_bulk
+            #exc_sol_flux = J_s - pref * Q
             
             
             #Adding specific properties to the individual simulations
             
-            sim.add_property('Q',Q)
+            #sim.add_property('Q',Q)
             sim.add_property('Js',J_s)
             sim.add_property('Jf',J_f)
-            sim.add_property('Js_exc',exc_sol_flux)
+            #sim.add_property('Js_exc',exc_sol_flux)
 
             count+=1
         
         #Adding specific properties to the secondary bundle
         
-        bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
+        #bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
         bund.add_upd_properties() # To update the bundle
 
 
@@ -125,7 +128,7 @@ def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, pl
     
     cf.set_plot_appearance()
     
-    y=[i.n for i in instance.get_property(y_name, exact = True)[1][0]]
+    y = [i.n for i in instance.get_property(y_name, exact = True)[1][0]]
     y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
 
     x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
@@ -179,12 +182,11 @@ def main(ms_pat, mf_pat, ms_dir, mf_dir):
 
     ##The following two parameters are obtained from the knowledge of the bulk properties
     # TODO this can be obtained with lammps_utilities.py, add this property to class
-
-    box_volume = 20**3
+    
     rho_bulk =  0.752375
     cs_bulk = 0.375332
 
-    print("I am using the following parameters:\n box volume = %f\n rho_bulk = %f\n cs_bulk = %f\n"%(box_volume, rho_bulk, cs_bulk ))
+    print("I am using the following parameters:\n rho_bulk = %f\n cs_bulk = %f\n"%(rho_bulk, cs_bulk ))
 
 
     # Transport coefficients from GK
@@ -196,14 +198,14 @@ def main(ms_pat, mf_pat, ms_dir, mf_dir):
     # T_ss = 0.0167278
 
 
-    final_mus = mu_simulations(ms_pat, ms_dir, box_volume,rho_bulk,cs_bulk,"s")
-    final_muf = mu_simulations(mf_pat, mf_dir, box_volume,rho_bulk,cs_bulk,"f")
+    final_mus = mu_simulations(ms_pat, ms_dir,rho_bulk,cs_bulk,"s")
+    final_muf = mu_simulations(mf_pat, mf_dir,rho_bulk,cs_bulk,"f")
     
     
-    plot_properties(final_mus, 'grad_mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
-    plot_properties(final_mus, 'grad_mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
-    plot_properties(final_muf, 'grad_mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
-    plot_properties(final_muf, 'grad_mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
+    plot_properties(final_mus, 'mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
+    plot_properties(final_mus, 'mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
+    plot_properties(final_muf, 'mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
+    plot_properties(final_muf, 'mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
     
 
 
