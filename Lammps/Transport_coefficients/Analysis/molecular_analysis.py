@@ -46,6 +46,11 @@ uc = mda.Universe.empty(n_molecules, trajectory=True)
 uc.load_new(centroids_traj)
 
 
+with mda.coordinates.XYZ.XYZWriter("trajectory.xyz") as W:
+    for ts in uc.trajectory:
+        W.write(uc.atoms)
+
+
 #I can write an XYZ and then read it again or just analyse on the flight
 
 #    # analyze frame
