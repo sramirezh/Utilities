@@ -30,7 +30,9 @@ centroids_traj = np.empty((time_steps, n_molecules, 3 ))
 
 distances = []
 
-# Unwtrapping the coordinates
+# =============================================================================
+#  Unwtrapping the coordinates
+# =============================================================================
 ag = u.atoms
 transform = mda.transformations.unwrap(ag)
 u.trajectory.add_transformations(transform)
@@ -52,13 +54,21 @@ array_dist = np.transpose(np.array(distances))
 # =============================================================================
 
 uc = mda.Universe.empty(n_molecules, trajectory = True)
+uc.dimensions = u.dimensions
 
 uc.load_new(centroids_traj)
 
 
+positions = []
 with mda.coordinates.XYZ.XYZWriter("trajectory.xyz") as W:
     for ts in uc.trajectory:
+        ts.dimensions = u.dimensions
+        uc.atoms.pack_into_box(box = u.dimensions)
         W.write(uc.atoms)
+        positions.append(uc.atoms.positions)
+        
+pos_tensor = np.array(positions)
+
 
 
 #I can write an XYZ and then read it again or just analyse on the flight
