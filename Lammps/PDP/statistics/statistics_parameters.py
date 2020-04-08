@@ -197,7 +197,7 @@ def plot_force_individuals(interactions):
                 color=palette[i]
 
 
-            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\varepsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
+            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label=r'$\varepsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=color,capsize=error_cap)
 
             """
