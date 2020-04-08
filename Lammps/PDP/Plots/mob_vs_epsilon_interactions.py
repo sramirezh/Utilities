@@ -77,7 +77,7 @@ ax,fig=general_plotter(data_to_plot,yerror=2)
 
 
 
-ax.set_xlabel(r'$\epsilon_{ms} $')
+ax.set_xlabel(r'$\varepsilon_{ms} $')
 ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
 plt.legend(names,loc='upper_left')
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
