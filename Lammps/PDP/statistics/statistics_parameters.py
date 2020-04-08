@@ -197,7 +197,7 @@ def plot_force_individuals(interactions):
                 color=palette[i]
 
 
-            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\epsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
+            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label='$\varepsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
                          color=color,capsize=error_cap)
 
             """
@@ -254,7 +254,7 @@ def plot_force_individuals(interactions):
         except:
             ylabel=file_name
 
-        ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\epsilon/\sigma]$',fontsize=axis_font)
+        ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\varepsilon/\sigma]$',fontsize=axis_font)
         ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
         ylabel=file_name
 
@@ -365,7 +365,7 @@ def plot_parameter_vs_epsilon(y_label,name_key,file_name):
 
 
     """Axis"""
-    ax.set_xlabel(r'$\epsilon_{ms} $',fontsize=axis_font)
+    ax.set_xlabel(r'$\varepsilon_{ms} $',fontsize=axis_font)
     ax.grid(False)
     ax.set_ylabel(y_label,fontsize=axis_font)
     ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
