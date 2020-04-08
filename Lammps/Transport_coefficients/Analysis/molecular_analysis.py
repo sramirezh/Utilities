@@ -8,7 +8,7 @@ Created on Tue Apr  7 14:04:24 2020
 
 import numpy as np
 import MDAnalysis as mda
-
+from MDAnalysis import transformations
 
 import MDAnalysis.analysis.rdf as rdf
 import matplotlib.pyplot as plt
@@ -19,10 +19,8 @@ u = mda.Universe("system.data", "dcd_nvt.dcd", format="LAMMPS")  # The universe 
 
 
 
-
 n_molecules = u.atoms.n_residues
 molecules = u.atoms.residues # I can select them here and then iterate later through the trajectory
-
 
 
 
@@ -30,18 +28,30 @@ time_steps = u.trajectory.n_frames
 
 centroids_traj = np.empty((time_steps, n_molecules, 3 ))
 
+distances = []
+
+# Unwtrapping the coordinates
+ag = u.atoms
+transform = mda.transformations.unwrap(ag)
+u.trajectory.add_transformations(transform)
+
 for i,ts in enumerate(u.trajectory):
-    
+    distances_t = []
     for j,mol in enumerate(molecules):
-        centroids_traj[i, j,:] = mol.atoms.centroid()
+        centroids_traj[i, j,:] = mol.atoms.centroid(compound='residues')
+        pos = mol.atoms.positions
+        distances_t.append(np.linalg.norm(pos[1]-pos[0]))
+    
+    distances.append(distances_t)
 
 
+array_dist = np.transpose(np.array(distances))
 
 # =============================================================================
 # Creating an universe for the molecules
 # =============================================================================
 
-uc = mda.Universe.empty(n_molecules, trajectory=True)
+uc = mda.Universe.empty(n_molecules, trajectory = True)
 
 uc.load_new(centroids_traj)
 
