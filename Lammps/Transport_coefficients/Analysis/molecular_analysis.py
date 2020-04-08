@@ -8,10 +8,10 @@ Created on Tue Apr  7 14:04:24 2020
 
 import numpy as np
 import MDAnalysis as mda
-from MDAnalysis import transformations
+import matplotlib.pyplot as plt
 
 import MDAnalysis.analysis.rdf as rdf
-import matplotlib.pyplot as plt
+
 
 u = mda.Universe("system.data", "dcd_nvt.dcd", format="LAMMPS")  # The universe for all the atoms
 
@@ -71,24 +71,20 @@ pos_tensor = np.array(positions)
 
 
 
-#I can write an XYZ and then read it again or just analyse on the flight
+# =============================================================================
+# Computing the RDF
+# =============================================================================
+#
+g_r=rdf.InterRDF(uc.atoms,uc.atoms, exclusion_block=(1, 1))
+g_r.run()
 
-#    # analyze frame
-#    if take_this_frame == True:
-#    with mda.Writer('frame.data') as W:
-#            W.write(u.atoms)
-#         break
-
-#u= mda.Universe("1.cxyz",format='xyz')
-#
-#monomers=u.select_atoms("type 3")
-#solutes= u.select_atoms("type 2")
-#
-#g_r=rdf.InterRDF(monomers,solutes)
-#g_r.run()
-#
-#plt.plot(g_r.bins, g_r.rdf)
-#plt.show()
+counts = g_r.count
+plt.plot(g_r.bins, g_r.rdf)
+plt.show()
 
     
-#g_r = rdf.InterRDF()
+
+# Integrating to get the average number of particles at a given radius
+
+r_max = 1.1+8.0
+
