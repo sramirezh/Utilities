@@ -10,7 +10,7 @@ import sys
 import os
 import argparse
 import numpy as np
-from .general_plotter import general_plotter,pre_processing
+from general_plotter import general_plotter,pre_processing
 import pandas as pd
 import Lammps.PDP.trajectory_analysis.first_n_analysis as fna
 

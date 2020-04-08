@@ -161,7 +161,7 @@ Starting the plot
 """
 plt.close('all')
 
-interactions = [ r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
+interactions = [ r'$\varepsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\varepsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 #interactions=[r'$\epsilon_{ms}=0.5\, \sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.0 \,\sigma_{ms}=1.0 $',r'$\epsilon_{ms}=1.5 \, \sigma_{ms}=1.0 $']
 
 fig,ax = plot_results(all_data, interactions, theory = False, out_results =False)
