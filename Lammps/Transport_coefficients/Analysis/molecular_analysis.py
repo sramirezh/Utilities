@@ -24,6 +24,8 @@ from scipy.spatial.distance import pdist,squareform
 
 r_max = 1.1+8.0
 
+print ("Using r_max=%s"%r_max)
+
 
 u = mda.Universe("system.data", "dcd_nvt.dcd", format="LAMMPS")  # The universe for all the atoms
 
@@ -52,7 +54,7 @@ u.trajectory.add_transformations(transform)
 
 list_ni = [] # has the time step and the list of non-interacting molecules
 ratio = []
-for i,ts in enumerate(u.trajectory[:100]):
+for i,ts in enumerate(u.trajectory):
     
 
     list_ni_t = ["Frame %s"%ts.time]
@@ -75,15 +77,17 @@ for i,ts in enumerate(u.trajectory[:100]):
     
     list_ni_t.extend(ni_molecules)
     
-    list_ni.append(list_ni_t)
+    list_ni.extend(np.array(list_ni_t))
     
-    
-    
-    
-    
-
 
 array_dist = np.transpose(np.array(distances))
+
+print ("The average percentage of non-interacting molecules is: %s" %np.average(ratio))
+
+arr = np.ravel(np.array(list_ni))
+
+np.savetxt("ni_list.dat", arr , fmt = "%s")
+
 
 # =============================================================================
 # Creating an universe for the molecules
@@ -132,5 +136,5 @@ integrand = 4*np.pi*g_r.bins**2*g_r.rdf
 
 N_interacting = cf.integrate(g_r.bins,integrand,0,r_max)*rho_ave
 
-print(N_interacting)
+print("The average number of molecules interacting with each molecule is %s" %N_interacting)
 
