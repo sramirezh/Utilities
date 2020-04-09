@@ -27,10 +27,10 @@ r_max = 1.1+8.0
 print ("Using r_max=%s"%r_max)
 
 
-u = mda.Universe("system.data", "dcd_nvt.dcd", format="LAMMPS")  # The universe for all the atoms
+u = mda.Universe("system.data", "dcd_nvt.dcd")  # The universe for all the atoms
+v = mda.Universe("system.data","velocities.dat", format = "LAMMPSDUMP" ) # Reading all the velocities
 
-
-
+scale = v.dimensions[0]
 
 
 n_molecules = u.atoms.n_residues
@@ -52,16 +52,30 @@ transform = tr.unwrap(ag)
 u.trajectory.add_transformations(transform)
 
 
+f = open("colliding.dat","w")
+
 list_ni = [] # has the time step and the list of non-interacting molecules
 ratio = []
 for i,ts in enumerate(u.trajectory):
     
-
+    v.trajectory[i]
+    
+    #Adding velocities to the universe 
+    ts.has_velocities = True      
+    # TODO mda reads lammpsdumps and scales them
+#    print (v.atoms.positions/scale)
+#    print ("***********************************")
+    
+    u.atoms.velocities = v.atoms.positions/ scale        
+    
+#    print (u.atoms.velocities)
+        
     list_ni_t = ["Frame %s"%ts.time]
     # Computing the centroid
     centroid_pos = molecules.atoms.centroid(compound='residues')
     centroids_traj[i, :,:]  = centroid_pos
-
+    
+    # Measuring the positions for all the molecules
     pos_m = squareform(pdist(centroid_pos))
     indexes = np.where(pos_m>r_max)
     
@@ -73,13 +87,23 @@ for i,ts in enumerate(u.trajectory):
     ni_molecules = np.where(suma == 0)[0] # Non-interacting molecules
     
     
+    # Writing the properties
+    f.write("%s\n"%len(ni_molecules))
+    for j in ni_molecules:
+        res = u.atoms.residues[j]
+        for atom in res.atoms:
+            f.write("%s %s %s %s %s %s %s %s \n"%(atom.id,j,atom.position[0],atom.position[1],atom.position[2],atom.velocity[0],atom.velocity[1],atom.velocity[2]))
+        
+        
+    
+    
     ratio.append(len(ni_molecules)/n_molecules) # Ratio of non interacting molecules
     
     list_ni_t.extend(ni_molecules)
     
     list_ni.extend(np.array(list_ni_t))
     
-
+f.close()
 array_dist = np.transpose(np.array(distances))
 
 print ("The average percentage of non-interacting molecules is: %s" %np.average(ratio))
@@ -120,7 +144,7 @@ g_r.run()
 
 counts = g_r.count
 plt.plot(g_r.bins, g_r.rdf)
-plt.show()
+plt.savefig("gr.pdf")
 
     
 
@@ -137,4 +161,9 @@ integrand = 4*np.pi*g_r.bins**2*g_r.rdf
 N_interacting = cf.integrate(g_r.bins,integrand,0,r_max)*rho_ave
 
 print("The average number of molecules interacting with each molecule is %s" %N_interacting)
+
+
+
+
+
 
