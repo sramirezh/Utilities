@@ -110,6 +110,7 @@ print ("The average percentage of non-interacting molecules is: %s" %np.average(
 
 arr = np.ravel(np.array(list_ni))
 
+print ("created the list of nonpinteracting molecules for each step in ni_list.dat" )
 np.savetxt("ni_list.dat", arr , fmt = "%s")
 
 
