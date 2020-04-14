@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Spyder Editor
-
+Script to analyse lammps chunk files from pressure driven
 Poiseuille_flow/Todd1995_NoseHoover
-Script to analyse lammps chunk files from pressure driven (Poiuselle)
+
 """
 
 import numpy as np
