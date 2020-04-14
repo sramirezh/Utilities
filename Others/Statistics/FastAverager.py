@@ -134,7 +134,7 @@ def calculations(data, min_limit,output_file, names=None, function=False):
         names_to_analyse=np.arange(0,size)
 
     else:
-        data1=discard_data(data,min_limit)
+        data1 = discard_data(data,min_limit)
         #Excluding some data that does not need to be analysed
         exclude=["time", "Chunk", "Coord1","step","elapsed"]
         if isinstance(names[0],str)==True:
