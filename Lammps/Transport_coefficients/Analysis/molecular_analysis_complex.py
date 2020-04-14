@@ -189,7 +189,7 @@ integrand = 4*np.pi*g_r.bins**2*g_r.rdf
 
 N_interacting = cf.integrate(g_r.bins,integrand,0,r_max)*rho_ave
 
-print("The average number of molecules interacting with each molecule is %s" %N_interacting)
+print("The average number of molecules within radius r_max = %s is %s" %(r_max,N_interacting))
 
 
 # =============================================================================
