@@ -77,7 +77,7 @@ def split_trajectory(split,file_name):
     if split==True:
         print("\nSplitting the chunk series")
         #TODO make a general csplitter
-        out,err=cf.bash_command("""bash %s/Chunk_splitter.sh %s bash"""%(dir_path,file_name))
+        cf.bash_command("""bash %s/Chunk_splitter.sh %s bash"""%(dir_path,file_name))
     else:
         print("\nThe chunk file was not splitted")
 

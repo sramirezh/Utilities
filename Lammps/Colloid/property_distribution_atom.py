@@ -38,7 +38,6 @@ from Lammps.PDP.Plots.LJ_plotter import LJ
 import Lammps.core_functions as cf
 
 
-from ovito.modifiers import *
 import ovito.io as ov
 
 
