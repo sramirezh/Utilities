@@ -124,7 +124,26 @@ class chunk_reader(object):
 #        f.close()
         
         
-        
-
+# One way of using it
+#results = chunk_reader("velocity_all.dat") 
+#        
+#    
+## Creating all the frames
+#
+#f = open( results.filename)
+#
+#series = []
+#
+#byte_pos = results.offsets
+#
+#for i, start in enumerate(byte_pos[:-1]):
+#
+#    f.seek(start)
+#    step, n_chunks, _ = f.readline().split() # Timestep Number-of-chunks Total-count
+#    start = f.tell()
+#    stuff = f.read(byte_pos[i+1] - start)
+#    data = pd.read_csv(StringIO(stuff),sep=" ",header=None).dropna(axis=1,how='all')
+#    data.columns = results.header
+#    series.append(timestep(step, n_chunks, data))
 
 
