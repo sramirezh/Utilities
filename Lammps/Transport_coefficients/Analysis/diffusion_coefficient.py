@@ -107,14 +107,17 @@ u_new.load_new(centroids_traj)
 
 
 
-max_delta = int(time_steps*0.05) #Maximum delta of time to measure the MSD
+max_delta = int(time_steps*0.20) #Maximum delta of time to measure the MSD
 
-delta_t =[]
+delta_t_arr =[]
 msd_array = []
+
+# Sampling interval I am printing configurations every 100 time steps and time step equal 10 fs
+mult_t = 100*10
 
 for i in range(max_delta):
     msd_array_t = []
-    
+    delta_t_arr.append(i*mult_t)
     for j in range(len(centroids_traj[::i+1])):
         print (i,j)
         
@@ -122,34 +125,38 @@ for i in range(max_delta):
         
     msd_array.append(msd_array_t)
     
-times_msd = np.arange(0,time_steps)*1000
+
+ave_msd =[]
+for el in msd_array:
+    
+    ave_msd.append(np.average(np.array(el)))
 
 
-## =============================================================================
-## From lammps chunk/msd, which only has one origin
-## =============================================================================
-#
-#cf.set_plot_appearance()
-#
-#delta_t = 10 # fs
-#
-#print ("Delta t in the simulations is %s"%delta_t)
-#data_lammps = cf.read_data_file('diffusion_data.dat')
-#
-#
-#times_l,msd_l = lammps_MSD(delta_t,data_lammps)
-#
-#
-#
-#fig,ax = plt.subplots()
-#
-#ax.plot(times_l,msd_l,label="LAMMPS")
-#ax.plot(times_msd, msd_array, label = "Mine",ls='--')
-#ax.legend()
-#ax.set_xlabel(r'$\Delta t(fs)$')
-#ax.set_ylabel(r'$MSD[{\AA}^2]$')
-#plt.tight_layout()
-#plt.savefig("MSD_Lammps_comparison.pdf", transparent = True)
+# =============================================================================
+# From lammps chunk/msd, which only has one origin
+# =============================================================================
+
+cf.set_plot_appearance()
+
+delta_t = 10 # fs
+
+print ("Delta t in the simulations is %s"%delta_t)
+data_lammps = cf.read_data_file('diffusion_data.dat')
+
+
+times_l,msd_l = lammps_MSD(delta_t,data_lammps)
+
+
+
+fig,ax = plt.subplots()
+
+ax.plot(times_l,msd_l,label="LAMMPS")
+ax.plot(delta_t_arr, ave_msd, label = "Mine",ls='--')
+ax.legend()
+ax.set_xlabel(r'$\Delta t(fs)$')
+ax.set_ylabel(r'$MSD[{\AA}^2]$')
+plt.tight_layout()
+plt.savefig("MSD_Lammps_comparison.pdf", transparent = True)
 
 
 
