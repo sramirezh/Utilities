@@ -20,8 +20,6 @@ import Lammps.core_functions as cf
 from scipy.spatial.distance import pdist,squareform
 from tqdm import tqdm
 
-
-
 def compute_one_msd(pos_init,pos_final):
     """
     Computes the msd between two positons
@@ -34,8 +32,6 @@ def compute_one_msd(pos_init,pos_final):
     msd = np.average(delta_sqr)
 
     return msd
-
-
 
 def lammps_MSD(delta_t, data):
     """
@@ -68,20 +64,11 @@ def lammps_MSD(delta_t, data):
     
     return times,msd
 
-
-
-
-
 # =============================================================================
 # Main
 # =============================================================================
-
-
-
 u = mda.Universe("system.data", "dcd_nvt.dcd")  # The universe for all the atoms
 v = mda.Universe("system.data","per_image.dat", format = "LAMMPSDUMP" ) # Reading all the periodic images
-
-
 
 scale = v.dimensions[0]
 
@@ -120,44 +107,49 @@ u_new.load_new(centroids_traj)
 
 
 
+max_delta = int(time_steps*0.05) #Maximum delta of time to measure the MSD
 
+delta_t =[]
 msd_array = []
-pos_init = centroids_traj[0,:,:]
-for i in range(time_steps):
-    msd_array.append(compute_one_msd(pos_init,centroids_traj[i,:,:]))
-    
-    
 
+for i in range(max_delta):
+    msd_array_t = []
+    
+    for j in range(len(centroids_traj[::i+1])):
+        print (i,j)
+        
+        msd_array_t.append(compute_one_msd(centroids_traj[j,:,:],centroids_traj[j+i,:,:]))
+        
+    msd_array.append(msd_array_t)
+    
 times_msd = np.arange(0,time_steps)*1000
 
 
-
-
-
-# =============================================================================
-# From lammps chunk/msd, which only has one origin
-# =============================================================================
-
-cf.set_plot_appearance()
-
-delta_t = 10 # fs
-
-print ("Delta t in the simulations is %s"%delta_t)
-data_lammps = cf.read_data_file('diffusion_data.dat')
-
-
-times_l,msd_l = lammps_MSD(delta_t,data_lammps)
-
-
-
-fig,ax = plt.subplots()
-
-ax.plot(times_l,msd_l,label="LAMMPS")
-ax.plot(times_msd, msd_array, label = "Mine",ls='--')
-ax.legend()
-ax.set_xlabel(r'$\Delta t(fs)$')
-ax.set_ylabel(r'$MSD[{\AA}^2]$')
-plt.savefig("msd.pdf")
+## =============================================================================
+## From lammps chunk/msd, which only has one origin
+## =============================================================================
+#
+#cf.set_plot_appearance()
+#
+#delta_t = 10 # fs
+#
+#print ("Delta t in the simulations is %s"%delta_t)
+#data_lammps = cf.read_data_file('diffusion_data.dat')
+#
+#
+#times_l,msd_l = lammps_MSD(delta_t,data_lammps)
+#
+#
+#
+#fig,ax = plt.subplots()
+#
+#ax.plot(times_l,msd_l,label="LAMMPS")
+#ax.plot(times_msd, msd_array, label = "Mine",ls='--')
+#ax.legend()
+#ax.set_xlabel(r'$\Delta t(fs)$')
+#ax.set_ylabel(r'$MSD[{\AA}^2]$')
+#plt.tight_layout()
+#plt.savefig("MSD_Lammps_comparison.pdf", transparent = True)
 
 
 
