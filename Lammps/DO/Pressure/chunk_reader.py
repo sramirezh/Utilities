@@ -65,13 +65,13 @@ class chunk_reader(object):
         reads the header and estimates the number of chunks
         """
         header_lines = 0
-        last_pound_pos=-1
         f = open( self.filename)
         while(f.read(1)=='#'):
-              last_pound_pos = f.tell()
               header_lines += 1
               self.header = f.readline().split()
-        self._first_line = f.tell()      
+        self._first_line = f.tell()-1      
+        f.seek(0)
+        f.seek(self._first_line)
         self.n_chunks = int(f.readline().split()[1])  # Timestep Number-of-chunks Total-count
 
         f.close()
