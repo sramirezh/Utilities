@@ -19,6 +19,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This fall
 import Lammps.core_functions as cf
 from scipy.spatial.distance import pdist,squareform
 from tqdm import tqdm
+from uncertainties import unumpy,ufloat
+import Others.Statistics.FastAverager as stat
+from scipy import optimize
+import glob
 
 def compute_one_msd(pos_init,pos_final):
     """
@@ -64,50 +68,112 @@ def lammps_MSD(delta_t, data):
     
     return times,msd
 
+
+def plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal,D):
+    cf.set_plot_appearance()
+    plt.close('all')
+    fig1,(ax1,ax12)=plt.subplots(2,1)
+    ax1.plot(t,msd_average)
+    ax1.fill_between(t, msd_average-msd_error, msd_average+msd_error ,alpha=0.4)
+    ax1.plot(np.unique(t),fitfunc(pfinal,np.unique(t)),linestyle='--',c='black')
+    ax1.set_ylabel(r'$MSD$')
+    ax12.plot(t,D_inst_ave)
+    ax12.fill_between(t, D_inst_ave-D_inst_error, D_inst_ave+D_inst_error ,alpha=0.4)
+    ax12.axhline(y=D, xmin=0, xmax=1,ls='--',c='black')
+    ax12.set_xlabel(r'$\Delta t$')
+    ax12.set_ylabel(r'$D$')
+    plt.tight_layout()
+    plt.savefig("Diffusio_coefficient.pdf")
+    plt.show()
+    
+    
+fitfunc = lambda p, x: p[0] * x + p[1] #Fitting to a line
+errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / (err+10**-8)
+
+def fit_line(x,y,yerr, initial_index = 50):
+    """
+    Performs a least square fitting to a line from data including error
+    
+    Args:
+        initial_index to avoid fitting the intial behaviour [Default=50]
+        final_ration percentage of the data to be taken into account [Default=0.5]
+        step take data every this step [Default=10]
+        
+    Return:
+        pfinal coefficients of the linear fit
+        cov covariance matrix of the fit
+    """
+    pinit=[1,-1]
+    out = optimize.leastsq(errfunc, pinit, args=(x[initial_index:],y[initial_index:],yerr[initial_index:]), full_output=1)
+    pfinal = out[0] #fitting coefficients
+    cov=out[1] #Covariance
+    
+    return pfinal,cov    
+    
+    
+    
+    
+
 # =============================================================================
 # Main
 # =============================================================================
-u = mda.Universe("system.data", "dcd_nvt.dcd")  # The universe for all the atoms
-v = mda.Universe("system.data","per_image.dat", format = "LAMMPSDUMP" ) # Reading all the periodic images
-
-scale = v.dimensions[0]
-
-n_molecules = u.atoms.n_residues
-molecules = u.atoms.residues # I can select them here and then iterate later through the trajectory
-
-time_steps = u.trajectory.n_frames
-
-centroids_traj = np.empty((time_steps, n_molecules, 3 ))
-
-distances = []
-
-# =============================================================================
-#  Unwtrapping the coordinates
-# =============================================================================
-ag = u.atoms
-transform = tr.wrap(ag)
-u.trajectory.add_transformations(transform)
-
-
-centroids_traj = np.empty((time_steps, n_molecules, 3 )) # Will contain all the centroid including the effect of the image
-
-for i,ts in enumerate(tqdm(u.trajectory, file = sys.stdout)):
     
-    v.trajectory[i]    
-    # Converting into real units
-    u.atoms.positions = u.atoms.positions+v.atoms.positions 
+def compute_centroids():
+    """
+    Gets all the positions and images and saves an object with the positions of the centroids
+    """
+    u = mda.Universe("system.data", "dcd_nvt.dcd")  # The universe for all the atoms
+    v = mda.Universe("system.data","per_image.dat", format = "LAMMPSDUMP" ) # Reading all the periodic images
     
-    centroids_traj[i, :,:] = u.atoms.residues.atoms.centroid(compound = 'residues')
+    scale = v.dimensions[0]
     
-# universe with the real position of all the centroids 
-# Notice that this can be packed again to be inside the box with u_new.atoms.pack_into_box(box = u.dimensions)
+    n_molecules = u.atoms.n_residues
+    molecules = u.atoms.residues # I can select them here and then iterate later through the trajectory
+    
+    time_steps = u.trajectory.n_frames
+    
+    centroids_traj = np.empty((time_steps, n_molecules, 3 ))
+    
+    distances = []
+    
+    # =============================================================================
+    #  Unwtrapping the coordinates
+    # =============================================================================
+    ag = u.atoms
+    transform = tr.wrap(ag)
+    u.trajectory.add_transformations(transform)
+    
+    
+    centroids_traj = np.empty((time_steps, n_molecules, 3 )) # Will contain all the centroid including the effect of the image
+    
+    for i,ts in enumerate(tqdm(u.trajectory, file = sys.stdout)):
+        
+        v.trajectory[i]    
+        # Converting into real units
+        u.atoms.positions = u.atoms.positions+v.atoms.positions 
+        
+        centroids_traj[i, :,:] = u.atoms.residues.atoms.centroid(compound = 'residues')
+        
+    # universe with the real position of all the centroids 
+    # Notice that this can be packed again to be inside the box with u_new.atoms.pack_into_box(box = u.dimensions)
+    
+    u_new = mda.Universe.empty(n_molecules, trajectory = True)
+    u_new.load_new(centroids_traj)
+    
+    cf.save_instance(centroids_traj,"centroids_traj")
 
-u_new = mda.Universe.empty(n_molecules, trajectory = True)
-u_new.load_new(centroids_traj)
+
+
+if os.path.exists("centroids_traj.pkl"):
+    centroids_traj = cf.load_instance("centroids_traj.pkl")
+    time_steps = len(centroids_traj)
+else:
+    compute_centroids()
 
 
 
-max_delta = int(time_steps*0.20) #Maximum delta of time to measure the MSD
+
+max_delta = int(time_steps*0.5) #Maximum delta of time to measure the MSD
 
 delta_t_arr =[]
 msd_array = []
@@ -126,37 +192,75 @@ for i in range(max_delta):
     msd_array.append(msd_array_t)
     
 
+# Getting the error
 ave_msd =[]
 for el in msd_array:
     
-    ave_msd.append(np.average(np.array(el)))
+    ave = (stat.fast_averager(np.array(el)))[0]
+    ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error
+    
+    
 
-
-# =============================================================================
-# From lammps chunk/msd, which only has one origin
-# =============================================================================
-
-cf.set_plot_appearance()
-
-delta_t = 10 # fs
-
-print ("Delta t in the simulations is %s"%delta_t)
-data_lammps = cf.read_data_file('diffusion_data.dat')
-
-
-times_l,msd_l = lammps_MSD(delta_t,data_lammps)
+D_inst=[0] #Array with the instantaneous diffusion coefficient
+for i in range(1,max_delta):
+    dt = delta_t_arr[i]
+    D_inst.append(ave_msd[i]/dt/(2*3))
 
 
 
-fig,ax = plt.subplots()
+#Writing arrays of averages and errors
+t=np.array(delta_t_arr)
+msd_error = unumpy.std_devs(ave_msd)
+msd_average = unumpy.nominal_values(ave_msd)
 
-ax.plot(times_l,msd_l,label="LAMMPS")
-ax.plot(delta_t_arr, ave_msd, label = "Mine",ls='--')
-ax.legend()
-ax.set_xlabel(r'$\Delta t(fs)$')
-ax.set_ylabel(r'$MSD[{\AA}^2]$')
-plt.tight_layout()
-plt.savefig("MSD_Lammps_comparison.pdf", transparent = True)
+
+D_inst_error = unumpy.std_devs(D_inst)
+D_inst_ave = unumpy.nominal_values(D_inst)
+
+
+initial_index = 0
+final_ratio = 1
+step = 1
+
+pfinal,cov=fit_line(t,msd_average,msd_error)
+
+D=pfinal[0]/(2*3)
+
+D_err=np.sqrt(cov[0][0])*D
+
+plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal,D)
+
+print("The diffusion coefficient is %s +/- %s"%(D,D_err))
+f=open("Diffusion.out",'w')
+f.write("The diffusion coefficient is %s +/- %s \n"%(D,D_err))
+f.close
+
+
+## =============================================================================
+## From lammps chunk/msd, which only has one origin
+## =============================================================================
+#
+#cf.set_plot_appearance()
+#
+#delta_t = 10 # fs
+#
+#print ("Delta t in the simulations is %s"%delta_t)
+#data_lammps = cf.read_data_file('diffusion_data.dat')
+#
+#
+#times_l,msd_l = lammps_MSD(delta_t,data_lammps)
+#
+#
+#
+#fig,ax = plt.subplots()
+#
+#ax.plot(times_l,msd_l,label="LAMMPS")
+#ax.plot(delta_t_arr, ave_msd, label = "Mine",ls='--')
+#ax.legend()
+#ax.set_xlabel(r'$\Delta t(fs)$')
+#ax.set_ylabel(r'$MSD[{\AA}^2]$')
+#plt.tight_layout()
+#plt.savefig("MSD_Lammps_comparison.pdf", transparent = True)
 
 
 
