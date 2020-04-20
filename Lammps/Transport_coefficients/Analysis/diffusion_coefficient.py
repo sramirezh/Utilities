@@ -69,11 +69,10 @@ def lammps_MSD(delta_t, data):
     return times,msd
 
 
-def plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error, pfinal, D):
+def plot_diffusion(t, msd_average, msd_error,D_inst_ave, D_inst_error, pfinal, D, initial_index):
     """
     
     """
-    #
 
     
     cf.set_plot_appearance()
@@ -82,6 +81,7 @@ def plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error, pfinal, D):
     ax1.plot(t, msd_average)
     ax1.fill_between(t, msd_average-msd_error, msd_average+msd_error ,alpha=0.4)
     ax1.plot(np.unique(t),fitfunc(pfinal,np.unique(t)),linestyle='--',c='black')
+    ax1.plot(t[initial_index], msd_average[initial_index], marker = 'o')
     ax1.set_ylabel(r'$MSD [{\AA}^2]$')
     ax1.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
     ax12.plot(t,D_inst_ave)
@@ -96,7 +96,7 @@ def plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error, pfinal, D):
     plt.savefig("Diffusio_coefficient.pdf")
     
     
-fitfunc = lambda p, x: p[0] * x #Fitting to a line
+fitfunc = lambda p, x: p[0] * x + p[1] #Fitting to a line
 errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / (err+10**-8)
 
 def fit_line(x,y,yerr, initial_index = 50):
@@ -112,7 +112,7 @@ def fit_line(x,y,yerr, initial_index = 50):
         pfinal coefficients of the linear fit
         cov covariance matrix of the fit
     """
-    pinit=[1]
+    pinit=[1,-1]
     out = optimize.leastsq(errfunc, pinit, args=(x[initial_index:],y[initial_index:],yerr[initial_index:]), full_output=1)
     pfinal = out[0] #fitting coefficients
     cov=out[1] #Covariance
@@ -182,7 +182,7 @@ else:
 
 
 
-max_delta = int(time_steps*1) #Maximum delta of time to measure the MSD
+max_delta = int(time_steps*0.5) #Maximum delta of time to measure the MSD as per Keffer2001
 
 delta_t_arr =[]
 msd_array = []
@@ -194,7 +194,7 @@ for i in range(max_delta):
     msd_array_t = []
     delta_t_arr.append(i*mult_t)
     
-    for j in range(len(centroids_traj[::i+1])):        
+    for j in range(max_delta):        
         msd_array_t.append(compute_one_msd(centroids_traj[j,:,:],centroids_traj[j+i,:,:]))
         
     msd_array.append(msd_array_t)
@@ -231,13 +231,13 @@ D_inst_ave = unumpy.nominal_values(D_inst)
 
 
 
-pfinal,cov = fit_line(t,msd_average,msd_error, initial_index = 300)
+pfinal,cov = fit_line(t,msd_average,msd_error, initial_index = 500)
 
 D = pfinal[0]/(2*3)
 
 D_err=np.sqrt(cov[0][0])*D
 
-plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D )
+plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, initial_index = 500 )
 
 print("\nThe diffusion coefficient is %s +/- %s"%(D,D_err))
 f = open("Diffusion.out",'w')
