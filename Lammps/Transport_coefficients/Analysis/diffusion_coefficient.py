@@ -96,7 +96,7 @@ def plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error, pfinal, D):
     plt.savefig("Diffusio_coefficient.pdf")
     
     
-fitfunc = lambda p, x: p[0] * x + p[1] #Fitting to a line
+fitfunc = lambda p, x: p[0] * x #Fitting to a line
 errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / (err+10**-8)
 
 def fit_line(x,y,yerr, initial_index = 50):
@@ -112,7 +112,7 @@ def fit_line(x,y,yerr, initial_index = 50):
         pfinal coefficients of the linear fit
         cov covariance matrix of the fit
     """
-    pinit=[1,-1]
+    pinit=[1]
     out = optimize.leastsq(errfunc, pinit, args=(x[initial_index:],y[initial_index:],yerr[initial_index:]), full_output=1)
     pfinal = out[0] #fitting coefficients
     cov=out[1] #Covariance
