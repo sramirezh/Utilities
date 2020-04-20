@@ -123,7 +123,7 @@ def compute_diffusion_coefficient(input_file,delta_t,initial_index,final_ratio,s
     
     
     num_cores = multiprocessing.cpu_count()
-    msd=Parallel(n_jobs=num_cores)(delayed(compute_one_msd)(pos,i+1,"single") for i in tqdm(range(max_delta)))
+    msd = Parallel(n_jobs=num_cores)(delayed(compute_one_msd)(pos,i+1,"single") for i in tqdm(range(max_delta)))
     
     D_inst=[] #Array with the instantaneous diffusion coefficient
     for i in range(max_delta):

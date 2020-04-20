@@ -23,6 +23,8 @@ from uncertainties import unumpy,ufloat
 import Others.Statistics.FastAverager as stat
 from scipy import optimize
 import glob
+from joblib import Parallel, delayed
+import multiprocessing
 
 def compute_one_msd(pos_init,pos_final):
     """
@@ -174,6 +176,7 @@ def compute_centroids():
 
 
 if os.path.exists("centroids_traj.pkl"):
+    print ("Reading 'centroids_traj.pkl'")
     centroids_traj = cf.load_instance("centroids_traj.pkl")
     time_steps = len(centroids_traj)
 else:
@@ -190,7 +193,10 @@ msd_array = []
 # Sampling interval I am printing configurations every 100 time steps and time step equal 10 fs
 mult_t = 100*10
 
+
+
 for i in range(max_delta):
+    print("analysing delta = %s" %i)
     msd_array_t = []
     delta_t_arr.append(i*mult_t)
     
