@@ -169,6 +169,22 @@ def compute_centroids():
     return centroids_traj, time_steps
 
 
+
+def one_delta_t(delta):
+    """
+    returns an array with all the msd for a given delta_t
+    TODO [Note that it assumes that centroids_traj and max_delta are loaded in memory, so it can be accesed by all the threads, probably not the most efficeint way of doing]
+    
+    Args:
+        delta is the delta in sampling times that is going to be analysed
+    """
+    msd_array_t = []
+    for j in range(max_delta):        
+        msd_array_t.append(compute_one_msd(centroids_traj[j,:,:],centroids_traj[j+delta,:,:]))
+        
+    
+    return msd_array_t
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -187,26 +203,12 @@ else:
 
 max_delta = int(time_steps*0.5) #Maximum delta of time to measure the MSD as per Keffer2001
 
-delta_t_arr =[]
-msd_array = []
-
-# Sampling interval I am printing configurations every 100 time steps and time step equal 10 fs
 mult_t = 100*10
+delta_t_arr = np.arange(max_delta)*mult_t
+num_cores = multiprocessing.cpu_count()
 
 
-
-for i in range(max_delta):
-    print("analysing delta = %s" %i)
-    msd_array_t = []
-    delta_t_arr.append(i*mult_t)
-    
-    for j in range(max_delta):        
-        msd_array_t.append(compute_one_msd(centroids_traj[j,:,:],centroids_traj[j+i,:,:]))
-        
-    msd_array.append(msd_array_t)
-    
-
-# Getting the error
+msd_array = Parallel(n_jobs = num_cores)(delayed(one_delta_t)(i) for i in tqdm(range(max_delta)))
     
 
 ave_msd =[]
