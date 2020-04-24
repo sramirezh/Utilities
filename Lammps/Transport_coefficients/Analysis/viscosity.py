@@ -65,8 +65,8 @@ print ("Using delta_t = %s fs" %delta_t)
 # =============================================================================
 
 
-lammps_df = cf.read_data_file("profile.gk.2d")
-lammps_df = lammps_df.iloc[-400:]
+#lammps_df = cf.read_data_file("profile.gk.2d")
+#lammps_df = lammps_df.iloc[-400:]
 
 
 
@@ -90,15 +90,33 @@ plt.savefig("correlation11.pdf")
 
 
 
+# Units
+
+Kb = 1.380649*10**-23 #J/K
+Temperature = 273.15 #K 
+time_step = 10 # Fs
+volume = 200.285**3 # Angs**3 
+
+# converting into SI
+
+atm2pa = 101325.0
+fs2s = 10**-15
+ang2m = 10**-10  
 
 
-Temperature = 1
-time_step = 0.005
-delta_t = etha11.times[1]
-volume = 36.5148*36.5148
-prefactor = volume/Temperature*time_step
 
-transport = etha11.transport_coeff(prefactor, 0, etha11.times[-1])
+prefactor = volume*ang2m**3/(Kb*Temperature)*time_step 
+
+
+
+integral = etha11.transport_coeff(1, 0, etha11.times[-1]) # In atmospheres**2*fs
+
+integral = atm2pa**2 * fs2s * integral
+
+eta = integral*prefactor # in Pa s
+
+
+
 
 
 
