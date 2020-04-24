@@ -22,7 +22,7 @@ from tqdm import tqdm
 # Input parameters
 # =============================================================================
 
-r_cut = 10
+r_cut = 8
 target_ni = 1 # Taget number of molecules interacting with each molecule
 
 
@@ -165,7 +165,7 @@ pos_tensor = np.array(positions)
 # =============================================================================
 #
 
-r_gr = 60
+r_gr = 40
 print("The maximum radius for the g(r) analysis is %s"%r_gr)
 plt.close('all')
 g_r = rdf.InterRDF(uc.atoms,uc.atoms, exclusion_block=(1, 1), range=(0.0, r_gr))
@@ -202,7 +202,7 @@ l_target = (N_interacting*volume)**(1/3)
 rho_target = n_molecules/l_target**3
 
 print ("\nTo have on average %s particle interacting with each other, the required side of the box is %s which gives a molecule density of %s"%(target_ni,l_target,rho_target))
-
+print ("\nFor the   10x10x10 the side should be %s"%(1000/rho_target)**(1/3))
 
 
 
