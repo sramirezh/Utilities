@@ -13,11 +13,9 @@ import pickle as pickle
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 from scipy.stats import sem
+import uncertainties as un
 
-try:
-    from uncertainties import unumpy,ufloat
-except ImportError as err2:
-    print(err2)
+
     
 # =============================================================================
 # Class definition
@@ -26,22 +24,36 @@ class flux(object):
     """
     Flux is a vectorial or scalar entity
     """
-    def __init__(self,components,times,name):
+    def __init__(self, components, times, name):
         """
         Args:
             Components: is a matrix( or vector) containing the time series of the components in [x,y,z]
             Name: Is the name that is going to appear in the plots in latex format, example "r'J_s-c_s^BQ'"
         """
+
         self.components = components
-        self.dimension =np.shape(components)[1]
         self.name = name
         self.times = times
+        self._reshape()
         
-        #To reshape in order to slice easier in the correlation
-        if self.dimension==1: 
-            self.components = np.reshape(self.components,(len(self.components),1))
+        
     
 
+    def _reshape(self):
+        """
+        If it is a single column, it will reshape it into a matrix with one column
+        """
+
+        shape = np.shape(self.components)
+
+
+        if len(shape) == 1:
+            self.components = np.reshape(self.components,(len(self.components),1))
+            self.dimension = 1
+
+        else:
+            self.dimension = shape[1]
+        
 
 class correlation(object):
     """
@@ -106,7 +118,7 @@ class correlation(object):
         self.cor_norm[-1]=total/total[0]
         
         
-    def plot_individual(self,fig,ax,dim=0,alpha=0.4,every=1,norm=True):
+    def plot_individual(self, fig, ax, dim = 0, alpha = 0.4, every = 1 , norm = True):
         """
         Args:
             ax axes object
@@ -117,16 +129,22 @@ class correlation(object):
             norm True if normalised
             The axis label is given here but it could be renamed later
         """
-        if norm==True:
-            cor=self.cor_norm[dim]
+        if norm == True:
+            cor = self.cor_norm[dim]
         else:
-            cor=self.cor[dim]
+            cor = self.cor[dim]
             
+        # If the correlation has error estimation    
+        if isinstance(cor[0],un.UFloat):
+    
+            y=np.array([i.n for i in cor])
+            y_error=np.array([i.s for i in cor])
+            ax.plot(self.times[::every],y[::every],label=self.dic_label[dim])
+            ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
         
-        y=np.array([i.n for i in cor])
-        y_error=np.array([i.s for i in cor])
-        ax.plot(self.times[::every],y[::every],label=self.dic_label[dim])
-        ax.fill_between(self.times, y-y_error, y+y_error ,alpha=0.4)
+        else:
+            ax.plot(self.times[::every],cor[::every],label=self.dic_label[dim])
+            
         
         
         return fig,ax
@@ -147,6 +165,16 @@ class correlation(object):
         afile = open(r'%s.pkl'%file_name, 'wb')
         pickle.dump(self, afile)
         afile.close()    
+
+    def transport_coeff(self, pref, xmin, xmax):
+        """
+        pref is the prefactor, eg.system volume etc
+        xmin
+        """
+        I = cf.integrate(self.times,self.cor[0],xmin,xmax)
+        self.coeff= (pref)*I
+        
+        return self.coeff
         
 
 
@@ -170,7 +198,7 @@ class bundle_correlation(correlation):
         array = self.arrays
         if len(array):
             ddof = 0
-        self.cor = unumpy.uarray(np.average(array,axis = 0), sem(array,axis = 0, ddof = ddof))
+        self.cor = un.unumpy.uarray(np.average(array,axis = 0), sem(array,axis = 0, ddof = ddof))
             
         
     def plot(self, fig , ax ,dim = 0, alpha = 0.4, every = 1, ax_label = True,norm = True):
@@ -203,17 +231,7 @@ class bundle_correlation(correlation):
 
         return fig,ax
     
-    def transport_coeff(self, T, pref, xmin, xmax):
-        """
-        T is the temperature
-        pref is the prefactor, eg.system volume etc
-        xmin
-        """
-        x = self.times
-        I = cf.integrate(x,self.cor,xmin,xmax)
-        self.coeff= (pref/T)*I
-        
-        return self.coeff
+
 
         
 def compute_correlation_dt(var1,var2,delta):
@@ -229,15 +247,16 @@ def compute_correlation_dt(var1,var2,delta):
     Args:
         var1: time series for the first variable 
         var2: time series for the first variable
-        Note that var1 and var2 have to have the same the same time series
+        Note that var1 and var2 have to have the same time series
         delta: every this number of steps, we take the variable 2 to compute the correlation
     """
-    cf.blockPrint()
+    #cf.blockPrint()
     if delta != 0:
         cor = np.cov(var1[:-delta],np.roll(var2[:-delta],-delta,axis=0))[0][1]
     else:
         cor = np.cov(var1,var2)[0][1] 
 
-    cf.enablePrint()
+    #cf.enablePrint()
     
+    # Covariance need to be reduced as it returns a matrix
     return cor
