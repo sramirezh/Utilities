@@ -40,9 +40,11 @@ cwd = os.getcwd() #current working directory
 data = cf.read_data_file("pressures.dat")
 
 
+delta_t = 1
+
 data1 = data.values
-times = (data1[:,0]-data1[0,0])
-max_delta = int(len(times)*0.004) #Maximum delta of time to measure the correlation
+times = (data1[:,0]-data1[0,0])*delta_t 
+max_delta = int(len(times)*0.1) #Maximum delta of time to measure the correlation
 
 
 pxy = data['v_pxy'].values
@@ -83,8 +85,11 @@ fig,ax = etha11.plot_individual(fig, ax, norm = False)
 #ax.plot(lammps_df["TimeDelta"], lammps_df["v_pxy*v_pxy"],label ="Lammps")
 
 
-#ax.set_xscale('log')
-plt.legend()
+ax.set_xscale('log')
+ax.set_xlabel(r'$\tau[fs]$')
+
+#plt.legend(r'$%s(\tau) %s(0)$'%(etha11.flux1.name,etha11.flux2.name))
+ax.set_ylabel(r'$\langle %s(\tau) %s(0)\rangle$'%(etha11.flux1.name,etha11.flux2.name))
 plt.tight_layout()
 plt.savefig("correlation11.pdf")
 
@@ -94,7 +99,6 @@ plt.savefig("correlation11.pdf")
 
 Kb = 1.380649*10**-23 #J/K
 Temperature = 273.15 #K 
-time_step = 10 # Fs
 volume = 200.285**3 # Angs**3 
 
 # converting into SI
@@ -105,7 +109,7 @@ ang2m = 10**-10
 
 
 
-prefactor = volume*ang2m**3/(Kb*Temperature)*time_step 
+prefactor = volume*ang2m**3/(Kb*Temperature)
 
 
 
@@ -113,8 +117,10 @@ integral = etha11.transport_coeff(1, 0, etha11.times[-1]) # In atmospheres**2*fs
 
 integral = atm2pa**2 * fs2s * integral
 
-eta = integral*prefactor # in Pa s
+eta = integral * prefactor # in Pa s
 
+
+print ("The viscosity is %2.4e"%eta)
 
 
 
