@@ -62,7 +62,7 @@ class correlation(object):
     def __init__(self,flux1,flux2, max_delta):
         self.flux1 = flux1
         self.flux2 = flux2
-        self.max_delta = max_delta
+        self.max_delta = max_delta   #indexes to take from the time series
         self.initial_check()
         dimension = self.dimension
         self.cor = (dimension+1)*[0]  #list to store the correlations, the last is the total
