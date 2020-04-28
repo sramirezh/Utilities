@@ -40,11 +40,17 @@ cwd = os.getcwd() #current working directory
 data = cf.read_data_file("pressures.dat")
 
 
-delta_t = 1
-
+time_step = 10 # In femptoseconds
 data1 = data.values
-times = (data1[:,0]-data1[0,0])*delta_t 
-max_delta = int(len(times)*0.1) #Maximum delta of time to measure the correlation
+times = (data1[:,0]-data1[0,0])*time_step
+
+
+
+sampling_interval = times[1]-times[0] # Assuming times are homogeneous
+max_tau = 20000
+
+
+max_delta = int(max_tau/sampling_interval)  # int(len(times)*0.1) #Maximum delta of time to measure the correlation
 
 
 pxy = data['v_pxy'].values
@@ -58,8 +64,7 @@ etha11 = fc.correlation(pxy_flux,pxy_flux, max_delta)
 etha11.evaluate()
 
 
-delta_t = 1#10*10 # Sampling every 10 steps each with 10 fs
-print ("Using delta_t = %s fs" %delta_t)
+print ("Using delta_t = %s fs" %time_step)
 
 
 # =============================================================================
@@ -67,8 +72,8 @@ print ("Using delta_t = %s fs" %delta_t)
 # =============================================================================
 
 
-#lammps_df = cf.read_data_file("profile.gk.2d")
-#lammps_df = lammps_df.iloc[-400:]
+lammps_df = cf.read_data_file("profile.gk.2d")
+lammps_df = lammps_df.iloc[-400:]
 
 
 
@@ -82,13 +87,13 @@ fig,ax = etha11.plot_individual(fig, ax, norm = False)
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
-#ax.plot(lammps_df["TimeDelta"], lammps_df["v_pxy*v_pxy"],label ="Lammps")
+ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["v_pxy*v_pxy"],label ="Lammps")
 
 
 ax.set_xscale('log')
 ax.set_xlabel(r'$\tau[fs]$')
 
-#plt.legend(r'$%s(\tau) %s(0)$'%(etha11.flux1.name,etha11.flux2.name))
+plt.legend(["Post-processing","On-the-fly"], loc = 'upper right')
 ax.set_ylabel(r'$\langle %s(\tau) %s(0)\rangle$'%(etha11.flux1.name,etha11.flux2.name))
 plt.tight_layout()
 plt.savefig("correlation11.pdf")
@@ -97,9 +102,12 @@ plt.savefig("correlation11.pdf")
 
 # Units
 
+box_side = 400.57
+
+
 Kb = 1.380649*10**-23 #J/K
 Temperature = 273.15 #K 
-volume = 200.285**3 # Angs**3 
+volume = box_side**3 # Angs**3 
 
 # converting into SI
 
@@ -107,22 +115,21 @@ atm2pa = 101325.0
 fs2s = 10**-15
 ang2m = 10**-10  
 
+prefactor = volume/(Kb*Temperature)
 
+scale = ang2m**3 * atm2pa**2 * fs2s
 
-prefactor = volume*ang2m**3/(Kb*Temperature)
-
-
+prefactor = scale* prefactor
 
 integral = etha11.transport_coeff(1, 0, etha11.times[-1]) # In atmospheres**2*fs
 
-integral = atm2pa**2 * fs2s * integral
 
 eta = integral * prefactor # in Pa s
 
 
 print ("The viscosity is %2.4e"%eta)
 
+integral_lammps = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["v_pxy*v_pxy"],0,20000)
 
-
-
+eta_lammps = integral_lammps * prefactor
 
