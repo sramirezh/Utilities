@@ -57,9 +57,14 @@ class flux(object):
 
 class correlation(object):
     """
-    TODO, I could compute all the correlations for the given delta just with one np.covariance
+    TODO, I could compute all the correlations for the given delta just with one np.cov
     """
     def __init__(self,flux1,flux2, max_delta):
+        """
+        Args:
+            flux1 and flux2 are instances of the class flux
+            max_delta is the index of the maximum \tau for the analysis <v(\tau) v(0)>
+        """
         self.flux1 = flux1
         self.flux2 = flux2
         self.max_delta = max_delta   #indexes to take from the time series
