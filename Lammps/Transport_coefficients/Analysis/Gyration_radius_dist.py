@@ -26,6 +26,7 @@ import seaborn as sns
 
 u1 = mda.Universe("system_after_nvt_1000.data", "system_after_nvt_1000.data")  # The universe for all the atoms
 u2 = mda.Universe("system_after_nvt_300.data", "system_after_nvt_300.data")  # The universe for all the atoms
+u3 = mda.Universe("system_after_nvt_300q.data", "system_after_nvt_300q.data")  # The universe for all the atoms
 #v = mda.Universe("system.data","velocities.dat", format = "LAMMPSDUMP" ) # Reading all the velocities
 
 
@@ -41,6 +42,10 @@ transform = tr.unwrap(ag2)
 u2.trajectory.add_transformations(transform)
 
 
+ag3 = u3.atoms
+transform = tr.unwrap(ag3)
+u3.trajectory.add_transformations(transform)
+
 
 r_gyr_arr_1 = []
 for molecule in u1.atoms.residues: 
@@ -54,6 +59,12 @@ for molecule in u2.atoms.residues:
    r_gyr_arr_2.append(molecule.atoms.radius_of_gyration())
 
 r_gyr_arr_2 = np.array(r_gyr_arr_2)
+
+r_gyr_arr_3 = []
+for molecule in u3.atoms.residues: 
+   r_gyr_arr_3.append(molecule.atoms.radius_of_gyration())
+
+r_gyr_arr_3 = np.array(r_gyr_arr_3)
  
 
 # =============================================================================
@@ -68,6 +79,7 @@ fig,ax = plt.subplots()
 
 sns.distplot(r_gyr_arr_2, ax = ax, label = r"$T = 300K $")
 sns.distplot(r_gyr_arr_1, ax = ax, label = r"$T = 1000K $")
+sns.distplot(r_gyr_arr_3, ax = ax, label = r"$T = 300K Quenched $")
 
 plt.xlabel(r'$r_{gyr}$')
 
