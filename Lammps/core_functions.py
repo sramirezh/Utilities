@@ -1,5 +1,5 @@
 
-from subprocess import Popen,PIPE
+from subprocess import Popen, PIPE
 from shlex import split
 import argparse
 import os
@@ -10,10 +10,11 @@ import sys
 from cycler import cycler
 import warnings
 import pickle as pickle
-warnings.filterwarnings("ignore")
 import matplotlib.pyplot as plt
-
 from distutils.spawn import find_executable
+
+warnings.filterwarnings("ignore")
+
 
 
 def bash_command(cmd):
@@ -21,21 +22,22 @@ def bash_command(cmd):
     function that evaluates simple bash commands with pipes,
 
     Input:
-        cmd is a string of the command just as you write it on the shell but inside 3" in case you have
+        cmd is a string of the command just as you write it on the shell but 
+        inside 3" in case you have
         several quoted text inside
     Returns: two elements
         out The output
         err the possible errors
     """
-    cmd=str(cmd)
-    chain=cmd.split("|")
-    n_pipes=len(chain)
+    cmd = str(cmd)
+    chain = cmd.split("|")
+    n_pipes = len(chain)
 
     for i in range(n_pipes):
-        if i==0:
-            p=Popen(split(chain[0]),stdout = PIPE)
+        if i == 0:
+            p = Popen(split(chain[0]), stdout=PIPE)
         else:
-            p=Popen(split(chain[i]), stdin = p.stdout, stdout = PIPE)
+            p = Popen(split(chain[i]), stdin=p.stdout, stdout=PIPE)
 
     return p.communicate()
 
@@ -50,51 +52,54 @@ def is_valid_file(parser, arg):
         return arg
 
 
-def parameter_finder(target_list, search_list, msgflag=False,exact=False):
+def parameter_finder(target_list, search_list, msgflag=False, exact=False):
     """
     Finds all the elements in the search list in the target list
     the search is non case sensitive
 
     Args:
-        Target list is the list where I want to look for the items in the search list
+        Target list is the list where I want to look for the items in the 
+        search
+         list
         Search list is the list of items I want to look for
         msg is True to tell that there were occurrences or not.
-        exact True if the search requires the exact string, False only if it requires to contain the search list, example "vx" is in "vx_sol" 
+        exact True if the search requires the exact string, False only if it 
+        requires to contain the search list, example "vx" is in "vx_sol" 
     Returns:
         indexes with the positions of the search_list found in the target_list
     """
-    target_list=[x.lower() for x in target_list]
+    target_list = [x.lower() for x in target_list]
 
-    indexes=[]
+    indexes = []
 
 
     if isinstance(search_list, str):
-        cont=0
-        search_list=search_list.lower()
+        cont = 0
+        search_list = search_list.lower()
         for t in target_list:
-            if exact==False and search_list in t:
+            if exact == False and search_list in t:
                 indexes.append(cont)
-            elif exact==True and search_list==t:
+            elif exact == True and search_list == t:
                 indexes.append(cont)
-            cont+=1
-    if isinstance(search_list,list):
-        search_list=[x.lower() for x in search_list]
+            cont += 1
+    if isinstance(search_list, list):
+        search_list = [x.lower() for x in search_list]
 
         for s in search_list:
-            s=str(s)
-            for cont,t in enumerate(target_list):
-                if exact==False and s in t:
-                    print((s,t))
+            s = str(s)
+            for cont, t in enumerate(target_list):
+                if exact == False and s in t:
+                    print((s, t))
                     indexes.append(cont)
-                elif exact==True and s==t:
-                    print((s,t))
+                elif exact == True and s == t:
+                    print((s, t))
                     indexes.append(cont)
 
     
-    if msgflag==True:
-        length=len(indexes)
-        if length>1: print("There were several ocurrences")
-        if length==0: print("No ocurrences found")
+    if msgflag == True:
+        length = len(indexes)
+        if length > 1: print("There were several ocurrences")
+        if length == 0: print("No ocurrences found")
 
     return indexes
 
@@ -108,37 +113,37 @@ def read_data_file(input_file):
 
     Returns: A panda data frame, the column names can be obtained by data.columns.values and the numeric parameters with  data.values
     """
-    header_lines=0
-    last_pound_pos=-1
+    header_lines = 0
+    last_pound_pos =- 1
     with open(input_file, 'r') as data_file:
-        while(data_file.read(1)=='#'):
+        while(data_file.read(1) == '#'):
             last_pound_pos = data_file.tell()
-            header=data_file.readline()
-            header_lines+=1
+            header = data_file.readline()
+            header_lines += 1
 
         #Read the next lines
-        data_1=data_file.readline().split()
-        data_2=data_file.readline().split()
+        data_1 = data_file.readline().split()
+        data_2 = data_file.readline().split()
         data_file.seek(last_pound_pos+1) #Goes back to the last line of the header
 
-        if header_lines==0:
-            data=pd.read_csv(data_file,sep=" ",header=None).dropna(axis=1,how='all')
+        if header_lines == 0:
+            data=pd.read_csv(data_file, sep=" ", header=None).dropna(axis=1, how='all')
 
         else:
-            if len(data_1)!=len(data_2): #If there is a line containing the number of particles,
+            if len(data_1) != len(data_2): #If there is a line containing the number of particles,
                 data_file.readline()
             data_file.readline()
 
             try:
-                data=pd.read_csv(data_file,sep=" ",header=None).dropna(axis=1,how='all')
-                data.columns=header.split()
+                data = pd.read_csv(data_file, sep=" ", header=None).dropna(axis=1, how='all')
+                data.columns = header.split()
             except:
                 raise Exception("The input file '%s' is corrupted, usually the problem is because "\
                                 "there is an end of a line that has an additional space" %input_file)
 
     return data
 
-def extract_digits(strings,sort = True):
+def extract_digits(strings, sort=True):
     """
     input:
         strings: Array or single string
@@ -154,15 +159,15 @@ def extract_digits(strings,sort = True):
 
     """
     if isinstance(strings, str):
-        numbers=re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?",strings)
-        output=([num.strip('.') for num in numbers])
-        return np.array(output,dtype=float)
+        numbers = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", strings)
+        output = ([num.strip('.') for num in numbers])
+        return np.array(output, dtype=float)
 
 
     if isinstance(strings, list):
-        output=[]
+        output = []
         for element in strings:
-            numbers = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?",element)
+            numbers = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", element)
             output.append([num.strip('.') for num in numbers])
 
         if np.shape(output)[1] == 1:
