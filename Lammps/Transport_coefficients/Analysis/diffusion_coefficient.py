@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Apr 18 11:26:33 2020
-Computes the diffusion coefficient of the molecules using MD analysis to read the configuration outputs
+Computes the diffusion coefficient of the molecules using MD analysis to read 
+the configuration outputs
 
-I will use copy some of the functions from PDP/trajectory_analysis/Diffusion_coefficient
+I will use copy some of the functions from:
+PDP/trajectory_analysis/Diffusion_coefficient
 @author: simon
 """
 
@@ -15,24 +17,24 @@ import matplotlib.pyplot as plt
 import MDAnalysis as mda
 import MDAnalysis.transformations as tr
 import MDAnalysis.analysis.rdf as rdf
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-from scipy.spatial.distance import pdist,squareform
+from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
-from uncertainties import unumpy,ufloat
+from uncertainties import unumpy, ufloat
 import Others.Statistics.FastAverager as stat
 from scipy import optimize
 import glob
 from joblib import Parallel, delayed
 import multiprocessing
 
-def compute_one_msd(pos_init,pos_final):
+def compute_one_msd(pos_init, pos_final):
     """
     Computes the msd between two positons
     """
 
     delta_sqr_components = (pos_final-pos_init)**2
-    delta_sqr = np.sum(delta_sqr_components,axis=1)
+    delta_sqr = np.sum(delta_sqr_components, axis=1)
 
     #msd_comp = np.average(delta_sqr_components,axis=0)
     msd = np.average(delta_sqr)
@@ -42,7 +44,8 @@ def compute_one_msd(pos_init,pos_final):
 def lammps_MSD(delta_t, data):
     """
     delta_t from the simulations
-    data is a pandas data frame which contains in the first column the timestep and the second the msd
+    data is a pandas data frame which contains in the first column the timestep
+    and the second the msd
     """
 
 
