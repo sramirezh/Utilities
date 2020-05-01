@@ -35,6 +35,7 @@ cwd = os.getcwd() #current working directory
 
 
 def run_analysis():
+
     data = cf.read_data_file("pressures.dat")
     
     data1 = data.values
@@ -48,12 +49,13 @@ def run_analysis():
     
     max_delta = int(max_tau/sampling_interval)  # int(len(times)*0.1) #Maximum delta of time to measure the correlation
     
+    components = ["v_pxy", "v_pxz", "v_pyz"]
     
-    pxy = data['v_pxy'].values
+    p_off_diag = data[components].values
     
     #pxy = np.reshape(np.)
     
-    pxy_flux = fc.flux(pxy,times,"Pxy")
+    pxy_flux = fc.flux(p_off_diag ,times,"P")
     
     
     etha11 = fc.correlation(pxy_flux,pxy_flux, max_delta)
@@ -156,9 +158,6 @@ prefactor = scale* prefactor
 integral = etha11.transport_coeff(1, 0, etha11.times[-1]) # In atmospheres**2*fs
 
 
-
-
-
 eta = integral * prefactor # in Pa s
 
 
@@ -169,11 +168,7 @@ integral_lammps = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["v_pxy
 eta_lammps = integral_lammps * prefactor
 
 
-
-
-
 # Plot eta vs tau
-
 
 fig,ax = plt.subplots()
 
