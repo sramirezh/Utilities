@@ -173,10 +173,12 @@ class correlation(object):
 
     def transport_coeff(self, pref, xmin, xmax):
         """
+        Returns
+        The transport coefficient in the
         pref is the prefactor, eg.system volume etc
         xmin
         """
-        I = cf.integrate(self.times,self.cor[0],xmin,xmax)
+        I = cf.integrate(self.times,self.cor[-1],xmin,xmax)
         self.coeff= (pref)*I
         
         return self.coeff
