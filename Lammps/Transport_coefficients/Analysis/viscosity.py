@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Apr 20 16:09:58 2020
-Script to compute the viscosity based on the stress autocorrelation function
+Script to compute the viscosity based on the stress autocorrelation function, it uses two outputs from lammps:
+    
+
 
 Based on GK transport mu_mu
 @author: simon
@@ -84,7 +86,7 @@ print ("Using max tau = %s fs"%max_tau)
 
 
 
-
+# Loading the correlations if they were already computed, this saves almost 50 minutes in 16 cores (dexter)
 if (len(glob.glob('etha11*')) == 1):
     
     print ("\nThere is a pkl, we need to load etha11!\n")
@@ -105,7 +107,7 @@ else:
 # Ploting all the correlations
 # =============================================================================
 
-
+# Loading lammps, on the fly calculations
 lammps_df = cf.read_data_file("profile.gk.2d")
 lammps_df = lammps_df.iloc[-400:]
 
@@ -117,17 +119,17 @@ cf.set_plot_appearance()
 #For c11
 fig,ax = plt.subplots()
 
-fig,ax = etha11.plot_individual(fig, ax, norm = False)
+fig,ax = etha11.plot_all(fig, ax, norm = False)
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
-ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["v_pxy*v_pxy"],label ="Lammps")
+ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["v_pxy*v_pxy"],label =r"$P_{xy}^{Lammps}$")
 
 ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
 ax.set_xscale('log')
 ax.set_xlabel(r'$\tau[fs]$')
 
-plt.legend(["Post-processing","On-the-fly"], loc = 'upper right')
+plt.legend( loc = 'upper right', fontsize = 12, ncol = 2)
 ax.set_ylabel(r'$\langle %s(\tau) %s(0)\rangle$'%(etha11.flux1.name,etha11.flux2.name))
 plt.tight_layout()
 plt.savefig("correlation11.pdf")
@@ -161,14 +163,16 @@ integral = etha11.transport_coeff(1, 0, etha11.times[-1]) # In atmospheres**2*fs
 eta = integral * prefactor # in Pa s
 
 
-print ("The viscosity is %2.4e"%eta)
+print ("The viscosity is %2.4e [Pa s]"%eta)
 
 integral_lammps = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["v_pxy*v_pxy"],0,20000)
 
 eta_lammps = integral_lammps * prefactor
 
 
-# Plot eta vs tau
+# =============================================================================
+# # Plot eta vs tau
+# =============================================================================
 
 fig,ax = plt.subplots()
 
@@ -178,6 +182,7 @@ eta_array = []
 
 
 for t in tau_array:
+    # We compute the transport coefficients from the total (i.e with the average of the 3 components)
     eta_array.append(etha11.transport_coeff(prefactor, 0, t))
     
     
