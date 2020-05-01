@@ -189,10 +189,10 @@ for t in tau_array:
 ax.plot(tau_array,eta_array)
 
 ax.set_xlabel(r'$\tau[fs]$')
-ax.axhline(y = eta, xmin=0, xmax=1,ls='--',c='black', label = "%s" %eta)
+ax.axhline(y = eta, xmin=0, xmax=1,ls='--',c='black', label = "%2.4e" %eta)
 ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.set_ylabel(r'$\eta[Pa \cdot s]$')
-plt.legend( loc = 'upper right')
+plt.legend( loc = 'lower right')
 plt.tight_layout()
 plt.savefig("eta_vs_tau.pdf")
 
