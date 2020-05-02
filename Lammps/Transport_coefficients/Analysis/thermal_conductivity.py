@@ -88,10 +88,11 @@ def run_analysis():
 # # Input parameters
 # =============================================================================
 
-time_step = 10 # In femptoseconds
-box_side = 400.57
-Temperature = 273.15 #K 
-max_tau = 1000000
+time_step = 4 #10 # In femptoseconds
+box_side = 21.504 # 400.57
+Temperature = 70 # 273.15 #K 
+max_tau = 20000
+lammps_d = 200 # See lammps code $p*$s
 
 print ("\nUsing a box side of %s"%box_side)
 print ("Using delta_t = %s fs" %time_step)
@@ -102,7 +103,7 @@ volume = box_side**3 # Angs**3
 # Loading the correlations if they were already computed, this saves almost 50 minutes in 16 cores (dexter)
 if (len(glob.glob('kappa*')) == 1):
     
-    print ("\nThere is a pkl, we need to load etha11!\n")
+    print ("\nThere is a pkl, we need to load kappa!\n")
     kappa = cf.load_instance("kappa.pkl")
     
 else:
@@ -116,13 +117,7 @@ else:
 
 
 lammps_df = cf.read_data_file("J0Jt.dat")
-lammps_df = lammps_df.iloc[-400:]
-
-
-
-
-
-
+lammps_df = lammps_df.iloc[-lammps_d:]
 
 
 plt.close('all')
@@ -135,7 +130,9 @@ fig,ax = kappa.plot_all(fig, ax, norm = False)
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
-ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[1]*c_flux[1]"]/volume**2,label ="Lammps")
+ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[1]*c_flux[1]"],label ="JxLammps")
+ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[2]*c_flux[2]"],label ="JyLammps")
+ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[3]*c_flux[3]"],label ="JzLammps")
 
 
 ax.set_xscale('log')
@@ -156,16 +153,15 @@ kCal2J = 4186.0/(6.02214*10**23)
 fs2s = 10**-15
 ang2m = 10**-10  
 
-prefactor = volume/(Kb*Temperature**2)
+prefactor = 1/(Kb * Temperature**2 * volume)
 
 
 scale =  kCal2J**2/( fs2s*ang2m )
 
 prefactor = scale * prefactor
 
-integral = kappa.transport_coeff(prefactor, 0, kappa.times[-1]) # In atmospheres**2*fs
+thermal_cond = kappa.transport_coeff(prefactor, 0, kappa.times[-1]) # In W/m K
 
-thermal_cond = integral # in Pa s
 
 
 print ("The thermal conductivity is %2.4e"%thermal_cond)
@@ -197,7 +193,7 @@ ax.plot(tau_array,kappa_array)
 ax.set_xlabel(r'$\tau[fs]$')
 ax.axhline(y = thermal_cond, xmin=0, xmax=1,ls='--',c='black', label = "%2.4e" %thermal_cond)
 ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-ax.set_ylabel(r'$\kappa[Pa \cdot s]$')
+ax.set_ylabel(r'$\kappa[W/(m\cdot K)]$')
 plt.legend( loc = 'lower right')
 plt.tight_layout()
 plt.savefig("eta_vs_tau.pdf")
