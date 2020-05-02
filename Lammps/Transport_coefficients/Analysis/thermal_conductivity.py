@@ -40,14 +40,47 @@ import pandas as pd
 
 import Lammps.Pore.GK.flux_correlation as fc
 
-
-
-
-
 cwd = os.getcwd() #current working directory
 
-data = cf.read_data_file("fluxes.dat")
+def run_analysis():
 
+    data = cf.read_data_file("fluxes.dat")
+    
+    data1 = data.values
+    times = (data1[:,0]-data1[0,0])*time_step
+    
+    
+    
+    sampling_interval = times[1]-times[0] # Assuming times are homogeneous
+    
+    
+    
+    max_delta = int(max_tau/sampling_interval)  # int(len(times)*0.1) #Maximum delta of time to measure the correlation
+    
+    components = ["v_Jx", "v_Jy", "v_Jz"]
+    
+    j_components = data[components].values
+    
+    #pxy = np.reshape(np.)
+    
+    j_heat = fc.flux(j_components ,times,"J")
+    
+    
+    kappa = fc.correlation(j_heat, j_heat, max_delta)
+    kappa.evaluate()
+    kappa.save("kappa")
+    
+    return kappa
+
+
+
+
+
+
+
+# =============================================================================
+# Main
+# =============================================================================
 
 
 
@@ -58,46 +91,23 @@ data = cf.read_data_file("fluxes.dat")
 time_step = 10 # In femptoseconds
 box_side = 400.57
 Temperature = 273.15 #K 
+max_tau = 1000000
+
 print ("\nUsing a box side of %s"%box_side)
 print ("Using delta_t = %s fs" %time_step)
+print ("Using max tau = %s fs"%max_tau)
 print ("Temperature = %s fs" %Temperature)
-
-
-
-
 volume = box_side**3 # Angs**3 
 
-
-
-
-
-
-
-
-data1 = data.values
-times = (data1[:,0]-data1[0,0])*time_step
-
-
-
-sampling_interval = times[1]-times[0] # Assuming times are homogeneous
-max_tau = 20000
-
-
-max_delta = int(max_tau/sampling_interval)  # int(len(times)*0.1) #Maximum delta of time to measure the correlation
-
-
-Jx = data['v_Jx'].values
-
-#pxy = np.reshape(np.)
-
-Jx = fc.flux(Jx,times,"J_x")
-
-
-etha11 = fc.correlation(Jx, Jx, max_delta)
-etha11.evaluate()
-
-
-
+# Loading the correlations if they were already computed, this saves almost 50 minutes in 16 cores (dexter)
+if (len(glob.glob('kappa*')) == 1):
+    
+    print ("\nThere is a pkl, we need to load etha11!\n")
+    kappa = cf.load_instance("kappa.pkl")
+    
+else:
+    print ("There is no pkl file, so we need to analyse")
+    kappa = run_analysis()
 
 
 # =============================================================================
@@ -110,13 +120,18 @@ lammps_df = lammps_df.iloc[-400:]
 
 
 
+
+
+
+
+
 plt.close('all')
 cf.set_plot_appearance()
 
 #For c11
 fig,ax = plt.subplots()
 
-fig,ax = etha11.plot_individual(fig, ax, norm = False)
+fig,ax = kappa.plot_all(fig, ax, norm = False)
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
@@ -126,8 +141,8 @@ ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[1]*c_flux[1]"]/volum
 ax.set_xscale('log')
 ax.set_xlabel(r'$\tau[fs]$')
 
-plt.legend(["Post-processing","On-the-fly"], loc = 'upper right')
-ax.set_ylabel(r'$\langle %s(\tau) %s(0)\rangle$'%(etha11.flux1.name,etha11.flux2.name))
+plt.legend( loc = 'upper right', fontsize = 12, ncol = 2)
+ax.set_ylabel(r'$\langle %s(\tau) %s(0)\rangle$'%(kappa.flux1.name,kappa.flux2.name))
 plt.tight_layout()
 plt.savefig("correlation11.pdf")
 
@@ -146,9 +161,9 @@ prefactor = volume/(Kb*Temperature**2)
 
 scale =  kCal2J**2/( fs2s*ang2m )
 
-prefactor = scale* prefactor
+prefactor = scale * prefactor
 
-integral = etha11.transport_coeff(prefactor, 0, etha11.times[-1]) # In atmospheres**2*fs
+integral = kappa.transport_coeff(prefactor, 0, kappa.times[-1]) # In atmospheres**2*fs
 
 thermal_cond = integral # in Pa s
 
@@ -159,3 +174,30 @@ integral_lammps = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["c_flu
 #
 cond_lammps = integral_lammps
 
+
+
+# =============================================================================
+# # Plot kappa vs tau
+# =============================================================================
+
+fig,ax = plt.subplots()
+
+tau_array = np.arange(1,kappa.times[-1],100)
+
+kappa_array = []
+
+
+for t in tau_array:
+    # We compute the transport coefficients from the total (i.e with the average of the 3 components)
+    kappa_array.append(kappa.transport_coeff(prefactor, 0, t))
+    
+    
+ax.plot(tau_array,kappa_array)
+
+ax.set_xlabel(r'$\tau[fs]$')
+ax.axhline(y = thermal_cond, xmin=0, xmax=1,ls='--',c='black', label = "%2.4e" %thermal_cond)
+ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.set_ylabel(r'$\kappa[Pa \cdot s]$')
+plt.legend( loc = 'lower right')
+plt.tight_layout()
+plt.savefig("eta_vs_tau.pdf")
