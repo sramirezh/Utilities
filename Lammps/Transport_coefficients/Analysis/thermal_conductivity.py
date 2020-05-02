@@ -88,11 +88,11 @@ def run_analysis():
 # # Input parameters
 # =============================================================================
 
-time_step = 4 #10 # In femptoseconds
-box_side = 21.504 # 400.57
-Temperature = 70 # 273.15 #K 
-max_tau = 20000
-lammps_d = 200 # See lammps code $p*$s
+time_step = 10 # In femptoseconds
+box_side =  400.57
+Temperature =  273.15 #K 
+max_tau = 1000000
+lammps_d = 400 # See lammps code $p*$s
 
 print ("\nUsing a box side of %s"%box_side)
 print ("Using delta_t = %s fs" %time_step)
