@@ -91,7 +91,7 @@ def run_analysis():
 time_step = 10 # In femptoseconds
 box_side =  400.57
 Temperature =  273.15 #K 
-max_tau = 1000000
+max_tau = 2000000
 lammps_d = 400 # See lammps code $p*$s
 
 print ("\nUsing a box side of %s"%box_side)
