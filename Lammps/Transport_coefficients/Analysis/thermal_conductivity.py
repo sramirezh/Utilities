@@ -35,27 +35,22 @@ import glob
 from joblib import Parallel, delayed
 import multiprocessing
 import pandas as pd
-
-
-
+from statsmodels.tsa.stattools import acf
 import Lammps.Pore.GK.flux_correlation as fc
+from statsmodels.graphics.tsaplots import plot_acf
 
 cwd = os.getcwd() #current working directory
 
-def run_analysis():
+def run_analysis(sim):
 
     data = cf.read_data_file("fluxes.dat")
     
     data1 = data.values
-    times = (data1[:,0]-data1[0,0])*time_step
-    
-    
+    times = (data1[:,0]-data1[0,0])*sim.ts 
     
     sampling_interval = times[1]-times[0] # Assuming times are homogeneous
     
-    
-    
-    max_delta = int(max_tau/sampling_interval)  # int(len(times)*0.1) #Maximum delta of time to measure the correlation
+    max_delta = int(np.floor(sim.max_tau/sampling_interval))  # int(len(times)*0.1) #Maximum delta of time to measure the correlation
     
     components = ["v_Jx", "v_Jy", "v_Jz"]
     
@@ -75,6 +70,21 @@ def run_analysis():
 
 
 
+class simulation(object):
+    def __init__(self, name, ts, box_side, temp, max_tau, d):
+        self.name = name
+        self.ts = ts
+        self.box_side = box_side
+        self.temp = temp
+        self.max_tau = max_tau
+        self.d = d   # Lammps p*s sampling_interval
+        
+    def print_params(self):
+        print ("\nUsing a box side of %s"%self.box_side)
+        print ("Using delta_t = %s fs" %self.ts)
+        print ("Using max tau = %s fs"%self.max_tau)
+        print ("Temperature = %s fs" %self.temp)
+        
 
 
 
@@ -82,33 +92,27 @@ def run_analysis():
 # Main
 # =============================================================================
 
+example = simulation("argon", 4, 21.504, 70, 1990*4, 200 )
+mine = simulation("N2", 10, 400.57, 273.15, 50000, 4000 )
 
 
-# =============================================================================
-# # Input parameters
-# =============================================================================
+# this is the only thing to define
+sim = example
 
-time_step = 10 # In femptoseconds
-box_side =  400.57
-Temperature =  273.15 #K 
-max_tau = 2000000
-lammps_d = 400 # See lammps code $p*$s
+print ("We are using the parameters from the %s simulation"%sim.name)
+sim.print_params()
 
-print ("\nUsing a box side of %s"%box_side)
-print ("Using delta_t = %s fs" %time_step)
-print ("Using max tau = %s fs"%max_tau)
-print ("Temperature = %s fs" %Temperature)
-volume = box_side**3 # Angs**3 
+volume = sim.box_side**3 # Angs**3 
 
 # Loading the correlations if they were already computed, this saves almost 50 minutes in 16 cores (dexter)
-if (len(glob.glob('kappa*')) == 1):
+if (len(glob.glob('kappa.pkl')) == 1):
     
     print ("\nThere is a pkl, we need to load kappa!\n")
     kappa = cf.load_instance("kappa.pkl")
     
 else:
     print ("There is no pkl file, so we need to analyse")
-    kappa = run_analysis()
+    kappa = run_analysis(sim)
 
 
 # =============================================================================
@@ -117,7 +121,7 @@ else:
 
 
 lammps_df = cf.read_data_file("J0Jt.dat")
-lammps_df = lammps_df.iloc[-lammps_d:]
+lammps_df = lammps_df.iloc[-sim.d:]
 
 
 plt.close('all')
@@ -125,16 +129,20 @@ cf.set_plot_appearance()
 
 #For c11
 fig,ax = plt.subplots()
-
+#
 fig,ax = kappa.plot_all(fig, ax, norm = False)
 
+
+#
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
-ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[1]*c_flux[1]"],label ="JxLammps")
-ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[2]*c_flux[2]"],label ="JyLammps")
-ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["c_flux[3]*c_flux[3]"],label ="JzLammps")
+ax.plot(lammps_df["TimeDelta"]*sim.ts, lammps_df["c_flux[1]*c_flux[1]"],label ="JxLammps")
+ax.plot(lammps_df["TimeDelta"]*sim.ts, lammps_df["c_flux[2]*c_flux[2]"],label ="JyLammps")
+ax.plot(lammps_df["TimeDelta"]*sim.ts, lammps_df["c_flux[3]*c_flux[3]"],label ="JzLammps")
 
-
+acf_stat = kappa.norm[0] * acf(kappa.flux1.components[:,0],nlags = len(kappa.times)-1)
+ax.plot(kappa.times, acf_stat,  label = "stat",ls='--', c='black')
+ax.plot()
 ax.set_xscale('log')
 ax.set_xlabel(r'$\tau[fs]$')
 
@@ -153,24 +161,28 @@ kCal2J = 4186.0/(6.02214*10**23)
 fs2s = 10**-15
 ang2m = 10**-10  
 
-prefactor = 1/(Kb * Temperature**2 * volume)
+prefactor = 1/(Kb * sim.temp**2 * volume)
 
 
 scale =  kCal2J**2/( fs2s*ang2m )
 
 prefactor = scale * prefactor
 
-thermal_cond = kappa.transport_coeff(prefactor, 0, kappa.times[-1]) # In W/m K
+thermal_cond = prefactor * kappa.transport_coeff(1, 0, kappa.times[-1]) # In W/m K
 
 
 
 print ("The thermal conductivity is %2.4e"%thermal_cond)
 
-integral_lammps = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["c_flux[1]*c_flux[1]"],0,20000)
-#
-cond_lammps = integral_lammps
+integral_lammps_x = cf.integrate(lammps_df["TimeDelta"]*sim.ts,lammps_df["c_flux[1]*c_flux[1]"],0, sim.max_tau)
+integral_lammps_y = cf.integrate(lammps_df["TimeDelta"]*sim.ts,lammps_df["c_flux[2]*c_flux[2]"],0, sim.max_tau)
+integral_lammps_z = cf.integrate(lammps_df["TimeDelta"]*sim.ts,lammps_df["c_flux[3]*c_flux[3]"],0, sim.max_tau)
 
 
+
+cond_lammps = prefactor * (integral_lammps_x+ integral_lammps_y+ integral_lammps_z)/3
+
+print ("The thermal conductivity on the flight is %2.4e"%cond_lammps)
 
 # =============================================================================
 # # Plot kappa vs tau
@@ -196,4 +208,38 @@ ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.set_ylabel(r'$\kappa[W/(m\cdot K)]$')
 plt.legend( loc = 'lower right')
 plt.tight_layout()
-plt.savefig("eta_vs_tau.pdf")
+plt.savefig("kappa_vs_tau.pdf")
+
+
+
+
+# =============================================================================
+# # Plot kappa vs tau (Lammps)
+# =============================================================================
+
+fig,ax = plt.subplots()
+
+tau_array = np.arange(1,lammps_df["TimeDelta"].values[-1]*sim.ts,100)
+
+correlations = (lammps_df["c_flux[1]*c_flux[1]"]+lammps_df["c_flux[2]*c_flux[2]"]+lammps_df["c_flux[3]*c_flux[3]"])/3
+
+
+kappa_lammps = []
+for  t in  tau_array:
+    kappa_lammps.append(cf.integrate(lammps_df["TimeDelta"]*sim.ts, correlations, 0, t))
+     
+
+ax.plot(tau_array,kappa_lammps)
+
+ax.set_xlabel(r'$\tau[fs]$')
+ax.axhline(y = thermal_cond, xmin=0, xmax=1,ls='--',c='black', label = "%2.4e" %cond_lammps)
+ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.set_ylabel(r'$\kappa[W/(m\cdot K)]$')
+plt.legend( loc = 'lower right')
+plt.tight_layout()
+plt.savefig("kappa_vs_tau_lammps.pdf")
+
+
+
+
+
