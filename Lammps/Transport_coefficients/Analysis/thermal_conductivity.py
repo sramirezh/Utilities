@@ -4,7 +4,7 @@
 Created on Mon Apr 20 16:09:58 2020
 Script to compute the thermal conductivity based on the sflux autocorrelation function
 
-The flux is computed in lammps as:
+The flux is computed in lammps as (The results are in dexter Transport_coeff/1.Moltemplate/3.N2/T_273.15/LEE_KIM/Heat_cond_test)
     
 compute      myKE all ke/atom
 compute      myPE all pe/atom
@@ -21,23 +21,12 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import MDAnalysis as mda
-import MDAnalysis.transformations as tr
-import MDAnalysis.analysis.rdf as rdf
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-from scipy.spatial.distance import pdist,squareform
-from tqdm import tqdm
-from uncertainties import unumpy,ufloat
-import Others.Statistics.FastAverager as stat
-from scipy import optimize
 import glob
-from joblib import Parallel, delayed
-import multiprocessing
-import pandas as pd
 from statsmodels.tsa.stattools import acf
 import Lammps.Pore.GK.flux_correlation as fc
-from statsmodels.graphics.tsaplots import plot_acf
+
 
 cwd = os.getcwd() #current working directory
 
@@ -62,7 +51,7 @@ def run_analysis(sim):
     
     
     kappa = fc.correlation(j_heat, j_heat, max_delta)
-    kappa.evaluate()
+    kappa.evaluate_acf() # Only because they are the same variables
     kappa.save("kappa")
     
     return kappa
@@ -93,11 +82,11 @@ class simulation(object):
 # =============================================================================
 
 example = simulation("argon", 4, 21.504, 70, 1990*4, 200 )
-mine = simulation("N2", 10, 400.57, 273.15, 50000, 4000 )
+mine = simulation("N2", 10, 400.57, 273.15, 1000000, 400 )
 
 
 # this is the only thing to define
-sim = example
+sim = mine
 
 print ("We are using the parameters from the %s simulation"%sim.name)
 sim.print_params()
@@ -115,6 +104,15 @@ else:
     kappa = run_analysis(sim)
 
 
+
+
+# =============================================================================
+# Getting the correlations with acf and error
+# =============================================================================
+acf_stat, condifence = acf(kappa.flux1.components[:,0],nlags = len(kappa.times)-1, alpha =.05, fft = True)
+acf_stat = kappa.norm[0] * acf_stat
+confidence = kappa.norm[0]*  condifence 
+std_error = (acf_stat-confidence[:,0])/2 
 # =============================================================================
 # Ploting all the correlations
 # =============================================================================
@@ -133,15 +131,14 @@ fig,ax = plt.subplots()
 fig,ax = kappa.plot_all(fig, ax, norm = False)
 
 
-#
-#ax.set_xlim(1000,2000)
-#ax.set_ylim(-0.0005,0.0005)
+# Results from lammps
 ax.plot(lammps_df["TimeDelta"]*sim.ts, lammps_df["c_flux[1]*c_flux[1]"],label ="JxLammps")
 ax.plot(lammps_df["TimeDelta"]*sim.ts, lammps_df["c_flux[2]*c_flux[2]"],label ="JyLammps")
 ax.plot(lammps_df["TimeDelta"]*sim.ts, lammps_df["c_flux[3]*c_flux[3]"],label ="JzLammps")
 
-acf_stat = kappa.norm[0] * acf(kappa.flux1.components[:,0],nlags = len(kappa.times)-1)
-ax.plot(kappa.times, acf_stat,  label = "stat",ls='--', c='black')
+ax.plot(kappa.times, acf_stat,  label = r"$J_x^{acf}$",ls='--', c='black')
+ax.fill_between(kappa.times,  acf_stat-std_error, acf_stat+std_error , alpha=0.4)
+
 ax.plot()
 ax.set_xscale('log')
 ax.set_xlabel(r'$\tau[fs]$')
