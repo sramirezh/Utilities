@@ -71,7 +71,7 @@ for molecule in u.atoms.residues:
     
 r_gyr = np.average(r_gyr_arr)
 
-r_max = r_cut + 2 * r_gyr
+r_max = r_cut + d_max
 
 print ("\nUsing r_max=%s"%r_max)
 
