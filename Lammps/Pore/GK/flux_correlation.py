@@ -117,7 +117,7 @@ class correlation(object):
         var2 = self.flux2.components[:, dim]
         max_delta = self.max_delta
         cor = Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)
-                                         (var1, var2, i) for i in tqdm(range(max_delta)))
+                                         (var1, var2, i) for i in tqdm(range(self.max_delta)))
         norm = cor[0]
         self.norm[dim] = norm
         self.cor[dim] = np.array(cor)
@@ -133,6 +133,30 @@ class correlation(object):
         for dim in range(self.dimension):
             self.correlate_one_d(dim)
             total = total + self.cor[dim]
+        total = total / 3
+        self.cor[-1] = total
+        self.norm[-1] = total[0]
+        self.cor_norm[-1] = total / total[0]
+
+    def evaluate_acf(self):
+            """
+        Performs the correlations of the 1d components,using 
+        statsmodels.tsa.stattools.acf
+        See my ipython about autocorrelation and GK
+        TODO: Include the error
+        """
+        total = np.zeros(self.max_delta)
+        for dim in range(self.dimension):
+            x = self.flux1.components[:, dim]
+            y = self.flux2.components[:, dim]
+            adf, confidence = acf(x, y, nlags = len(self.times[:max_delta])-1, alpha =.05 )
+            amplitude = np.correlate(x,y)/len(x)
+            self.norm[dim] = amplitude
+            self.cor[dim] = amplitude * adf
+            self.cor_norm[dim] = adf
+
+            total = total + self.cor[dim]
+        
         total = total / 3
         self.cor[-1] = total
         self.norm[-1] = total[0]
