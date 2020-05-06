@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 20 17:22:14 2019
@@ -13,7 +12,7 @@ import pickle as pickle
 import Lammps.core_functions as cf
 from scipy.stats import sem
 import uncertainties as un
-
+from statsmodels.tsa.stattools import acf
 # =============================================================================
 # Class definition
 # =============================================================================
@@ -115,7 +114,6 @@ class correlation(object):
         num_cores = multiprocessing.cpu_count()
         var1 = self.flux1.components[:, dim]
         var2 = self.flux2.components[:, dim]
-        max_delta = self.max_delta
         cor = Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)
                                          (var1, var2, i) for i in tqdm(range(self.max_delta)))
         norm = cor[0]
@@ -139,23 +137,26 @@ class correlation(object):
         self.cor_norm[-1] = total / total[0]
 
     def evaluate_acf(self):
-            """
-        Performs the correlations of the 1d components,using 
+        """
+        Performs the Autocorrelation of the 1d components,using 
         statsmodels.tsa.stattools.acf
         See my ipython about autocorrelation and GK
         TODO: Include the error
         """
+        import time as t
         total = np.zeros(self.max_delta)
         for dim in range(self.dimension):
+            print ("started the analysis for %s"%dim)
+            t0 = t.time()
             x = self.flux1.components[:, dim]
-            y = self.flux2.components[:, dim]
-            adf, confidence = acf(x, y, nlags = len(self.times[:max_delta])-1, alpha =.05 )
-            amplitude = np.correlate(x,y)/len(x)
+            adf, confidence = acf(x, nlags = len(self.times[:self.max_delta])-1, fft = True, alpha = 0.05)
+            amplitude = np.correlate(x,x)/len(x)
             self.norm[dim] = amplitude
             self.cor[dim] = amplitude * adf
             self.cor_norm[dim] = adf
 
             total = total + self.cor[dim]
+            print (t.time()-t0)
         
         total = total / 3
         self.cor[-1] = total
