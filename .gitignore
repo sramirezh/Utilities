@@ -18,5 +18,6 @@
 !tmux.conf
 !*.md
 !*.yml
+!settings.json
 # ...even if they are in subdirectories
 !*/
