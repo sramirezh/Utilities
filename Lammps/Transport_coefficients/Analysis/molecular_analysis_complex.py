@@ -22,7 +22,7 @@ from tqdm import tqdm
 # Input parameters
 # =============================================================================
 
-r_cut = 8
+r_cut = 14
 target_ni = 1 # Taget number of molecules interacting with each molecule
 
 
@@ -31,6 +31,7 @@ target_ni = 1 # Taget number of molecules interacting with each molecule
 print ("Using r_cut=%s"%r_cut)
 
 
+u1 = mda.Universe("system.data", "system.data")  # The universe for all the atoms
 u = mda.Universe("system.data", "dcd_nvt.dcd")  # The universe for all the atoms
 v = mda.Universe("system.data","velocities.dat", format = "LAMMPSDUMP" ) # Reading all the velocities
 
@@ -56,9 +57,8 @@ transform = tr.unwrap(ag)
 u.trajectory.add_transformations(transform)
 
 
-# Estimating the length of the molecule
-u.trajectory[0]
-atom_pos = u.atoms.residues[0].atoms.positions # taking the first configuration
+# Estimating the length of the molecule from the initial configuration (Stretched molecule)
+atom_pos = u1.atoms.residues[0].atoms.positions # taking the first configuration
 pos_m = squareform(pdist(atom_pos))
 d_max = np.max(pos_m)
 
