@@ -1,0 +1,20 @@
+{
+    "python.pythonPath": "/Users/simon/opt/anaconda3/envs/simon3/bin/python",
+    "python.terminal.launchArgs": [
+
+    
+    ],
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": ["--ignore=W293,W291,E228,E265"],
+    "python.linting.pydocstyleEnabled": true,
+    "editor.rulers": [
+        79
+    ],
+    "files.exclude": {
+        "**/*.pyc": {"when": "$(basename).py"}, 
+        "**/__pycache__": true
+        "**/*.bak": true
+
+    },
+    "terminal.integrated.automationShell.linux": ""
+}
