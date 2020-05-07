@@ -85,3 +85,31 @@ def read_value_from(input_file,key_phrase):
     value = cf.extract_digits(str(out))
 
     return value
+
+
+def solid_surface(data,atom_type):
+    """
+    Computes the limits of the solid surface
+    Args:
+        data with the atom_type, posx,posy,posz
+        atom_type atom type in the trajectory file of the solid surface.
+    Returns:
+        Characteristics of the solid surface
+        Writes a file Zshift.dat with the maximun height to be used by other codes.
+
+    Writes the zshift
+    """
+
+    #Getting the maximum position of the surface.
+    indexes=np.where(data[:,0]==atom_type)[0]
+    Maxz=np.max(data[indexes,3])
+    Minz=np.min(data[indexes,3])
+
+    print("The maximum height of the solid surface is %lf" %Maxz)
+    print("The minimum height of the solid surface is %lf" %Minz)
+    print("The height of the solid surface is %lf" %(Maxz-Minz))
+
+    #Writing the Zshift
+    f=open("Zshift.dat",'w')
+    f.writelines("%lf \n" %Maxz)
+    f.close

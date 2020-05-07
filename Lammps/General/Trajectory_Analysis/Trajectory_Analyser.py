@@ -26,60 +26,13 @@ import re
 import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
-from Lammps.linux import bash_command
-
+import Lammps.core_functions as cf
+import Lammps.lammps_utilities as lu
 """
 ###############################################################################
 Function definitions
 ###############################################################################
 """
-
-def solid_surface(data,atom_type):
-    """
-    Computes the limits of the solid surface
-    Args:
-        data with the atom_type, posx,posy,posz
-        atom_type atom type in the trajectory file of the solid surface.
-    Returns:
-        Characteristics of the solid surface
-        Writes a file Zshift.dat with the maximun height to be used by other codes.
-    """
-
-    #Getting the maximum position of the surface.
-    indexes=np.where(data[:,0]==atom_type)[0]
-    Maxz=np.max(data[indexes,3])
-    Minz=np.min(data[indexes,3])
-
-    print("The maximum height of the solid surface is %lf" %Maxz)
-    print("The minimum height of the solid surface is %lf" %Minz)
-    print("The height of the solid surface is %lf" %(Maxz-Minz))
-
-    #Writing the Zshift
-    f=open("Zshift.dat",'w')
-    f.writelines("%lf \n" %Maxz)
-    f.close
-
-
-def read_box_limits(log_name):
-    """
-    Reads the box limits from log.lammps
-    ONLY required for .xyz not for .dump
-    Args:
-        None: log_name name of the log file
-    returns:
-        volume
-        limits
-
-    """
-    out,err=bash_command("""grep -n "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
-    line=int(out.split()[0])
-    limits=linecache.getline(log_name, line)
-    limits=re.findall(r"[-+]?\d*\.?\d+", limits)
-    limits=np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
-    volume=(limits[1,0]-limits[0,0])*(limits[1,1]-limits[0,1])*(limits[1,2]-limits[0,2])
-
-    return volume,limits
-
 
 def check_analysis_box(cv_limits,simulation_limits):
     """
@@ -197,7 +150,7 @@ Control Volume, or volume where the analysis is going to be performed
 """
 
 #For the simulation box
-box_volume,box_limits=read_box_limits(log_name)
+box_volume,box_limits=lu.read_box_limits(log_name)
 
 #For the analysis box
 cv_limits=check_analysis_box(cv_limits,box_limits)
@@ -238,7 +191,7 @@ for k in range(n_tsteps): #Runs over the sampled times.
             print("There is no solid surface")
         else:
             print("Analysing the solid surface")
-            solid_surface(data,3)
+            lu.solid_surface(data,3)
 
     data=particles_cv(data,cv_limits,box_limits)
     n,m=data.shape
