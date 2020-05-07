@@ -11,7 +11,7 @@ import pandas as pd
 import argparse
 import os
 import sys
-import chunk_reader as cr
+import Lammps.General.chunk_utilities as cu
 from io import StringIO
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
@@ -39,7 +39,7 @@ lz_min_half = -(lz_wall+lz_fluid)/2
 # =============================================================================
 # Reading data
 # =============================================================================
-results = cr.chunk_reader("velocity_all_steps.dat") 
+results = cu.chunk_reader("velocity_all_steps.dat") 
 
 
 # Creating all the frames
@@ -58,7 +58,7 @@ for i, start in enumerate(byte_pos[:-1]):
     stuff = f.read(byte_pos[i+1] - start)
     data = pd.read_csv(StringIO(stuff),sep=" ",header=None).dropna(axis=1,how='all')
     data.columns = results.header
-    series.append(cr.timestep(step, n_chunks, data))
+    series.append(cu.timestep(step, n_chunks, data))
     
     data['vx'] get this one and append
 
