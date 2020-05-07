@@ -64,3 +64,7 @@ find -type f -exec du -Sh {} + | sort -rh | head -n 5
 # Join PDF without rotation in MAC
 pdfjoin  --rotateoversize false -o out.pdf *.pdf
 
+
+# Creates a directory tree
+
+find . -type d | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"
