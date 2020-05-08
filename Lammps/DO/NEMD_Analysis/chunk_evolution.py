@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri May  8 17:27:17 2020
-This script checks the chunk evolution
+
+Script to animate the velocity profile
+https://towardsdatascience.com/animations-with-matplotlib-d96375c5442c
+
 @author: simon
 """
 
@@ -17,7 +20,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This fall
 import Lammps.General.chunk_utilities as cu
 import Lammps.core_functions as cf
 import matplotlib.pyplot as plt
-
+from matplotlib.animation import FuncAnimation
 
 
 
@@ -26,27 +29,45 @@ import matplotlib.pyplot as plt
 # =============================================================================
 results = cu.chunk_reader("properties.dat") 
 
+cf.set_plot_appearance()
 
-# Creating all the frames
-
-#f = open(results.filename)
-
-series = []
-
-byte_pos = results.offsets
-
-#for i, start in enumerate(byte_pos[:-1]):
-#    print ("Reading frame %s/%s"%(i,results.n_frames))
-#    f.seek(start)
-#    step, n_chunks, _ = f.readline().split() # Timestep Number-of-chunks Total-count
-#    start = f.tell()
-#    stuff = f.read(byte_pos[i+1] - start)
-#    data = pd.read_csv(StringIO(stuff),sep=" ",header=None).dropna(axis=1,how='all')
-#    data.columns = results.header
-#    series.append(cu.timestep(step, n_chunks, data))
-#    
-#    data['vx'] get this one and append
+fig, ax = plt.subplots()
 
 
-# Get the first frame
+def init():
+    line.set_data([], [])
+    return line,
+
+
+fig = plt.figure()
+ax = plt.axes(xlim=(0, 4), ylim=(-2, 2))
+line, = ax.plot([], [], lw=3)
+
+
+def animate(i, results):
+    x = results[i].data['Coord1'].values
+    y = results[i].data['vx'].values
+#    x = res[i].data['vx'].values
+#    y = res[i].data['vx'].values
+    line.set_data(x, y)
+    return line,
+
+
+
+indexes = np.arange(0,len(results),1000)
+
+anim = FuncAnimation(fig, animate, init_func=init,
+                               frames = len(indexes), interval=20, blit=True, fargs =[results])
+
+
+anim.save('sine_wave.gif', writer='imagemagick')
+
+
+#
+#chunks.plot(x = 'Coord1',y = 'vx', ax = ax, kind = 'line', legend = False,)
+##ax.axvline(x = lz_min_half, ls=':',c='black')
+#ax.set_xlabel(r'$z[\sigma] $')
+#ax.set_ylabel(r'$v_x(z)$')
+#fig.tight_layout()
+#fig.savefig('vprofile.pdf')
 
