@@ -12,7 +12,8 @@ import pickle as pickle
 import Lammps.core_functions as cf
 from scipy.stats import sem
 import uncertainties as un
-from statsmodels.tsa.stattools import acf
+from statsmodels.tsa.stattools import acf, ccf
+import time as t
 # =============================================================================
 # Class definition
 # =============================================================================
@@ -143,17 +144,43 @@ class correlation(object):
         See my ipython about autocorrelation and GK
         TODO: Include the error
         """
-        import time as t
+        total = np.zeros(self.max_delta)
+        for dim in range(self.dimension):
+            print("started the analysis for %s"%dim)
+            t0 = t.time()
+            x = self.flux1.components[:, dim]
+            acf_array, confidence = acf(x, nlags = len(self.times[:self.max_delta])-1, fft = True, alpha = 0.05)
+            amplitude = np.correlate(x,x)/len(x)
+            self.norm[dim] = amplitude
+            self.cor[dim] = amplitude * acf_array
+            self.cor_norm[dim] = acf_array
+
+            total = total + self.cor[dim]
+            print (t.time()-t0)
+        
+        total = total / 3
+        self.cor[-1] = total
+        self.norm[-1] = total[0]
+        self.cor_norm[-1] = total / total[0]
+
+
+    def evaluate_ccf(self):
+        """
+        Performs the correlation of the 1d components,using 
+        statsmodels.tsa.stattools.ccf
+        See my ipython about autocorrelation and GK
+        """
         total = np.zeros(self.max_delta)
         for dim in range(self.dimension):
             print ("started the analysis for %s"%dim)
             t0 = t.time()
             x = self.flux1.components[:, dim]
-            adf, confidence = acf(x, nlags = len(self.times[:self.max_delta])-1, fft = True, alpha = 0.05)
-            amplitude = np.correlate(x,x)/len(x)
+            y = self.flux2.components[:, dim]
+            ccf_array = ccf(x, y)[:len(self.times)]
+            amplitude = np.correlate(x,y)/len(x)
             self.norm[dim] = amplitude
-            self.cor[dim] = amplitude * adf
-            self.cor_norm[dim] = adf
+            self.cor[dim] = amplitude * ccf_array
+            self.cor_norm[dim] = ccf_array
 
             total = total + self.cor[dim]
             print (t.time()-t0)
