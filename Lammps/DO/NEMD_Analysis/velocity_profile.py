@@ -11,10 +11,10 @@ import pandas as pd
 import argparse
 import os
 import sys
-import Lammps.General.chunk_utilities as cu
 from io import StringIO
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
+import Lammps.General.chunk_utilities as cu
 import Lammps.core_functions as cf
 import matplotlib.pyplot as plt
 
