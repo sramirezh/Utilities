@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import MDAnalysis as mda
 import MDAnalysis.transformations as tr
 import MDAnalysis.analysis.rdf as rdf
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../')) #This falls into Utilities path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
@@ -188,12 +188,33 @@ def one_delta_t(delta):
     
     return msd_array_t
 
+
+class simulation(object):
+    def __init__(self, name, ts, d, initial_index):
+        self.name = name
+        self.ts = ts
+        self.d = d   # sampling_interval myDump
+        
+    def print_params(self):
+        print (" Using the parameters from %s"%self.name)
+        print ("\nUsing a sampling threshold (myDump) of  %s"%self.d)
+        print ("Using delta_t = %s fs" %self.ts)
+
+
 # =============================================================================
 # Main
 # =============================================================================
     
+octane = simulation("octane", 1, 100, 5000 )
+nitrogen = simulation("N2", 10, 100, 500 )
+
+# this is the only thing to define
+sim = octane
+
+sim.print_params()
 
 
+# Getting the centroids
 if os.path.exists("centroids_traj.pkl"):
     print ("Reading 'centroids_traj.pkl'")
     centroids_traj = cf.load_instance("centroids_traj.pkl")
@@ -206,19 +227,35 @@ else:
 
 max_delta = int(time_steps*0.5) #Maximum delta of time to measure the MSD as per Keffer2001
 
-mult_t = 100*10
+mult_t = sim.d*sim.ts
 delta_t_arr = np.arange(max_delta)*mult_t
 num_cores = multiprocessing.cpu_count()
 
 
-msd_array = Parallel(n_jobs = num_cores)(delayed(one_delta_t)(i) for i in tqdm(range(max_delta)))
-    
+# Computing the MSD array
+if os.path.exists("msd_array.pkl"):
+    print ("Reading msd data")
+    msd_array = cf.load_instance("msd_array.pkl")
+else:
+    print ("Computing the msd array")
+    msd_array = Parallel(n_jobs = num_cores)(delayed(one_delta_t)(i) for i in tqdm(range(max_delta)))
 
-ave_msd =[]
-for el in msd_array:
+
     
-    ave = (stat.fast_averager(np.array(el)))[0]
-    ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error
+cf.blockPrint()
+
+
+# Computing the average msd for each tau
+if os.path.exists("ave_msd.pkl"):
+    print ("Reading ave msd")
+    ave_msd = cf.load_instance("msd_ave.pkl")
+else:
+    print ("Computing the average msd")
+    ave_msd =[]
+    for el in msd_array:
+        
+        ave = (stat.fast_averager(np.array(el)))[0]
+        ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error
 
 
   
@@ -240,19 +277,22 @@ msd_average = unumpy.nominal_values(ave_msd)
 D_inst_error = unumpy.std_devs(D_inst)
 D_inst_ave = unumpy.nominal_values(D_inst)
 
+# TODO This is a rough estimate, check that the blue point in the plot is correct
+initial_index = int(len(t)*0.5)
 
-
-pfinal,cov = fit_line(t,msd_average,msd_error, initial_index = 500)
+pfinal,cov = fit_line(t,msd_average,msd_error, initial_index  = initial_index)
 
 D = pfinal[0]/(2*3)
 
 D_err=np.sqrt(cov[0][0])*D
 
-plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, initial_index = 500 )
+plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, initial_index  = initial_index )
 
-print("\nThe diffusion coefficient is %s +/- %s"%(D,D_err))
+
+cf.enablePrint()
+print("\nThe diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]"%(D,D_err))
 f = open("Diffusion.out",'w')
-f.write("The diffusion coefficient is %s +/- %s \n"%(D,D_err))
+f.write("The diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]\n"%(D,D_err))
 
 f.close
 
@@ -263,19 +303,19 @@ f.close
 #
 #cf.set_plot_appearance()
 #
-delta_t = 10 # fs
+delta_t = sim.ts # fs
 #
 #print ("Delta t in the simulations is %s"%delta_t)
-data_lammps = cf.read_data_file('diffusion_data.dat')
+#data_lammps = cf.read_data_file('diffusion_data.dat')
 
 
-times_l,msd_l = lammps_MSD(delta_t,data_lammps)
+#times_l,msd_l = lammps_MSD(delta_t,data_lammps)
 
 
 
 fig,ax = plt.subplots()
 
-ax.plot(times_l,msd_l,label="Single Origin")
+#ax.plot(times_l,msd_l,label="Single Origin")
 ax.plot(t, msd_average, label = "Multiple Origin",ls='--')
 ax.legend()
 ax.set_xlabel(r'$\Delta t(fs)$')
