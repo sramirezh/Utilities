@@ -40,7 +40,7 @@ def init():
 
 
 fig = plt.figure()
-ax = plt.axes(xlim=(0, 4), ylim=(-2, 2))
+ax = plt.axes(xlim=(0, 25), ylim=(-1, 1))
 line, = ax.plot([], [], lw=3)
 
 
@@ -63,11 +63,13 @@ anim = FuncAnimation(fig, animate, init_func=init,
 anim.save('sine_wave.gif', writer='imagemagick')
 
 
-#
-#chunks.plot(x = 'Coord1',y = 'vx', ax = ax, kind = 'line', legend = False,)
-##ax.axvline(x = lz_min_half, ls=':',c='black')
-#ax.set_xlabel(r'$z[\sigma] $')
-#ax.set_ylabel(r'$v_x(z)$')
-#fig.tight_layout()
-#fig.savefig('vprofile.pdf')
+
+
+fig, ax = plt.subplots()
+results[-1].data.plot(x = 'Coord1',y = 'vx', ax = ax, kind = 'line', legend = False,)
+#ax.axvline(x = lz_min_half, ls=':',c='black')
+ax.set_xlabel(r'$z[\sigma] $')
+ax.set_ylabel(r'$v_x(z)$')
+fig.tight_layout()
+fig.savefig('vprofile.pdf')
 

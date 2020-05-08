@@ -326,7 +326,7 @@ class chunk_reader(object):
 
 
     def _read_frame(self, frame):
-        print ("Reading frame %s/%s"%(frame, self.n_frames))
+        #print ("Reading frame %s/%s"%(frame, self.n_frames))
         f = open(self.filename)
 
         byte_pos = self.offsets[frame:frame+2]
