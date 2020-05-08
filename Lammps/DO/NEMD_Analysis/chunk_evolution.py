@@ -54,13 +54,13 @@ def animate(i, results):
 
 
 
-indexes = np.arange(0,len(results),1000)
+indexes = np.arange(0,len(results),100)
 
 anim = FuncAnimation(fig, animate, init_func=init,
                                frames = len(indexes), interval=20, blit=True, fargs =[results])
 
 
-anim.save('sine_wave.gif', writer='imagemagick')
+anim.save('velocity_evolution.gif', writer='imagemagick')
 
 
 
