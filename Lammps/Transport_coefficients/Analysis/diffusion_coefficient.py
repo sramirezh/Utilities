@@ -242,20 +242,21 @@ else:
 
 
     
-cf.blockPrint()
+
 
 
 # Computing the average msd for each tau
 if os.path.exists("ave_msd.pkl"):
     print ("Reading ave msd")
-    ave_msd = cf.load_instance("msd_ave.pkl")
+    ave_msd = cf.load_instance("ave_msd.pkl")
 else:
     print ("Computing the average msd")
     ave_msd =[]
     for el in msd_array:
-        
+        cf.blockPrint()
         ave = (stat.fast_averager(np.array(el)))[0]
         ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error
+        cf.enablePrint()
 
 
   
@@ -289,7 +290,7 @@ D_err=np.sqrt(cov[0][0])*D
 plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, initial_index  = initial_index )
 
 
-cf.enablePrint()
+
 print("\nThe diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]"%(D,D_err))
 f = open("Diffusion.out",'w')
 f.write("The diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]\n"%(D,D_err))
