@@ -86,7 +86,7 @@ mine = simulation("N2", 10, 400.57, 273.15, 1000000, 400 )
 
 
 # this is the only thing to define
-sim = mine
+sim = example
 
 print ("We are using the parameters from the %s simulation"%sim.name)
 sim.print_params()

@@ -1,6 +1,7 @@
 #ignore everything
 *
 *.gsd
+*.ipynb_checkpoints
 # But not these files...
 !*.qsub
 !.gitignore
@@ -21,3 +22,4 @@
 !settings.json
 # ...even if they are in subdirectories
 !*/
+
