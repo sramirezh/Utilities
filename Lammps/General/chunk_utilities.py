@@ -13,11 +13,11 @@ from io import StringIO
 
 # TODO add the value of the timestep
 class timestep(object):
-    def __init__(self, frame, n_chunks, data):
+    def __init__(self, step, n_chunks, data):
         """
         data is a dataframe
         """
-        self.frame = frame
+        self.step = step
         self._n_chunks = n_chunks
         self.data = data
         self.header = []
@@ -103,7 +103,7 @@ class FrameIteratorSliced(FrameIteratorBase):
         self.trajectory.rewind()
 
     def __getitem__(self, frame):
-        if isinstance(frame, numbers.Integral):
+        if isinstance(frame, int):
             length = len(self)
             if not -length < frame < length:
                 raise IndexError('Index {} is out of range of the range of length {}.'
@@ -208,7 +208,7 @@ class FrameIteratorIndices(FrameIteratorBase):
         super(FrameIteratorIndices, self).__init__(trajectory)
         self._frames = []
         for frame in frames:
-            if not isinstance(frame, numbers.Integral):
+            if not isinstance(frame, int):
                 raise TypeError("Frames indices must be integers.")
             frame = trajectory._apply_limits(frame)
             self._frames.append(frame)
@@ -222,7 +222,7 @@ class FrameIteratorIndices(FrameIteratorBase):
             yield self.trajectory._read_frame_with_aux(frame)
 
     def __getitem__(self, frame):
-        if isinstance(frame, numbers.Integral):
+        if isinstance(frame, int):
             frame = self.frames[frame]
             return self.trajectory._read_frame_with_aux(frame)
         else:
@@ -336,7 +336,8 @@ class chunk_reader(object):
         stuff = f.read(byte_pos[1] - start)
         data = pd.read_csv(StringIO(stuff),sep=" ",header=None).dropna(axis=1,how='all')
         data.columns = self.header
-        self.frame = timestep(frame, n_chunks, data)
+        self.frame = timestep(step, n_chunks, data)
+        f.close()
         # Example implementation in the DCDReader:
         # self._jump_to_frame(frame)
         # ts = self.ts
@@ -396,7 +397,7 @@ class chunk_reader(object):
 
         slice_dict = {'start': start, 'stop': stop, 'step': step}
         for varname, var in slice_dict.items():
-            if isinstance(var, numbers.Integral):
+            if isinstance(var, int):
                 slice_dict[varname] = int(var)
             elif (var is None):
                 pass
