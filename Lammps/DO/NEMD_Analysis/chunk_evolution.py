@@ -48,7 +48,7 @@ def animate(i, results):
 
 
 fig = plt.figure()
-ax = plt.axes(xlim=(0, 25), ylim=(-1, 1))
+ax = plt.axes(xlim=(0, 25), ylim=(-0.10, 0.5))
 line, = ax.plot([], [], lw=3)
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
 
