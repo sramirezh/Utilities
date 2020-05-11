@@ -71,7 +71,7 @@ def lammps_MSD(delta_t, data):
     
     return times,msd
 
-def plot_diffusion(t, msd_average, msd_error, D_inst_ave, D_inst_error, pfinal, D, initial_index):
+def plot_diffusion(t, msd_average, msd_error, D_inst_ave, D_inst_error, pfinal, D, initial_index, dim):
     """
     
     """
@@ -93,7 +93,7 @@ def plot_diffusion(t, msd_average, msd_error, D_inst_ave, D_inst_error, pfinal, 
     plt.legend(loc = "lower right", fontsize = 10)
     plt.tight_layout()
     plt.subplots_adjust(wspace=0, hspace=0.1)
-    plt.savefig("Diffusio_coefficient.pdf")
+    plt.savefig("Diffusio_coefficient%s.pdf"%dim)
     
 
 
@@ -118,18 +118,18 @@ def one_delta_t(delta, positions, max_delta):
         delta is the delta in sampling times that is going to be analysed
     """
     num_cores = multiprocessing.cpu_count()    
-    if delta != 0:
-        pos = zip(positions[:max_delta],positions[delta:max_delta+delta])
-        msd_array_t = Parallel(n_jobs = num_cores)(delayed(compute_one_msd)(*p) for p in pos) # * unzips 
-    else:
-        msd_array_t = np.zeros(4) # assuming 3 d and 1 for total
-    return msd_array_t
+    pos = zip(positions[:max_delta],positions[delta:max_delta+delta])
+    msd_array_t = Parallel(n_jobs = num_cores)(delayed(compute_one_msd)(*p) for p in pos) # * unzips 
+    return np.array(msd_array_t)
 
 
 def msd(positions, max_delta):
+    dim = np.shape(positions)
     msd_array = []
-    for i in tqdm(range(max_delta)):
+    for i in tqdm(range(1,max_delta)):
         msd_array.append(one_delta_t(i, positions, max_delta))
+    # The first one is zero in all dimensions
+    msd_array.insert(0,np.zeros((max_delta,dim[-1]+1))) 
     cf.save_instance(msd_array,"msd_array")
     return msd_array
     

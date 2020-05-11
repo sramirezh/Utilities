@@ -87,16 +87,23 @@ sim = octane
 sim.print_params()
 
 
-# Getting the centroids
+# =============================================================================
+# # Getting the centroids
+# =============================================================================
 if os.path.exists("centroids_traj.npy"):
     print ("Reading 'centroids_traj.npy'")
     centroids_traj = np.load("centroids_traj.npy")
+    
+    print ("\n\n!!!!!!THis is a test!!!!")
+    centroids_traj = centroids_traj[:100]
+    
     time_steps = len(centroids_traj)
 else:
     centroids_traj, time_steps = compute_centroids()
 
 
 
+dimensions = np.shape(centroids_traj)[-1]
 
 max_delta = int(time_steps*0.5) #Maximum delta of time to measure the MSD as per Keffer2001
 mult_t = sim.d*sim.ts
@@ -104,7 +111,9 @@ delta_t_arr = np.arange(max_delta)*mult_t
 
 
 
-# Computing the MSD array
+# =============================================================================
+# # Computing the MSD array
+# =============================================================================
 if os.path.exists("msd_array.pkl"):
     print ("Reading msd data")
     msd_array = cf.load_instance("msd_array.pkl")
@@ -113,11 +122,9 @@ else:
     msd_array = dcu.msd(centroids_traj, max_delta)
 
 
-    
-
-
-
-# Computing the average msd for each tau
+# =============================================================================
+# # Computing the average msd for each tau
+# =============================================================================
 if os.path.exists("ave_msd.pkl"):
     print ("Reading ave msd")
     ave_msd = cf.load_instance("ave_msd.pkl")
@@ -125,50 +132,61 @@ else:
     print ("Computing the average msd")
     ave_msd =[]
     for el in msd_array:
-        ave = (stat.fast_averager(np.array(el)))[0]
+        ave = (stat.fast_averager(np.array(el)))
+        ave_msd_t =[]
+        for ave_dim in ave:
+            ave_msd_t.append(ufloat(ave_dim[1],ave_dim[3])) #Average and blocking error 
         
-        ######hdre make it for each direction
-        ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error 
-    
+        ave_msd.append(ave_msd_t)
+    ave_msd = np.array(ave_msd)
     cf.save_instance(ave_msd,"ave_msd")
 
 
-  
-    
 
-D_inst = [0] #Array with the instantaneous diffusion coefficient
+# TODO generalise from here on
+
+
+D_inst = [ave_msd[0]] #Array with the instantaneous diffusion coefficient
 for i in range(1,max_delta):
     dt = delta_t_arr[i]
     D_inst.append(ave_msd[i]/dt/(2*3))
 
+D_inst = np.array(D_inst)
 
-
-#Writing arrays of averages and errors
 t = np.array(delta_t_arr)
-msd_error = unumpy.std_devs(ave_msd)
-msd_average = unumpy.nominal_values(ave_msd)
 
-
-D_inst_error = unumpy.std_devs(D_inst)
-D_inst_ave = unumpy.nominal_values(D_inst)
-
-# TODO This is a rough estimate, check that the blue point in the plot is correct
-initial_index = int(len(t)*0.5)
-
-pfinal,cov = dcu.fit_line(t,msd_average,msd_error, initial_index  = initial_index)
-
-D = pfinal[0]/(2*3)
-
-D_err=np.sqrt(cov[0][0])*D
-
-dcu.plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, initial_index  = initial_index )
-
-
-
-print("\nThe diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]"%(D,D_err))
 f = open("Diffusion.out",'w')
-f.write("The diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]\n"%(D,D_err))
-
+for dim in range(dimensions+1):
+    #Writing arrays of averages and errors
+    
+    msd_error = unumpy.std_devs(ave_msd[:,dim])
+    msd_average = unumpy.nominal_values(ave_msd[:,dim])
+    
+    
+    D_inst_error = unumpy.std_devs(D_inst[:,dim])
+    D_inst_ave = unumpy.nominal_values(D_inst[:,dim])
+    
+    # TODO This is a rough estimate, check that the blue point in the plot is correct
+    initial_index = int(len(t)*0.5)
+    
+    pfinal,cov = dcu.fit_line(t,msd_average,msd_error, initial_index  = initial_index)
+    
+    # For the total
+    if dim == dimensions: 
+        D = pfinal[0]/(2*3)
+    else:
+        D = pfinal[0]/2
+    
+    D_err=np.sqrt(cov[0][0])*D
+    
+    dcu.plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, initial_index, dim )
+    
+    
+    
+    print("\nThe diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]"%(D,D_err))
+    
+    f.write("The diffusion coefficient is %s +/- %s [Angstrom**2/femptoseconds]\n"%(D,D_err))
+    
 f.close
 
 

@@ -166,7 +166,7 @@ def calculations(data, min_limit,output_file, names=None, function=False):
     n,m=np.shape(data_to_analyse)
     Correlation,time = autocorrelation_error(data_to_analyse)
     error_c = np.sqrt(Correlation[0,:]*2*time/(n+1))
-    print ("The autocorrelation analysis took %f"%(t.time()-ti))
+    #print ("The autocorrelation analysis took %f"%(t.time()-ti))
 
     #Simple error
     error_s=stats.sem(data_to_analyse)
@@ -175,7 +175,7 @@ def calculations(data, min_limit,output_file, names=None, function=False):
     #Blocking analysis
     ti = t.time()
     error_b=blocking_error(data_to_analyse)
-    print ("The blocking analysis took %f"%(t.time()-ti))
+    #print ("The blocking analysis took %f"%(t.time()-ti))
 
     if function==False:
         print("The Results are:\n")
