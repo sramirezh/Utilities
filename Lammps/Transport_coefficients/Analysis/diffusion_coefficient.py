@@ -152,7 +152,7 @@ def compute_centroids():
     
     centroids_traj = np.empty((time_steps, n_molecules, 3 )) # Will contain all the centroid including the effect of the image
     
-    for i,ts in enumerate(tqdm(u.trajectory[:1000], file = sys.stdout)):
+    for i,ts in enumerate(tqdm(u.trajectory, file = sys.stdout)):
         
         v.trajectory[i]    
         
@@ -173,7 +173,7 @@ def compute_centroids():
 
 
 
-def one_delta_t(delta, centroids_traj):
+def one_delta_t(delta):
     """
     returns an array with all the msd for a given delta_t
     TODO [Note that it assumes that centroids_traj and max_delta are loaded in memory, so it can be accesed by all the threads, probably not the most efficeint way of doing]
@@ -226,7 +226,6 @@ else:
 
 
 max_delta = int(time_steps*0.5) #Maximum delta of time to measure the MSD as per Keffer2001
-
 mult_t = sim.d*sim.ts
 delta_t_arr = np.arange(max_delta)*mult_t
 num_cores = multiprocessing.cpu_count()
@@ -238,7 +237,7 @@ if os.path.exists("msd_array.pkl"):
     msd_array = cf.load_instance("msd_array.pkl")
 else:
     print ("Computing the msd array")
-    msd_array = Parallel(n_jobs = num_cores)(delayed(one_delta_t)(i,centroids_traj) for i in tqdm(range(max_delta)))
+    msd_array = Parallel(n_jobs = num_cores)(delayed(one_delta_t)(i) for i in tqdm(range(max_delta)))
     cf.save_instance(msd_array,"msd_array")
 
 
@@ -254,12 +253,10 @@ else:
     print ("Computing the average msd")
     ave_msd =[]
     for el in msd_array:
-        cf.blockPrint()
         ave = (stat.fast_averager(np.array(el)))[0]
         
         ######hdre make it for each direction
         ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error 
-        cf.enablePrint()
     
     cf.save_instance(ave_msd,"ave_msd")
 
@@ -267,7 +264,7 @@ else:
   
     
 
-D_inst=[0] #Array with the instantaneous diffusion coefficient
+D_inst = [0] #Array with the instantaneous diffusion coefficient
 for i in range(1,max_delta):
     dt = delta_t_arr[i]
     D_inst.append(ave_msd[i]/dt/(2*3))
