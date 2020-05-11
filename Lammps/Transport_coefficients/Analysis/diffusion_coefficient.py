@@ -31,15 +31,15 @@ import multiprocessing
 def compute_one_msd(pos_init, pos_final):
     """
     Computes the msd between two positons
+    Returns the 3 components and the total
     """
 
     delta_sqr_components = (pos_final-pos_init)**2
-    delta_sqr = np.sum(delta_sqr_components, axis=1)
-
-    #msd_comp = np.average(delta_sqr_components,axis=0)
-    msd = np.average(delta_sqr)
+    msd = np.average(delta_sqr_components,axis=0)
+    msd = np.append(msd,np.sum(msd))
 
     return msd
+    
 
 def lammps_MSD(delta_t, data):
     """
@@ -152,7 +152,7 @@ def compute_centroids():
     
     centroids_traj = np.empty((time_steps, n_molecules, 3 )) # Will contain all the centroid including the effect of the image
     
-    for i,ts in enumerate(tqdm(u.trajectory, file = sys.stdout)):
+    for i,ts in enumerate(tqdm(u.trajectory[:1000], file = sys.stdout)):
         
         v.trajectory[i]    
         
@@ -167,13 +167,13 @@ def compute_centroids():
 #    u_new = mda.Universe.empty(n_molecules, trajectory = True)
 #    u_new.load_new(centroids_traj)
     
-    cf.save_instance(centroids_traj,"centroids_traj")
+    np.save("centroids_traj",centroids_traj)
     
     return centroids_traj, time_steps
 
 
 
-def one_delta_t(delta):
+def one_delta_t(delta, centroids_traj):
     """
     returns an array with all the msd for a given delta_t
     TODO [Note that it assumes that centroids_traj and max_delta are loaded in memory, so it can be accesed by all the threads, probably not the most efficeint way of doing]
@@ -215,9 +215,9 @@ sim.print_params()
 
 
 # Getting the centroids
-if os.path.exists("centroids_traj.pkl"):
-    print ("Reading 'centroids_traj.pkl'")
-    centroids_traj = cf.load_instance("centroids_traj.pkl")
+if os.path.exists("centroids_traj.npy"):
+    print ("Reading 'centroids_traj.npy'")
+    centroids_traj = np.load("centroids_traj.npy")
     time_steps = len(centroids_traj)
 else:
     centroids_traj, time_steps = compute_centroids()
@@ -238,7 +238,8 @@ if os.path.exists("msd_array.pkl"):
     msd_array = cf.load_instance("msd_array.pkl")
 else:
     print ("Computing the msd array")
-    msd_array = Parallel(n_jobs = num_cores)(delayed(one_delta_t)(i) for i in tqdm(range(max_delta)))
+    msd_array = Parallel(n_jobs = num_cores)(delayed(one_delta_t)(i,centroids_traj) for i in tqdm(range(max_delta)))
+    cf.save_instance(msd_array,"msd_array")
 
 
     
@@ -255,8 +256,12 @@ else:
     for el in msd_array:
         cf.blockPrint()
         ave = (stat.fast_averager(np.array(el)))[0]
-        ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error
+        
+        ######hdre make it for each direction
+        ave_msd.append(ufloat(ave[1],ave[3])) #Average and blocking error 
         cf.enablePrint()
+    
+    cf.save_instance(ave_msd,"ave_msd")
 
 
   
