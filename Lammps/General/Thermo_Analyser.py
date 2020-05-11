@@ -7,7 +7,7 @@ import os
 import sys
 import linecache
 import argparse
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 """
@@ -38,7 +38,7 @@ def data_extract(file_name):
     
     """
     if sys.platform=='darwin':
-        awk_cmd='gawk'
+        awk_cmd='awk' #gwak was necessary before catalina OS
     else:
         awk_cmd='awk'
     out,err=cf.bash_command("""grep -n "Per MPI" %s| %s -F":" '{print $1}'"""%(file_name,awk_cmd) )
@@ -123,12 +123,11 @@ def read_thermo_output(file_thermo):
     """
 
     f=open(file_thermo,'r')
-    g = open("thermo_mod.dat",'w')
     lines=f.readlines()
     separator = "="
     array = []
     for l in lines:
-        l = l.replace("=","\t")
+        l = l.replace(separator,"\t")
         l = l.split()
         array.append(l)
 
