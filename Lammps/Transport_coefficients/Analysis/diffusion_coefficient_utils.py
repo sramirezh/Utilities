@@ -156,27 +156,28 @@ def msd_parallel(centroids_traj, max_delta):
 
 
     num_cores = multiprocessing.cpu_count()
-    folder = './joblib_memmap'
-    try:
-        os.mkdir(folder)
-    except FileExistsError:
-        pass
-
-    data_filename_memmap = os.path.join(folder, 'data_memmap')
-    jl.dump(centroids_traj, data_filename_memmap)    
-    data = jl.load(data_filename_memmap, mmap_mode='r')
-    
+#    folder = './joblib_memmap'
+#    try:
+#        os.mkdir(folder)
+#    except FileExistsError:
+#        pass
+#
+#    data_filename_memmap = os.path.join(folder, 'data_memmap')
+#    jl.dump(centroids_traj, data_filename_memmap)    
+#    data = jl.load(data_filename_memmap, mmap_mode='r')
+#    
+    data = centroids_traj
     
     msd_array = jl.Parallel(n_jobs = num_cores)(jl.delayed(one_delta_t_parallel)(i, data, max_delta) for i in tqdm(range(max_delta)))
     cf.save_instance(msd_array,"msd_array")
     
 
-
-    try:
-        shutil.rmtree(folder)
-    except:  # noqa
-        print('Could not clean-up automatically.')
-        
+#
+#    try:
+#        shutil.rmtree(folder)
+#    except:  # noqa
+#        print('Could not clean-up automatically.')
+#        
     
     return msd_array
     
