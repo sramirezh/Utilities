@@ -67,12 +67,6 @@ def compute_centroids():
         u.atoms.positions = u.atoms.positions+v.atoms.positions 
         
         centroids_traj[i, :,:] = u.atoms.residues.atoms.centroid(compound = 'residues')
-        
-    # universe with the real position of all the centroids 
-    # Notice that this can be packed again to be inside the box with u_new.atoms.pack_into_box(box = u.dimensions)
-    
-#    u_new = mda.Universe.empty(n_molecules, trajectory = True)
-#    u_new.load_new(centroids_traj)
     
     np.save("centroids_traj",centroids_traj)
     
@@ -144,8 +138,8 @@ if os.path.exists("ave_msd.pkl"):
 else:
     print ("Computing the average msd")
     ave_msd =[]
-    for el in msd_array:
-        ave = (stat.fast_averager(np.array(el)))
+    for el in tqdm(msd_array):
+        ave = (stat.fast_averager(np.array(el), output_file = []))
         ave_msd_t =[]
         for ave_dim in ave:
             ave_msd_t.append(ufloat(ave_dim[1],ave_dim[3])) #Average and blocking error 
@@ -153,10 +147,6 @@ else:
         ave_msd.append(ave_msd_t)
     ave_msd = np.array(ave_msd)
     cf.save_instance(ave_msd,"ave_msd")
-
-
-  
-    
 
 # TODO generalise from here 
     

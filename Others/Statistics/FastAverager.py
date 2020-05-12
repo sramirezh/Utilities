@@ -61,7 +61,7 @@ def read_from_file(input_file):
 
     return data1,names
 
-def fast_averager(input,min_limit=0,output_file="statistics.dat"):
+def fast_averager(input,min_limit=0, output_file = "statistics.dat"):
     """
     Function to call from another python script
     Args:
@@ -106,7 +106,7 @@ def discard_data(data,nmin):
     return data
 
 
-def calculations(data, min_limit,output_file, names=None, function=False):
+def calculations(data, min_limit, output_file, names=None, function=False):
     """
     This script evaluates the average of a quantity
 
@@ -180,13 +180,15 @@ def calculations(data, min_limit,output_file, names=None, function=False):
     if function==False:
         print("The Results are:\n")
         print("Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance")
-    file=open(output_file,'w')
-    file.write("Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
-    for i in range(size):
-        if function==False:
-            print("%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i]))
-        file.write("%s = %lf %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
-    file.close()
+
+    if len(output_file) != 0:    
+        file=open(output_file,'w')
+        file.write("Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
+        for i in range(size):
+            if function==False:
+                print("%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i]))
+            file.write("%s = %lf %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
+        file.close()
 
     output_array=[]
     for i in range(size):

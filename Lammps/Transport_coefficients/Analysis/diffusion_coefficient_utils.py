@@ -179,6 +179,9 @@ def msd_np(centroids_traj, max_delta):
 
 
 def msd_np_parallel(centroids_traj, max_delta):
+    """
+    USing  https://joblib.readthedocs.io/en/latest/auto_examples/parallel_memmap.html
+    """
     import time as t
     
     t0 = t.time()
@@ -189,7 +192,7 @@ def msd_np_parallel(centroids_traj, max_delta):
         os.mkdir(folder)
     except FileExistsError:
         pass
-
+    
     data_filename_memmap = os.path.join(folder, 'data_memmap')
     jl.dump(centroids_traj, data_filename_memmap)    
     data = jl.load(data_filename_memmap, mmap_mode='r')
