@@ -34,6 +34,8 @@ from scipy import optimize
 import glob
 from joblib import Parallel, delayed
 import multiprocessing
+import diffusion_coefficient_utils as dcu
+
 
 def compute_one_msd(pos_init, pos_final):
     """
@@ -159,7 +161,7 @@ def compute_centroids():
     
     centroids_traj = np.empty((time_steps, n_molecules, 3 )) # Will contain all the centroid including the effect of the image
     
-    for i,ts in enumerate(tqdm(u.trajectory[:1000], file = sys.stdout)):
+    for i,ts in enumerate(tqdm(u.trajectory, file = sys.stdout)):
         
         v.trajectory[i]    
         
@@ -226,7 +228,7 @@ sim.print_params()
 # =============================================================================
 if os.path.exists("centroids_traj.npy"):
     print ("Reading 'centroids_traj.npy'")
-    centroids_traj = np.load("centroids_traj.npy")    
+    centroids_traj = np.load("centroids_traj.npy")        
     time_steps = len(centroids_traj)
 else:
     centroids_traj, time_steps = compute_centroids()
