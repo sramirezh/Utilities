@@ -18,7 +18,8 @@ import Lammps.core_functions as cf
 import joblib as jl
 import multiprocessing
 import shutil
-
+from uncertainties import unumpy, ufloat
+import Others.Statistics.FastAverager as stat
 
 fitfunc = lambda p, x: p[0] * x + p[1] #Fitting to a line
 errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / (err+10**-8)
@@ -231,4 +232,44 @@ def msd_parallel(centroids_traj, max_delta):
 #        
     
     return msd_array
+
+
+def ave_serial_no_autocorr(msd_array):
+    """
+    Computes the average and error without using autocorrelation or blocking 
+    analysis, just np and scipy libraries
+    """
+    from scipy.stats import sem
+    
+    average = np.average(msd_array, axis = 1)
+    error = sem(msd_array, axis =1)
+    
+    ave_msd = []
+    dim = 4 
+    for i in range(dim):
+        ave_msd.append (unumpy.uarray(average[:,i],error[:,i]))
+        
+    ave_msd = np.transpose(np.array(ave_msd))
+    cf.save_instance(ave_msd,"ave_msd")
+    return ave_msd
+        
+        
+    
+    
+def ave_serial(msd_array):
+    """
+    Computes the average using fast_averager
+    """
+    ave_msd =[]
+    for el in tqdm(msd_array):
+        ave = (stat.fast_averager(np.array(el), output_file = []))
+        ave_msd_t =[]
+        for ave_dim in ave:
+            ave_msd_t.append(ufloat(ave_dim[1],ave_dim[3])) #Average and blocking error 
+        
+        ave_msd.append(ave_msd_t)
+    ave_msd = np.array(ave_msd)
+    cf.save_instance(ave_msd,"ave_msd")
+    
+    return ave_msd
     

@@ -129,52 +129,6 @@ else:
     print ("Computing the msd array")
     msd_array = dcu.msd_np_parallel(centroids_traj, max_delta)
 
-
-#def ave_parallel(msd_array):
-#    t0 = t.time()
-#    num_cores = multiprocessing.cpu_count()
-#    
-#    folder = './joblib_memmap'
-#    try:
-#        os.mkdir(folder)
-#    except FileExistsError:
-#        pass
-    
-    
-def ave_serial_no_autocorr(msd_array):
-    from scipy.stats import sem
-    
-    average = np.average(msd_array, axis = 1)
-    error = sem(msd_array, axis =1)
-    
-    ave_msd = []
-    dim = 4 
-    for i in range(dim):
-        ave_msd.append (unumpy.uarray(average[:,i],error[:,i]))
-        
-    ave_msd = np.transpose(np.array(ave_msd))
-    cf.save_instance(ave_msd,"ave_msd")
-    return ave_msd
-        
-        
-    
-    
-def ave_serial(msd_array):
-    ave_msd =[]
-    for el in tqdm(msd_array):
-        ave = (stat.fast_averager(np.array(el), output_file = []))
-        ave_msd_t =[]
-        for ave_dim in ave:
-            ave_msd_t.append(ufloat(ave_dim[1],ave_dim[3])) #Average and blocking error 
-        
-        ave_msd.append(ave_msd_t)
-    ave_msd = np.array(ave_msd)
-    cf.save_instance(ave_msd,"ave_msd")
-    
-    return ave_msd
-    
-
-
 # =============================================================================
 # # Computing the average msd for each tau
 # =============================================================================
@@ -183,7 +137,7 @@ if os.path.exists("ave_msd.pkl"):
     ave_msd = cf.load_instance("ave_msd.pkl")
 else:
     print ("Computing the average msd")
-    ave_msd =  ave_serial_no_autocorr(msd_array)
+    ave_msd =  dcu.ave_serial_no_autocorr(msd_array)
 
 
 # TODO generalise from here, also the analysis could be done with or without error
@@ -191,9 +145,10 @@ else:
 D_inst = [ave_msd[0]] #Array with the instantaneous diffusion coefficient
 for i in range(1,max_delta):
     dt = delta_t_arr[i]
-    D_inst.append(ave_msd[i]/dt/(2*3))
+    D_inst.append(ave_msd[i]/dt/(2))
 
 D_inst = np.array(D_inst)
+D_inst[:,-1] = D_inst[:,-1]/3  # To account for the 3 dimension
 
 t = np.array(delta_t_arr)
 
