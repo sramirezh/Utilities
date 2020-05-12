@@ -8,7 +8,6 @@ This set of functions computes the diffusion coefficient
 
 import sys
 import os
-from joblib import Parallel, delayed
 import multiprocessing
 from tqdm import tqdm
 from scipy import optimize
@@ -122,7 +121,7 @@ def one_delta_t(delta, positions, max_delta):
     """
     num_cores = multiprocessing.cpu_count()    
     pos = zip(positions[:max_delta],positions[delta:max_delta+delta])
-    msd_array_t = Parallel(n_jobs = num_cores)(delayed(compute_one_msd)(*p) for p in pos) # * unzips 
+    msd_array_t = jl.Parallel(n_jobs = num_cores)(jl.delayed(compute_one_msd)(*p) for p in pos) # * unzips 
     return np.array(msd_array_t)
 
 
@@ -174,6 +173,29 @@ def msd_np(centroids_traj, max_delta):
     for i in tqdm(range(max_delta)):
         msd_array.append(one_delta_t_np(i, centroids_traj, max_delta)) 
         
+    np.save("msd_array",msd_array)
+    print ("the time is %s"%(t.time()-t0))
+    return msd_array
+
+
+def msd_np_parallel(centroids_traj, max_delta):
+    import time as t
+    
+    t0 = t.time()
+    num_cores = multiprocessing.cpu_count()
+    
+    folder = './joblib_memmap'
+    try:
+        os.mkdir(folder)
+    except FileExistsError:
+        pass
+
+    data_filename_memmap = os.path.join(folder, 'data_memmap')
+    jl.dump(centroids_traj, data_filename_memmap)    
+    data = jl.load(data_filename_memmap, mmap_mode='r')
+    
+#    data = centroids_traj
+    msd_array = jl.Parallel(n_jobs = num_cores)(jl.delayed(one_delta_t_np)(i, data, max_delta) for i in tqdm(range(max_delta)))
     np.save("msd_array",msd_array)
     print ("the time is %s"%(t.time()-t0))
     return msd_array
