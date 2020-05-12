@@ -123,6 +123,20 @@ def one_delta_t(delta, positions, max_delta):
     return np.array(msd_array_t)
 
 
+
+def one_delta_t_parallel(delta, centroids_traj, max_delta):
+    """
+    returns an array with all the msd for a given delta_t
+    TODO [Note that it assumes that centroids_traj and max_delta are loaded in memory, so it can be accesed by all the threads, probably not the most efficeint way of doing]
+    
+    Args:
+        delta is the delta in sampling times that is going to be analysed
+    """
+    msd_array_t = []
+    for j in range(max_delta):        
+        msd_array_t.append(compute_one_msd(centroids_traj[j,:,:],centroids_traj[j+delta,:,:]))
+    return msd_array_t
+
 def msd(positions, max_delta):
     dim = np.shape(positions)
     msd_array = []
