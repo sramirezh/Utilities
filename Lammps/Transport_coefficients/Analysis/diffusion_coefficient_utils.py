@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
+import joblib as jl
+import multiprocessing
+import shutil
 
 
 fitfunc = lambda p, x: p[0] * x + p[1] #Fitting to a line
@@ -145,5 +148,35 @@ def msd(positions, max_delta):
     # The first one is zero in all dimensions
     msd_array.insert(0,np.zeros((max_delta,dim[-1]+1))) 
     cf.save_instance(msd_array,"msd_array")
+    return msd_array
+
+
+
+def msd_parallel(centroids_traj, max_delta):
+
+
+    num_cores = multiprocessing.cpu_count()
+    folder = './joblib_memmap'
+    try:
+        os.mkdir(folder)
+    except FileExistsError:
+        pass
+
+    data_filename_memmap = os.path.join(folder, 'data_memmap')
+    jl.dump(centroids_traj, data_filename_memmap)    
+    data = jl.load(data_filename_memmap, mmap_mode='r')
+    
+    
+    msd_array = jl.Parallel(n_jobs = num_cores)(jl.delayed(one_delta_t_parallel)(i, data, max_delta) for i in tqdm(range(max_delta)))
+    cf.save_instance(msd_array,"msd_array")
+    
+
+
+    try:
+        shutil.rmtree(folder)
+    except:  # noqa
+        print('Could not clean-up automatically.')
+        
+    
     return msd_array
     

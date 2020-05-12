@@ -32,8 +32,7 @@ from uncertainties import unumpy, ufloat
 import Others.Statistics.FastAverager as stat
 from scipy import optimize
 import glob
-import joblib as jl
-import multiprocessing
+
 import diffusion_coefficient_utils as dcu
 
 
@@ -123,7 +122,7 @@ dimensions = np.shape(centroids_traj)[-1]
 max_delta = int(time_steps*0.5) #Maximum delta of time to measure the MSD as per Keffer2001
 mult_t = sim.d*sim.ts
 delta_t_arr = np.arange(max_delta)*mult_t
-num_cores = multiprocessing.cpu_count()
+
 
 
 # Computing the MSD array
@@ -132,20 +131,13 @@ if os.path.exists("msd_array.pkl"):
     msd_array = cf.load_instance("msd_array.pkl")
 else:
     print ("Computing the msd array")
+    dcu.msd_parallel(centroids_traj, max_delta)
 
-    folder = './joblib_memmap'
-    try:
-        os.mkdir(folder)
-    except FileExistsError:
-        pass
 
-    data_filename_memmap = os.path.join(folder, 'data_memmap')
-    jl.dump(centroids_traj, data_filename_memmap)    
-    data = jl.load(data_filename_memmap, mmap_mode='r')
-    
-    
-    msd_array = jl.Parallel(n_jobs = num_cores)(jl.delayed(dcu.one_delta_t_parallel)(i, data, max_delta) for i in tqdm(range(max_delta)))
-    cf.save_instance(msd_array,"msd_array")
+
+
+
+
 
 
     
