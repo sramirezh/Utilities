@@ -128,15 +128,38 @@ if os.path.exists("msd_array.npy"):
 else:
     print ("Computing the msd array")
     msd_array = dcu.msd_np_parallel(centroids_traj, max_delta)
+
+
+#def ave_parallel(msd_array):
+#    t0 = t.time()
+#    num_cores = multiprocessing.cpu_count()
+#    
+#    folder = './joblib_memmap'
+#    try:
+#        os.mkdir(folder)
+#    except FileExistsError:
+#        pass
     
-# =============================================================================
-# # Computing the average msd for each tau
-# =============================================================================
-if os.path.exists("ave_msd.pkl"):
-    print ("Reading ave msd")
-    ave_msd = cf.load_instance("ave_msd.pkl")
-else:
-    print ("Computing the average msd")
+    
+def ave_serial_no_autocorr(msd_array):
+    from scipy.stats import sem
+    
+    average = np.average(msd_array, axis = 1)
+    error = sem(msd_array, axis =1)
+    
+    ave_msd = []
+    dim = 4 
+    for i in range(dim):
+        ave_msd.append (unumpy.uarray(average[:,i],error[:,i]))
+        
+    ave_msd = np.transpose(np.array(ave_msd))
+    cf.save_instance(ave_msd,"ave_msd")
+    return ave_msd
+        
+        
+    
+    
+def ave_serial(msd_array):
     ave_msd =[]
     for el in tqdm(msd_array):
         ave = (stat.fast_averager(np.array(el), output_file = []))
@@ -147,8 +170,23 @@ else:
         ave_msd.append(ave_msd_t)
     ave_msd = np.array(ave_msd)
     cf.save_instance(ave_msd,"ave_msd")
+    
+    return ave_msd
+    
 
-# TODO generalise from here 
+
+# =============================================================================
+# # Computing the average msd for each tau
+# =============================================================================
+if os.path.exists("ave_msd.pkl"):
+    print ("Reading ave msd")
+    ave_msd = cf.load_instance("ave_msd.pkl")
+else:
+    print ("Computing the average msd")
+    ave_msd =  ave_serial_no_autocorr(msd_array)
+
+
+# TODO generalise from here, also the analysis could be done with or without error
     
 D_inst = [ave_msd[0]] #Array with the instantaneous diffusion coefficient
 for i in range(1,max_delta):
