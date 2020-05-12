@@ -228,10 +228,7 @@ sim.print_params()
 # =============================================================================
 if os.path.exists("centroids_traj.npy"):
     print ("Reading 'centroids_traj.npy'")
-    centroids_traj = np.load("centroids_traj.npy")    
-
-    centroids_traj = centroids_traj[:1000]
-    
+    centroids_traj = np.load("centroids_traj.npy")        
     time_steps = len(centroids_traj)
 else:
     centroids_traj, time_steps = compute_centroids()
