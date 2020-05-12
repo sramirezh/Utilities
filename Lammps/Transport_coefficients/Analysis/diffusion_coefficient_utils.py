@@ -152,6 +152,32 @@ def msd(positions, max_delta):
 
 
 
+def one_delta_t_np(delta, centroids_traj, max_delta):
+    
+    delta_sqr_components = (centroids_traj[:max_delta]-centroids_traj[delta:max_delta+delta])**2
+    msd_array_t = np.average(delta_sqr_components, axis = 1)
+    total = np.sum(msd_array_t,axis = 1)
+    total = np.reshape(total, (len(total),1))
+    
+    msd_array_t = np.append(msd_array_t, total, axis = 1)
+    
+    
+    
+    return msd_array_t
+
+
+def msd_np(centroids_traj, max_delta):
+    import time as t
+    
+    t0 = t.time()
+    msd_array = []
+    for i in tqdm(range(max_delta)):
+        msd_array.append(one_delta_t_np(i, centroids_traj, max_delta)) 
+        
+    np.save("msd_array",msd_array)
+    print ("the time is %s"%(t.time()-t0))
+    return msd_array
+
 def msd_parallel(centroids_traj, max_delta):
 
 

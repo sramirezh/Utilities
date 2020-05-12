@@ -133,7 +133,7 @@ if os.path.exists("msd_array.npy"):
     msd_array = np.load("msd_array.npy")
 else:
     print ("Computing the msd array")
-    msd_array = dcu.msd_parallel(centroids_traj, max_delta)
+    msd_array = dcu.msd_np(centroids_traj, max_delta)
     
 # =============================================================================
 # # Computing the average msd for each tau
