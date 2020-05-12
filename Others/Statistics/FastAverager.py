@@ -96,11 +96,11 @@ def discard_data(data,nmin):
     """
 
     if nmin<1:
-        print("Discarding %d%% of the timesteps for the analysis"%(int(nmin*100)))
+        #print("Discarding %d%% of the timesteps for the analysis"%(int(nmin*100)))
         discard=int(nmin*len(data))
         data=data[discard:]
     else:
-        print("Discarding %d out of %d timesteps for the analysis" %(nmin,len(data)))
+        #print("Discarding %d out of %d timesteps for the analysis" %(nmin,len(data)))
         data=data[int(nmin):]
 
     return data
