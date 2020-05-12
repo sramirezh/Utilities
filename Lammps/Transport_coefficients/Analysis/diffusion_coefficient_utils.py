@@ -169,7 +169,7 @@ def msd_parallel(centroids_traj, max_delta):
     data = centroids_traj
     
     msd_array = jl.Parallel(n_jobs = num_cores)(jl.delayed(one_delta_t_parallel)(i, data, max_delta) for i in tqdm(range(max_delta)))
-    cf.save_instance(msd_array,"msd_array")
+    np.save("msd_array",msd_array)
     
 
 #

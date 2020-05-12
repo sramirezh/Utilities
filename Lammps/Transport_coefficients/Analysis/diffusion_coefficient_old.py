@@ -125,25 +125,16 @@ delta_t_arr = np.arange(max_delta)*mult_t
 
 
 
-# Computing the MSD array
-if os.path.exists("msd_array.pkl"):
+# =============================================================================
+#  Computing the MSD array
+# =============================================================================
+if os.path.exists("msd_array.npy"):
     print ("Reading msd data")
-    msd_array = cf.load_instance("msd_array.pkl")
+    msd_array = np.load("msd_array.npy")
 else:
     print ("Computing the msd array")
-    dcu.msd_parallel(centroids_traj, max_delta)
-
-
-
-
-
-
-
-
+    msd_array = dcu.msd_parallel(centroids_traj, max_delta)
     
-
-
-
 # =============================================================================
 # # Computing the average msd for each tau
 # =============================================================================
@@ -167,9 +158,8 @@ else:
   
     
 
-# TODO generalise from here on
-
-
+# TODO generalise from here 
+    
 D_inst = [ave_msd[0]] #Array with the instantaneous diffusion coefficient
 for i in range(1,max_delta):
     dt = delta_t_arr[i]
