@@ -61,7 +61,7 @@ def read_from_file(input_file):
 
     return data1,names
 
-def fast_averager(input,min_limit=0, output_file = []]):
+def fast_averager(input,min_limit=0, output_file = []):
     """
     Function to call from another python script
     Args:
