@@ -3,20 +3,15 @@
 """
 Created on Tue May 12 07:54:52 2020
 Old paralellisation of the code
-@author: simon
-"""
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
 Created on Sat Apr 18 11:26:33 2020
 Computes the diffusion coefficient of the molecules using MD analysis to read 
 the configuration outputs
 I will use copy some of the functions from:
 PDP/trajectory_analysis/Diffusion_coefficient
+
 @author: simon
 """
-
 import sys
 import os
 import numpy as np
@@ -79,6 +74,7 @@ class simulation(object):
         self.name = name
         self.ts = ts
         self.d = d   # sampling_interval myDump
+        self.initial_i = initial_index
         
     def print_params(self):
         print (" Using the parameters from %s"%self.name)
@@ -90,7 +86,7 @@ class simulation(object):
 # Main
 # =============================================================================
     
-octane = simulation("octane", 1, 100, 5000 )
+octane = simulation("octane", 1, 100, 3000 )
 nitrogen = simulation("N2", 10, 100, 500 )
 
 # this is the only thing to define
@@ -163,10 +159,8 @@ for dim in range(dimensions+1):
     D_inst_error = unumpy.std_devs(D_inst[:,dim])
     D_inst_ave = unumpy.nominal_values(D_inst[:,dim])
     
-    # TODO This is a rough estimate, check that the blue point in the plot is correct
-    initial_index = int(len(t)*0.5)
     
-    pfinal,cov = dcu.fit_line(t,msd_average,msd_error, initial_index  = initial_index)
+    pfinal,cov = dcu.fit_line(t,msd_average,msd_error, initial_index  = sim.initial_i)
     
     # For the total
     if dim == dimensions: 
@@ -176,7 +170,7 @@ for dim in range(dimensions+1):
     
     D_err=np.sqrt(cov[0][0])*D
     
-    dcu.plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, initial_index, dim )
+    dcu.plot_diffusion(t,msd_average,msd_error,D_inst_ave,D_inst_error,pfinal, D, sim.initial_i, dim )
     
     
     
@@ -196,7 +190,6 @@ f.close
 delta_t = sim.ts # fs
 #
 #print ("Delta t in the simulations is %s"%delta_t)
-#data_lammps = cf.read_data_file('diffusion_data.dat')
 
 
 #times_l,msd_l = lammps_MSD(delta_t,data_lammps)

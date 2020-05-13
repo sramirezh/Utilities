@@ -242,7 +242,7 @@ def ave_serial_no_autocorr(msd_array):
     from scipy.stats import sem
     
     average = np.average(msd_array, axis = 1)
-    error = sem(msd_array, axis =1)
+    error = sem(msd_array, axis = 1)
     
     ave_msd = []
     dim = 4 
