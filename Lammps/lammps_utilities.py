@@ -7,7 +7,7 @@ import linecache
 import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-import Lammps.General.Log_Analysis.Thermo_Analyser as ta
+import Lammps.General.Thermo_Analyser as ta
 
 
 

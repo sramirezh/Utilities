@@ -16,7 +16,7 @@ import linecache
 import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-import Lammps.General.Log_Analysis.Thermo_Analyser as ta
+import Lammps.General.Thermo_Analyser as ta
 import Lammps.lammps_utilities as lu
 
 
@@ -116,8 +116,13 @@ Nf = float(thermo_data.at['v_cBSolv','Average'])
 h_B, limits_B = lu.read_region_height("rBulk")
 
 # Getting if its 2d or 3d
-input_name = "input.lmp"
-out,err = cf.bash_command("""grep -n "enforce2d" %s | awk -F":" '{print $1}' """%input_name)
+log_name = "log.lammps"
+
+if not os.path.exists(log_name):
+    print ("The input file %s does not exist"%log_name)
+    sys.exit("The input file %s does not exist"%log_name)
+    
+out,err = cf.bash_command("""grep -n "enforce2d" %s | awk -F":" '{print $1}' """%log_name)
 
 if out:
     print("\nThis is a 2d Simulation\n")
