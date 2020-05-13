@@ -21,6 +21,7 @@ import Lammps.core_functions as cf
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
+
 # =============================================================================
 # Reading data
 # =============================================================================
@@ -48,7 +49,7 @@ def animate(i, results):
 
 
 fig = plt.figure()
-ax = plt.axes(xlim=(0, 25), ylim=(-0.10, 0.5))
+ax = plt.axes(xlim=(0, 25), ylim=(-0.020, 0.05))
 line, = ax.plot([], [], lw=3)
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
 
