@@ -134,11 +134,17 @@ class Simulation(object):
     """
     def __init__(self, log_file):
         self.log_file = log_file
+        self._initial_check()
         self._get_thermo_data()
         self._read_box_limits()
     
+    def _initial_check(self):
+        if not os.path.exists(self.log_file):
+            print ("The input file %s does not exist"%self.log_file)
+            sys.exit("The input file %s does not exist"%self.log_file)
+
     def _get_thermo_data(self):
-        self.thermo_ave = ta.thermo_analyser("log.lammps")
+        self.thermo_ave = ta.thermo_analyser("log.lammps").astype('float')
         self.thermo_data = cf.read_data_file("Parameters.dat")
 
     def _read_box_limits(self):
@@ -165,3 +171,11 @@ class Simulation(object):
         limits = np.array(np.reshape(limits, (2,3)),dtype=float) # To have the box as with columns [x_i_min,x_i_max]
         self.volume = (limits[1, 0] - limits[0, 0]) * (limits[1, 1] - limits[0, 1]) * (limits[1, 2] - limits[0, 2])
         self.limits = limits
+
+    def is_2d(self):
+        out, err = cf.bash_command("""grep -n "enforce2d" %s | awk -F":" '{print $1}' """%self.log_file)
+
+        if out:
+            return True
+        else:
+            return False
