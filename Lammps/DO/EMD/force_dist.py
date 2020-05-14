@@ -83,7 +83,7 @@ def plot_force_dist(force, z_min, z_max):
 
 sim = lu.Simulation("log.lammps")
 
-solute= da.DensityDistribution("Sproperties_short.dat")
+solute = da.DensityDistribution("Sproperties_short.dat")
 solvent = da.DensityDistribution("Fproperties_short.dat")
 fluid = da.DensityDistribution("properties_short.dat")
 
@@ -100,7 +100,7 @@ if sim.is_2d:
     print("\nThis is a 2d Simulation\n")
     
     #Added the 0.5 because of the 2D correction
-    v_b = (sim.volume * (h_b/ (sim.limits[1][1] - sim.limits[0][1]))) / 0.5 
+    v_b = (sim.volume * (h_b / (sim.limits[1][1] - sim.limits[0][1]))) / 0.5 
     index  = 1
     
 else:
