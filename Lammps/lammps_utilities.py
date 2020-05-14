@@ -40,7 +40,7 @@ def read_box_limits(log_name):
     return volume, limits
 
 # TODO generalise to get all the dimension
-def read_region_height(domain_name, geom_file="in.geom"):
+def read_region_height(domain_name, geom_file = "in.geom"):
     """
     Reads the bulk limits from in.geom
     Args:
