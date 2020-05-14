@@ -104,9 +104,9 @@ def thermo_analyser(file_name,minimum = 0.3):
         check the columns with thermo_data.index.values, thermo_data.column.values 
     """
 
-    data,header=data_extract(file_name)
-    save_file(data,header)
-    stat.fast_averager("Parameters.dat",minimum,"thermo.dat")
+    data, header = data_extract(file_name)
+    save_file(data, header)
+    stat.fast_averager("Parameters.dat", minimum, "thermo.dat")
 
     thermo_data = read_thermo_output("thermo.dat")
 
