@@ -22,6 +22,7 @@ def read_box_limits(log_name):
         volume
         limits
 
+    TODO: delete this function once  Simulation class is implemented
     """
     if not os.path.exists(log_name):
         print ("The log file specified does not exist")
@@ -36,10 +37,10 @@ def read_box_limits(log_name):
     limits = np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
     volume = (limits[1,0]-limits[0,0])*(limits[1,1]-limits[0,1])*(limits[1,2]-limits[0,2])
 
-    return volume,limits
+    return volume, limits
 
 # TODO generalise to get all the dimension
-def read_region_height(domain_name, geom_file = "in.geom"):
+def read_region_height(domain_name, geom_file="in.geom"):
     """
     Reads the bulk limits from in.geom
     Args:
@@ -65,9 +66,9 @@ def read_region_height(domain_name, geom_file = "in.geom"):
 # Create a class region and then  simulation box that is a inherits the rest with properties xmax,xmin, lx, vol, etc
 
 
-def read_value_from(input_file,key_phrase):
+def read_value_from(input_file, key_phrase):
     """
-    Extracts the numberical value from a line well specified by the key_phrase
+    Extracts the numerical value from a line well specified by the key_phrase
     Args:
         input_file: name of the file to look for the value log_file, in.*, etc
         key_phrase has to be very specific such that is not repeated in the file, ex "atoms in group gSolv"
@@ -87,7 +88,7 @@ def read_value_from(input_file,key_phrase):
     return value
 
 
-def solid_surface(data,atom_type):
+def solid_surface(data, atom_type):
     """
     Computes the limits of the solid surface
     Args:
@@ -113,3 +114,54 @@ def solid_surface(data,atom_type):
     f=open("Zshift.dat",'w')
     f.writelines("%lf \n" %Maxz)
     f.close
+
+
+class Simulation(object):
+    """
+    There are two classes that could be useful and probably merged later
+    -system in widom_pylammps
+    -simulation from qsub simulation results
+
+    Atributes:
+        log_file = name of the log file
+        thermo_ave = average of the parameters in the log file [DATAFRAME]
+        thermo_data = data from the log file [DATAFRAME]
+        volume = intial volume from the box
+        limits = initial limits of the box
+
+    TODO: Disbale the pritns when calling thermo_analyser
+
+    """
+    def __init__(self, log_file):
+        self.log_file = log_file
+        self._get_thermo_data()
+        self._read_box_limits()
+    
+    def _get_thermo_data(self):
+        self.thermo_ave = ta.thermo_analyser("log.lammps")
+        self.thermo_data = cf.read_data_file("Parameters.dat")
+
+    def _read_box_limits(self):
+        """
+        TODO make a lammps utilities function Copied from first_n_analysis
+        Reads the box limits from log.lammps
+        ONLY required for .xyz not for .dump
+        Args:
+            None: log_name name of the log file
+        returns:
+            volume
+            limits
+
+        """
+        if not os.path.exists(self.log_file):
+            print("The log file specified does not exist")
+            
+            sys.exit("The log file specified does not exist")
+            
+        out, err = cf.bash_command("""grep -n -a "orthogonal box" %s | awk -F":" '{print $1}' """%self.log_file)
+        line = int(out.split()[0])
+        limits = linecache.getline(self.log_file, line)
+        limits = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits)
+        limits = np.array(np.reshape(limits, (2,3)),dtype=float) # To have the box as with columns [x_i_min,x_i_max]
+        self.volume = (limits[1, 0] - limits[0, 0]) * (limits[1, 1] - limits[0, 1]) * (limits[1, 2] - limits[0, 2])
+        self.limits = limits
