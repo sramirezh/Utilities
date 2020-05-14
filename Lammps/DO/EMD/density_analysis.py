@@ -18,7 +18,7 @@ import Lammps.General.Thermo_Analyser as ta
 import Lammps.lammps_utilities as lu
 
 
-class DensityDistribution(object):
+class PropertyDistribution(object):
     """
     TODO This could be the parent class of the timestep class in chunk utilities
     """
@@ -50,7 +50,7 @@ class DensityDistribution(object):
 
 
 
-class DDWithBulk(DensityDistribution):
+class DensityDistribution(PropertyDistribution):
     """
     Child including the simulation inside and a possible bulk region definition
     """
@@ -65,10 +65,22 @@ class DDWithBulk(DensityDistribution):
         super().__init__(filename, log_file)
         self.bulk_name = bulk_name
         self._set_bulk()
-
-
-
-
+        self.rho_dist = self.data_frame['density/mass'].values
+        self.positions = self.data_frame['Coord1'].values
+        self.rho_bulk = self.get_bulk_property('density/mass')
+        self._lower_limit()
+    
+    def _lower_limit(self):
+        """
+        Estimates the position of the last chunk without any particles,
+        Getting this for the entire fluid, gives the lower limit of the
+        integrals
+        """
+        index = np.min(np.where(self.rho_dist>0))
+        self.lower_limit = self.positions[index]
+        
+        
+        
     def _get_data(self):
         self.data_frame = cf.read_data_file(self.filename)
         
@@ -84,84 +96,120 @@ class DDWithBulk(DensityDistribution):
         """
         name is the column name, eg. density/mass
         """
-        positions = self.data_frame['Coord1'].values
-        data = self.data_frame[name].values
         
-        indexes = np.where((positions> self.limits_b[0]) & (positions<self.limits_b[1]))
+        data = self.data_frame[name].values
+        indexes = np.where((self.positions> self.limits_b[0]) & (self.positions<self.limits_b[1]))
         
         ave_property = np.average(data[indexes])
         
         return ave_property
+    
+    def get_exc_con(self):
+        """
+        Excess concentration
+        """
+        self.exc_con = self.rho_dist-self.rho_bulk
+        self.data_frame['exc_con'] = self.exc_con
+        
+        return self.exc_con
+    
+    def plot_property(self, property_name):
+        cf.set_plot_appearance()
+        fig,ax = plt.subplots()
+        ax.plot(self.positions, self.data_frame[property_name].values)
+        #ax.set_ylabel(r'$C_s(y)-C_s^B$')
+        #ax.set_xlabel(r'$y $')
+        #xmin,xmax=plt.xlim()
+        #ax.set_xlim(0,zmax)
+        #ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
+        fig.tight_layout()
+        property_name = property_name.replace('/','_')
+        plt.savefig("%s.pdf" % (property_name) )
+        
+        return 0
+    
+    def get_gamma(self, lower_limit = 0.5, upper_limit = []):
+        """
+        lower_limit: For the integration, has to be from the wall.
+        upper_limit: If not assumed, it will be the position of the 
+        """
+        
+        if len(upper_limit)==0:
+            upper_limit = self.limits_b[0]
+            
+        self.get_exc_con()
+        gamma = cf.integrate(self.positions, self.exc_con, lower_limit, upper_limit)
+        
+        self.gamma = gamma
+        
+        return gamma
+    
+    def get_k(self, lower_limit = 0.5, upper_limit = []):
+        """
+        lower_limit: For the integration, has to be from the wall.
+        upper_limit: If not assumed, it will be the position of the 
+        """
+        
+        if len(upper_limit)==0:
+            upper_limit = self.limits_b[0]
+            
+        self.get_exc_con()
+        
+        integrand = self.exc_con/self.rho_bulk
+        k = cf.integrate(self.positions, integrand , lower_limit, upper_limit)
+        
+        self.k = k
+        
+        return k
+    
+    
+    def get_l(self, lower_limit = 0.5, upper_limit = []):
+        """
+        Computes l* as described by Anderson1984
+        lower_limit: For the integration, has to be from the wall.
+        upper_limit: If not assumed, it will be the position of the 
+        """
+        
+        if len(upper_limit)==0:
+            upper_limit = self.limits_b[0]
+            
+        self.get_exc_con()
+        self.get_k()
+        
+        integrand = self.positions * (self.exc_con/self.rho_bulk)
+        l = cf.integrate(self.positions, integrand , lower_limit, upper_limit)/self.k
+        
+        self.l = l
+        
+        return l
+    
+    def compute_all_properties(self, lower_limit, upper_limit):
+        return 0
         
     
+    def print_summary(self):
+        return 0
+    
+    
+    
+    
+        
+# =============================================================================
+# Main
+# =============================================================================
 
-solute = DDWithBulk("Sproperties_short.dat",'rBulk')
+solute = DensityDistribution("Sproperties_short.dat",'rBulk')
+solvent = DensityDistribution("Fproperties_short.dat",'rBulk')
+fluid = DensityDistribution("properties_short.dat",'rBulk')
+
+# Need the lower limit from all the solution
+lower_limit = fluid.lower_limit
+
+solute.get_k(lower_limit)
 
 
-#
-## =============================================================================
-## Main
-## =============================================================================
-#
-#sim = lu.Simulation("log.lammps")
-#
 
-#solvent = DensityDistribution("Fproperties_short.dat")
-#fluid = DensityDistribution("properties_short.dat")
-#
-#ns = sim.thermo_ave.at['v_cBSolu','Average']
-#nf = sim.thermo_ave.at['v_cBSolv','Average']
-#
-## =============================================================================
-##  Getting the concentration in the bulk, using the results from log. lammps
-## =============================================================================
-#
-#h_b, limits_b = lu.read_region_height("rBulk") # Getting bulk limits
-#
-#if sim.is_2d:
-#    print("\nThis is a 2d Simulation\n")
-#    
-#    #Added the 0.5 because of the 2D correction
-#    v_b = (sim.volume * (h_b / (sim.limits[1][1] - sim.limits[0][1]))) / 0.5 
-#    index  = 1
-#    
-#else:
-#    print("\nThis is a 3d Simulation\n")
-#    v_b = (sim.volume * (h_b / (sim.limits[1][2] - sim.limits[0][2]))) 
-#    index = 2
-#
-## TODO this can be computed from the distribution, knowing where is the bulk
-## Concentration of species in the bulk
-#cs_b = ns / v_b
-#cf_b = nf / v_b
-#
-#
-#
-#
-## =============================================================================
-## Computing important quantities
-## =============================================================================
-## TODO make this a class 
-#
-#z = SProperties[:,1]
-#
-#Cs_exc=SProperties[:,4]-Cs_B
-#
-#gamma=cf.integrate(z,Cs_exc,0,zmax_force)
-#
-#integrand_k=Cs_exc/Cs_B
-#
-#K=cf.integrate(z,integrand_k,0,zmax_force)
-#
-#integrand_1=integrand_k*z
-#
-#L=cf.integrate(z,integrand_1,0,zmax_force)
-#
-#integrand_2=0.5*integrand_k*z**2
-#
-#H=cf.integrate(z,integrand_2,0,zmax_force)/L
-#
-#
+
 #def velocity(Cs_exc, zmax):
 #    """
 #    Computes the velocity for each position from the wall
