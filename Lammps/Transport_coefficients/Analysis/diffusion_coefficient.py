@@ -65,7 +65,7 @@ def compute_centroids():
     return centroids_traj, time_steps
 
 
-class simulation(object):
+class SimulationType(object):
     """Class to define the type of simulation analysed, for example N2 or
     Octane
     """
@@ -94,8 +94,8 @@ class simulation(object):
 # Main
 # =============================================================================
     
-octane = simulation("octane", 1, 100, 3000)
-nitrogen = simulation("N2", 10, 100, 500)
+octane = SimulationType("octane", 1, 100, 3000)
+nitrogen = SimulationType("N2", 10, 100, 500)
 
 # this is the only thing to define
 sim = octane
