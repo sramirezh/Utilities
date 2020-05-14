@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-New script that uses the density distributions to plot the force profiles and theoretical quantities as gamma, K,L, and V.
+
+Scripts that computes the force distribution and generates the forces to 
+be applied in LAMMMPS
+
 TODO this code assumes the surface at z = 0
-File created copying what is in Property analysis but just to generate the force distribution
+
 @author: sr802
 """
 
