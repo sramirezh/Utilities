@@ -61,7 +61,7 @@ def run_analysis():
     
     
     etha11 = fc.correlation(pxy_flux,pxy_flux, max_delta)
-    etha11.evaluate()
+    etha11.evaluate_acf()
     etha11.save("etha11")
     
     return etha11
