@@ -11,13 +11,15 @@ import Lammps.General.Thermo_Analyser as ta
 
 
 
-def read_box_limits(log_name):
+def read_box_limits(log_name, entry_num = 0):
     """
     TODO make a lammps utilities function Copied from first_n_analysis
     Reads the box limits from log.lammps
     ONLY required for .xyz not for .dump
     Args:
         None: log_name name of the log file
+        entry_num = 0, if the initial box, -1 to get the last box, for instance
+        after barostating
     returns:
         volume
         limits
@@ -31,7 +33,7 @@ def read_box_limits(log_name):
         
         
     out,err = cf.bash_command("""grep -n -a "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
-    line = int(out.split()[0])
+    line = int(out.split()[entry_num])
     limits = linecache.getline(log_name, line)
     limits = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits)
     limits = np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
