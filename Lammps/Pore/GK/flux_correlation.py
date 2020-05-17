@@ -150,19 +150,21 @@ class correlation(object):
             t0 = t.time()
             x = self.flux1.components[:, dim]
             acf_array, confidence = acf(x, nlags = len(self.times[:self.max_delta])-1, fft = True, alpha = 0.05)
-            amplitude = np.correlate(x,x)/len(x)
+            # see autocorrelation_and_gk.ipynb for explanation
+            std_error = (acf_array - confidence[:, 0]) / 2  
+            amplitude = np.correlate(x, x) / len(x)
             self.norm[dim] = amplitude
-            self.cor[dim] = amplitude * acf_array
-            self.cor_norm[dim] = acf_array
+            cor_norm = un.unumpy.uarray(acf_array, std_error)   
+            self.cor_norm[dim] = cor_norm
+            self.cor[dim] = amplitude * cor_norm
 
             total = total + self.cor[dim]
-            print (t.time()-t0)
+            print(t.time() - t0)
         
         total = total / 3
         self.cor[-1] = total
         self.norm[-1] = total[0]
         self.cor_norm[-1] = total / total[0]
-
 
     def evaluate_ccf(self):
         """
