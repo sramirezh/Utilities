@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu May 14 09:58:32 2020
-Script to analyse density distributions
+Utilities to analyse density distributions
+
+See an example of the use in DO/EMD/analytic_resutls.py
 @author: simon
 """
 import numpy as np
@@ -69,6 +71,7 @@ class DensityDistribution(PropertyDistribution):
         self.positions = self.data_frame['Coord1'].values
         self.rho_bulk = self.get_bulk_property('density/mass')
         self._lower_limit()
+        
     
     def _lower_limit(self):
         """
@@ -104,7 +107,7 @@ class DensityDistribution(PropertyDistribution):
         
         return ave_property
     
-    def get_exc_con(self):
+    def _get_exc_con(self):
         """
         Excess concentration
         """
@@ -134,10 +137,10 @@ class DensityDistribution(PropertyDistribution):
         upper_limit: If not assumed, it will be the position of the 
         """
         
-        if len(upper_limit)==0:
+        if not upper_limit:
             upper_limit = self.limits_b[0]
             
-        self.get_exc_con()
+        self._get_exc_con()
         gamma = cf.integrate(self.positions, self.exc_con, lower_limit, upper_limit)
         
         self.gamma = gamma
@@ -150,10 +153,10 @@ class DensityDistribution(PropertyDistribution):
         upper_limit: If not assumed, it will be the position of the 
         """
         
-        if len(upper_limit)==0:
+        if not upper_limit:
             upper_limit = self.limits_b[0]
             
-        self.get_exc_con()
+        self._get_exc_con()
         
         integrand = self.exc_con/self.rho_bulk
         k = cf.integrate(self.positions, integrand , lower_limit, upper_limit)
@@ -170,10 +173,10 @@ class DensityDistribution(PropertyDistribution):
         upper_limit: If not assumed, it will be the position of the 
         """
         
-        if len(upper_limit)==0:
+        if not upper_limit:
             upper_limit = self.limits_b[0]
             
-        self.get_exc_con()
+        self._get_exc_con()
         self.get_k()
         
         integrand = self.positions * (self.exc_con/self.rho_bulk)
@@ -183,8 +186,16 @@ class DensityDistribution(PropertyDistribution):
         
         return l
     
-    def compute_all_properties(self, lower_limit, upper_limit):
-        return 0
+    def compute_all_properties(self, lower_limit, upper_limit = []):
+        
+        if not upper_limit:
+            upper_limit = self.limits_b[0]
+            
+        self.get_gamma(lower_limit, upper_limit) 
+        self.get_k(lower_limit, upper_limit) 
+        self.get_l(lower_limit, upper_limit) 
+        
+    
         
     
     def print_summary(self):
@@ -194,85 +205,3 @@ class DensityDistribution(PropertyDistribution):
     
     
         
-# =============================================================================
-# Main
-# =============================================================================
-
-solute = DensityDistribution("Sproperties_short.dat",'rBulk')
-solvent = DensityDistribution("Fproperties_short.dat",'rBulk')
-fluid = DensityDistribution("properties_short.dat",'rBulk')
-
-# Need the lower limit from all the solution
-lower_limit = fluid.lower_limit
-
-solute.get_k(lower_limit)
-
-
-
-
-#def velocity(Cs_exc, zmax):
-#    """
-#    Computes the velocity for each position from the wall
-#    
-#    
-#    
-#    """
-#    z = np.linspace(0,zmax)
-#    
-#    internal_values = [cf.integrate(z,Cs_exc,0,zlim) for zlim in z]
-#    integral = cf.integrate(z,internal_values,0,zlim)
-#    return internal_values
-#
-#
-#def bulk_velocity(Cs_exc,z):
-#    """
-#    Computes the bulk velocity, should be 0.012
-#    """
-#    eta = 1.56
-#    grad_mu = - 0.125
-#    
-#    integrand = Cs_exc*z
-#    
-#    integral = cf.integrate(z,integrand,0,25)
-#    
-#    vx = grad_mu/eta*integral
-#    
-#    return vx
-#    
-#print ("\nThe bulk velocity is %f"%bulk_velocity(Cs_exc,z))
-#print ("Gamma is %f\n K is %f\n L is %f\n H is %f \n"%(gamma,K,L,H))
-#    
-#
-#
-#
-#
-#
-#
-##Excess Solute concentration
-#fig,ax=plt.subplots()
-#ax.plot(SProperties[:,1],Cs_exc)
-#ax.set_ylabel(r'$C_s(y)-C_s^B$')
-#ax.set_xlabel(r'$y $')
-#xmin,xmax=plt.xlim()
-#ax.set_xlim(0,zmax)
-#ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
-#fig.tight_layout()
-#plt.savefig("Excess.pdf")
-#
-## Density distribution
-#
-#fig2,ax2=plt.subplots()
-#ax2.plot(FProperties[:,1],FProperties[:,4],label = 'Solvents', c ='b')
-#ax2.plot(SProperties[:,1],SProperties[:,4],label = 'Solutes', c ='r')
-#ax2.set_ylabel(r"$c[\sigma^{-3}]$", fontsize = 30)
-#ax2.set_xlabel(r'$d[\sigma]$', fontsize = 30)
-#ax2.set_xlim(zmin, zmax)
-#ax2.set_ylim(0,ax2.get_ylim()[-1])
-#ax2.set_xticks(np.arange(zmin, zmax, x_tick_distance))
-#plt.xticks(fontsize=20)
-#plt.yticks(fontsize=20)
-#ax2.axhline(y=Cs_B, xmin=0, xmax=1,ls=':',c='black')
-#ax2.axhline(y=Cf_B, xmin=0, xmax=1,ls=':',c='black')
-#plt.legend(loc = 'upper right', fontsize = 15)
-#plt.tight_layout()
-#fig2.savefig("density_dist.pdf")
