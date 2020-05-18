@@ -69,8 +69,8 @@ def run_analysis(press_file, time_step, max_tau):
 logger = cf.log(__file__, os.getcwd())
 
 time_step = 0.005 # In LJ time
-max_tau = 100 # in LJ time
-tau_integration = 10
+max_tau = 100 # in LJ time  Max tau to analyse
+tau_integration = 10 # limit for the integration
 Kb = 1  
 Temperature = 1
 log_file = "log.lammps"
@@ -101,9 +101,9 @@ else:
     
     
 integral = etha11.transport_coeff(1, 0, tau_integration) 
-eta = integral * prefactor 
+eta_tau_int = integral * prefactor 
 
-logger.info("The viscosity is %2.5f+/- %2.5f in LJ units"%(eta.n, eta.s))
+logger.info("The viscosity is %2.5f+/- %2.5f in LJ units"%(eta_tau_int.n, eta_tau_int.s))
 
 # =============================================================================
 # Computing the viscosity from lammps on-the-fly correlation
@@ -166,7 +166,8 @@ for t in tau_array:
 ax.plot(tau_array,eta_array)
 
 ax.set_xlabel(r'$\tau$')
-ax.axhline(y = eta, xmin=0, xmax=1,ls='--',c='black', label = "%2.4f" %eta)
+ax.axhline(y = eta, xmin=0, xmax=1,ls='--',c='black', label = "%2.4f" %eta_tau_int.n)
+ax.axvline(x = tau_integration,ls='--',c='black')
 #ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 ax.set_ylabel(r'$\eta$')
 plt.legend( loc = 'lower right')
