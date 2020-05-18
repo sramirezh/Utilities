@@ -12,6 +12,7 @@ import pickle as pickle
 import Lammps.core_functions as cf
 from scipy.stats import sem
 import uncertainties as un
+from uncertainties import unumpy  # Must be imported like this
 from statsmodels.tsa.stattools import acf, ccf
 import time as t
 # =============================================================================
@@ -154,7 +155,7 @@ class correlation(object):
             std_error = (acf_array - confidence[:, 0]) / 2  
             amplitude = np.correlate(x, x) / len(x)
             self.norm[dim] = amplitude
-            cor_norm = un.unumpy.uarray(acf_array, std_error)   
+            cor_norm = unumpy.uarray(acf_array, std_error)   
             self.cor_norm[dim] = cor_norm
             self.cor[dim] = amplitude * cor_norm
 
@@ -272,7 +273,7 @@ class bundle_correlation(correlation):
         array = self.arrays
         if len(array):
             ddof = 0
-        self.cor = un.unumpy.uarray(np.average(array, axis=0), sem(array,
+        self.cor = unumpy.uarray(np.average(array, axis=0), sem(array,
                                     axis=0, ddof=ddof))
            
     def plot(self, fig, ax, dim=0, alpha=0.4, every=1, ax_label=True,
