@@ -78,7 +78,8 @@ press_file = "pressures.dat"
 lammps_sacf = "S0St.dat"
 
 logger.info("Using delta_t = %s " %time_step)
-logger.info("Using max tau = %s "%max_tau)
+logger.info("Using max tau = %s for the analysis "%max_tau)
+logger.info("Using integration tau = %s for the autocorrelation "%tau_integration)
 logger.info("Getting the box size from %s" %log_file)
 
 volume, limits = lu.read_box_limits("log.lammps", -1)
@@ -134,7 +135,7 @@ fig,ax = etha11.plot_all(fig, ax, norm = False)
 #ax.set_ylim(-0.0005,0.0005)
 #ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["v_pxy*v_pxy"],label =r"$P_{xy}^{Lammps}$")
 
-ax.axvline(x = tau_integration,ls='--',c='black')
+ax.axvline(x = tau_integration,ls='-.',c='black')
 ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
 ax.set_xscale('log')
 ax.set_xlabel(r'$\tau$')
@@ -151,24 +152,36 @@ plt.savefig("correlation11.pdf")
 fig,ax = plt.subplots()
 
 tau_array = np.linspace(etha11.times[1], etha11.times[-1])
+# Need to add the integration time
+tau_array = np.sort(np.append(tau_array, tau_integration)) 
 
 eta_array = []
+eta_error = []
 
 
 for t in tau_array:
     # Taking only the nominal value
-    eta = etha11.transport_coeff(prefactor, 0, t)
+    eta = prefactor * etha11.transport_coeff(1, 0, t)
+    error = 0
     if isinstance(eta, un.UFloat):
+        error = eta.s
         eta = eta.n
-    
+        
+    eta_error.append(error)
     eta_array.append(eta)
+
+eta_error = np.array(eta_error)
+eta_array = np.array(eta_array)
     
 ax.plot(tau_array,eta_array)
-
+ax.fill_between(tau_array, eta_array - eta_error, eta_array + eta_error, alpha=0.4)
 ax.set_xlabel(r'$\tau$')
-ax.axhline(y = eta, xmin=0, xmax=1,ls='--',c='black', label = "%2.4f" %eta_tau_int.n)
-ax.axvline(x = tau_integration,ls='--',c='black')
-#ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax.axhline(y = eta_tau_int.n , xmin=0, xmax=1,ls='--',c='black', label = r'$\eta = %2.4f$' %eta_tau_int.n)
+ax.axvline(x = tau_integration,ls='-.',c='black')
+xmin,xmax = ax.get_xlim()
+ymin,ymax = ax.get_ylim()
+ax.set_xlim(0, xmax)
+ax.set_ylim(0, ymax)
 ax.set_ylabel(r'$\eta$')
 plt.legend( loc = 'lower right')
 plt.tight_layout()
