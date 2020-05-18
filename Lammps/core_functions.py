@@ -11,10 +11,64 @@ from cycler import cycler
 import warnings
 import pickle as pickle
 import matplotlib.pyplot as plt
+import logging
 from distutils.spawn import find_executable
 
 warnings.filterwarnings("ignore")
 
+
+class log(logging.Logger):
+    """
+    Class extending the logger object from the module log
+    Class to print everything to a file and to screen.
+    Instead of using print, use log.info("text") or read the documentation
+    """
+    def __init__(self, path, cwd):
+        """
+        file_name is the name of the python file currently running
+        path: given by __file__
+        """
+        logging.Logger.__init__(self, "")  # run parent __init__ class\
+        self.setLevel(logging.DEBUG)
+        self.path = os.path.dirname(path)
+        self.file_name = path.split('/')[-1]
+        self.cwd = cwd
+        log_name = self.file_name.split('.')[0]
+        self.log_file = "%s.log"%log_name       
+        
+        self._set_console_handler()
+        self._set_file_handler()
+
+        self.print_basic_info()
+
+    def _set_console_handler(self):
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)  # or any other level
+        self.addHandler(ch)
+        
+    def _set_file_handler(self):
+        
+        fh = logging.FileHandler(self.log_file, 'w')
+        fh.setLevel(logging.INFO)  # or any level you want
+        self.addHandler(fh)
+
+    def _get_git_hash(self):
+        os.chdir(self.path)
+        hash_pre, err = bash_command("""git rev-parse HEAD""")
+        hash_post = hash_pre.strip().decode("utf-8")
+        self.hash = hash_post
+        os.chdir(self.cwd)
+    
+    def print_basic_info(self):
+        import datetime
+        self._get_git_hash()
+        self.info("\n--------------------------------------------------------")
+        self.info(datetime.datetime.now())
+        self.info("Running %s"%self.file_name)
+        self.info("The git hash is %s" % self.hash)
+        self.info("Running inside %s" % self.cwd)
+        self.info("--------------------------------------------------------\n")
+        
 
 
 def bash_command(cmd):
