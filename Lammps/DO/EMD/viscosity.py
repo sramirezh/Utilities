@@ -18,7 +18,6 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import logging
 import uncertainties as un
 import glob
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
@@ -29,7 +28,6 @@ import Lammps.lammps_utilities as lu
 
 import Lammps.Pore.GK.flux_correlation as fc
 
-cwd = os.getcwd() #current working directory
 
 
 def run_analysis(press_file, time_step, max_tau):
@@ -68,22 +66,7 @@ def run_analysis(press_file, time_step, max_tau):
 # =============================================================================
 # Main
 # =============================================================================
-
-
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
-# console handler
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO) # or any other level
-logger.addHandler(ch)
-
-# file handler
-fh = logging.FileHandler('viscosity.log','w')
-fh.setLevel(logging.INFO) # or any level you want
-logger.addHandler(fh)
-
+logger = cf.log(__file__, os.getcwd())
 
 time_step = 0.005 # In LJ time
 max_tau = 100 # in LJ time
@@ -94,7 +77,6 @@ log_file = "log.lammps"
 press_file = "pressures.dat"
 lammps_sacf = "S0St.dat"
 
-logger.info("\nUsing %s to analyse the data" %__file__)
 logger.info("Using delta_t = %s " %time_step)
 logger.info("Using max tau = %s "%max_tau)
 logger.info("Getting the box size from %s" %log_file)
@@ -190,9 +172,3 @@ ax.set_ylabel(r'$\eta$')
 plt.legend( loc = 'lower right')
 plt.tight_layout()
 plt.savefig("eta_vs_tau.pdf")
-
-
-
-
-logger.removeHandler(ch)
-logger.removeHandler(fh)
