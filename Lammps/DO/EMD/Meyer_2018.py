@@ -129,7 +129,7 @@ fig,ax = plt.subplots()
 
 
 ax.plot(temperature, viscosity, label = 'Meyer et al')
-ax.errorbar(ave_results[:,0], ave_results[:,1], yerr = ave_results[:,2], label="Results", fmt='o')
+ax.errorbar(ave_results[:,0], ave_results[:,1], yerr = ave_results[:,2], label="GK", fmt='o')
 ax.set_xlabel(r'$T$')
 ax.set_ylim([0,3])
 ax.set_ylabel(r'$\eta$')
