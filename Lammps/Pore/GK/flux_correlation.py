@@ -90,7 +90,7 @@ class correlation(object):
         self.cor = (dimension + 1) * [0]  
         self.norm = (dimension + 1) * [0]  
         self.cor_norm = (dimension + 1) * [0]  
-        self.dic_label = {0: 'x', 1: 'y', 2: 'z', self.dimension: 'Total'}
+        self.dic_label = {0: r'$x$', 1: r'$y$', 2: r'$z$', self.dimension: 'Total'}
         
     def initial_check(self):
         """Checks if the time series are equal and the fluxes have the same
