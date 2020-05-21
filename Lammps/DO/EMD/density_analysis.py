@@ -33,7 +33,7 @@ class PropertyDistribution(object):
         self._get_data()
         self.log_file = []
         self._initial_check()
-        self._properties()
+        self._get_properties()
     
     def _initial_check(self):
         """
@@ -46,9 +46,14 @@ class PropertyDistribution(object):
 
     def _get_data(self):
         self.data_frame = cf.read_data_file(self.filename)
-        
-    def _properties(self):
-        self.properties = self.data_frame.columns
+
+
+    
+    def _get_properties(self):
+        """
+        get the names of all the properties given by the columns in the df
+        """
+        self.property_dist = self.data_frame.columns
 
 
 
@@ -79,7 +84,9 @@ class DensityDistribution(PropertyDistribution):
         Getting this for the entire fluid, gives the lower limit of the
         integrals
         """
-        index = np.min(np.where(self.rho_dist>0))
+        index = np.min(np.where(self.rho_dist > 0))
+        if index >0: 
+            index = index - 1
         self.lower_limit = self.positions[index]
         
         
@@ -107,31 +114,33 @@ class DensityDistribution(PropertyDistribution):
         
         return ave_property
     
-    def _get_exc_con(self):
+    def _get_rho_exc(self):
         """
         Excess concentration
         """
-        self.exc_con = self.rho_dist-self.rho_bulk
-        self.data_frame['exc_con'] = self.exc_con
+        self.rho_exc = self.rho_dist - self.rho_bulk
+        self.data_frame['rho_exc'] = self.rho_exc
+        self._get_properties()
         
-        return self.exc_con
+        return self.rho_exc
     
-    def plot_property(self, property_name):
+    def plot_property_dist(self, property_name, lower_limit, upper_limit, save=True):
         cf.set_plot_appearance()
-        fig,ax = plt.subplots()
+        fig, ax = plt.subplots()
         ax.plot(self.positions, self.data_frame[property_name].values)
         #ax.set_ylabel(r'$C_s(y)-C_s^B$')
         #ax.set_xlabel(r'$y $')
         #xmin,xmax=plt.xlim()
-        #ax.set_xlim(0,zmax)
+        ax.set_xlim(lower_limit, upper_limit)
         #ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
         fig.tight_layout()
         property_name = property_name.replace('/','_')
-        plt.savefig("%s.pdf" % (property_name) )
+        if save == True:
+            plt.savefig("%s.pdf" % (property_name))
         
-        return 0
+        return fig, ax
     
-    def get_gamma(self, lower_limit = 0.5, upper_limit = []):
+    def get_gamma(self, lower_limit = 0, upper_limit = []):
         """
         lower_limit: For the integration, has to be from the wall.
         upper_limit: If not assumed, it will be the position of the 
@@ -140,14 +149,17 @@ class DensityDistribution(PropertyDistribution):
         if not upper_limit:
             upper_limit = self.limits_b[0]
             
-        self._get_exc_con()
-        gamma = cf.integrate(self.positions, self.exc_con, lower_limit, upper_limit)
+        self._get_rho_exc()
+
+        # Transforming the positions
+        positions = self.positions - lower_limit
+        gamma = cf.integrate(positions, self.rho_exc, 0, upper_limit)
         
         self.gamma = gamma
         
         return gamma
     
-    def get_k(self, lower_limit = 0.5, upper_limit = []):
+    def get_k(self, lower_limit = 0, upper_limit = []):
         """
         lower_limit: For the integration, has to be from the wall.
         upper_limit: If not assumed, it will be the position of the 
@@ -156,19 +168,27 @@ class DensityDistribution(PropertyDistribution):
         if not upper_limit:
             upper_limit = self.limits_b[0]
             
-        self._get_exc_con()
-        
-        integrand = self.exc_con/self.rho_bulk
-        k = cf.integrate(self.positions, integrand , lower_limit, upper_limit)
+        self._get_rho_exc()
+        # Transforming the positions
+        positions = self.positions - lower_limit
+
+        integrand = self.rho_exc / self.rho_bulk
+
+        self.data_frame["integrand_k"] = integrand
+        self._get_properties()
+
+        k = cf.integrate(positions, integrand, 0, upper_limit)
         
         self.k = k
         
         return k
     
     
-    def get_l(self, lower_limit = 0.5, upper_limit = []):
+    def get_l(self, lower_limit = 0, upper_limit = []):
         """
         Computes l* as described by Anderson1984
+        !!!!! The positions are all shifted, the zero is defined as per 
+        lower_limit which is the position of the first bin with particles!!!
         lower_limit: For the integration, has to be from the wall.
         upper_limit: If not assumed, it will be the position of the 
         """
@@ -176,11 +196,16 @@ class DensityDistribution(PropertyDistribution):
         if not upper_limit:
             upper_limit = self.limits_b[0]
             
-        self._get_exc_con()
-        self.get_k()
+        self._get_rho_exc()
+        self.get_k(lower_limit)
         
-        integrand = self.positions * (self.exc_con/self.rho_bulk)
-        l = cf.integrate(self.positions, integrand , lower_limit, upper_limit)/self.k
+        # Transforming the positions
+        positions = self.positions - lower_limit
+        integrand = positions * (self.rho_exc / self.rho_bulk)
+
+        self.data_frame["integrand_first"] = integrand
+        self._get_properties()
+        l = cf.integrate(positions, integrand, 0, upper_limit) / self.k
         
         self.l = l
         
@@ -190,12 +215,12 @@ class DensityDistribution(PropertyDistribution):
         
         if not upper_limit:
             upper_limit = self.limits_b[0]
-            
+        
         self.get_gamma(lower_limit, upper_limit) 
         self.get_k(lower_limit, upper_limit) 
         self.get_l(lower_limit, upper_limit) 
         
-    
+
         
     
     def print_summary(self):
