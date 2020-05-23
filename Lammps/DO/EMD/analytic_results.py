@@ -23,52 +23,27 @@ import Lammps.core_functions as cf
 # =============================================================================
 
 
-
-
-# =============================================================================
-# Integrating with other techniques 
-# =============================================================================
-    
-
-
-
-
-solute_hiroaki = da.DensityDistribution("Hiroaki.dat",'rBulk')
 solute = da.DensityDistribution("Sproperties_short.dat",'rBulk')
 solvent = da.DensityDistribution("Fproperties_short.dat",'rBulk')
 fluid = da.DensityDistribution("properties_short.dat",'rBulk')
 
-# Need the lower limit from all the solution
-lower_limit = fluid.lower_limit
-
-z_wall = 0
-
-z_min = lower_limit
-
-print("\nAssuming that the wall is at z = %s"%z_min)
-
-solute.compute_all_properties(solute.lower_limit)
-solvent.compute_all_properties(solvent.lower_limit)
-solute_hiroaki.compute_all_properties(solute_hiroaki.lower_limit)
-
-
+# Parameters
 Kb = 1
 T = 1
 eta =  1.57
 grad_mu_s = - 0.125
+
+
+z_wall = 0
+
+solute.compute_all_properties(solute.lower_limit)
+solvent.compute_all_properties(solvent.lower_limit)
 
 # For the solutes
 grad_c_s = grad_mu_s * solute.rho_bulk
 v_0_s = - (Kb* T)* solute.l*solute.k/eta
 vx_s = v_0_s * grad_c_s
 
-
-# For the solutes Hiroaki
-grad_c_s_h = grad_mu_s * solute_hiroaki.rho_bulk
-v_0_s_h = - (Kb* T)* solute_hiroaki.l*solute_hiroaki.k/eta
-vx_s_h = v_0_s_h * grad_c_s_h
-
-print("The velocity for hiroaki is %s"%vx_s_h)
 
 # For the solvents
 grad_mu_f = - (solute.rho_bulk / solvent.rho_bulk)* grad_mu_s
@@ -88,8 +63,6 @@ print (vx_f)
 print ("total is %s" % (vx_total))
 
 
-
-
 # =============================================================================
 # Computing the velocity using both species
 # =============================================================================
@@ -100,4 +73,15 @@ print(solute.property_dist)
 
 solute.get_k(0)
 solute.plot_property_dist("integrand_k", 0,8)
+
+
+
+
+
+#  Integral
+
+
+
+cf.integrate()
+
 
