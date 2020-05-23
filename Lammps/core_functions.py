@@ -372,9 +372,9 @@ def set_plot_appearance(presentation_type = False):
         # Legend
 
         plt.rcParams['legend.fontsize'] = legend_font
-        plt.rcParams['legend.loc'] ='upper left'
+        plt.rcParams['legend.loc'] = 'upper left'
         plt.rcParams['legend.labelspacing'] = 0.5
-        plt.rcParams['legend.borderpad'] =0.4
+        plt.rcParams['legend.borderpad'] = 0.4
         plt.rcParams['legend.frameon'] = True
         plt.rcParams['legend.fancybox'] = False
         plt.rcParams['legend.edgecolor'] = 'k'
@@ -384,7 +384,7 @@ def set_plot_appearance(presentation_type = False):
         # Errorbar plots
         plt.rcParams['errorbar.capsize'] = 4
 
-def integrate(x,y,xmin,xmax):
+def integrate(x, y, xmin, xmax):
     """
     Integrate the data in x and y from xmin to xmax
     
@@ -396,11 +396,11 @@ def integrate(x,y,xmin,xmax):
         xmin : the lower limit of the integral
         xmax : the upper limit of the integral
     """
-    MinIndex=np.min(np.where(x>=xmin))
-    MaxIndex=np.max(np.where(x<=xmax))
-    I=np.trapz(y[MinIndex:MaxIndex],x[MinIndex:MaxIndex])
+    MinIndex = np.min(np.where(x >= xmin))
+    MaxIndex = np.max(np.where(x <= xmax))
+    integral = np.trapz(y[MinIndex:MaxIndex], x[MinIndex:MaxIndex])
 
-    return I
+    return integral
 
 
 
