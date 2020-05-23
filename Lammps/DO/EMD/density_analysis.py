@@ -31,6 +31,7 @@ class PropertyDistribution(object):
         """
         self.filename = filename
         self._get_data()
+        self.positions = self.data_frame['Coord1'].values
         self.log_file = []
         self._initial_check()
         self._get_properties()
@@ -54,6 +55,44 @@ class PropertyDistribution(object):
         get the names of all the properties given by the columns in the df
         """
         self.property_dist = self.data_frame.columns
+    
+    def plot_property_dist(self, property_name, xlims = [], ylims = [], ax = [], save=True):
+        """
+        Plots a property distribution, to get the name of the properties, run
+        self.property_dist.
+
+        Args:
+            property_names: as in the columns of the data_frame (self.property_dist)
+            xlims: an array with the limits in x
+            ylims:an array with the limits in y
+            ax: axis 
+            save: True or False to save the figure
+        
+        Returns:
+            fig, ax: containing all the plot information
+        """
+        cf.set_plot_appearance()
+        if not ax:
+            fig, ax = plt.subplots()
+        else:
+            fig = plt.figure()
+        ax.plot(self.positions, self.data_frame[property_name].values)
+        #ax.set_ylabel(r'$C_s(y)-C_s^B$')
+        #ax.set_xlabel(r'$y $')
+        #xmin,xmax=plt.xlim()
+        if xlims:
+            ax.set_xlim(xlims[0], xlims[1])
+        
+        if ylims:
+            ax.set_ylim(ylims[0], ylims[1])
+
+        #ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
+        fig.tight_layout()
+        property_name = property_name.replace('/', '_')
+        if save == True:
+            plt.savefig("%s.pdf" % (property_name))
+        
+        return ax
 
 
 
@@ -73,7 +112,6 @@ class DensityDistribution(PropertyDistribution):
         self.bulk_name = bulk_name
         self._set_bulk()
         self.rho_dist = self.data_frame['density/mass'].values
-        self.positions = self.data_frame['Coord1'].values
         self.rho_bulk = self.get_bulk_property('density/mass')
         self._lower_limit()
         
@@ -124,21 +162,6 @@ class DensityDistribution(PropertyDistribution):
         
         return self.rho_exc
     
-    def plot_property_dist(self, property_name, lower_limit, upper_limit, save=True):
-        cf.set_plot_appearance()
-        fig, ax = plt.subplots()
-        ax.plot(self.positions, self.data_frame[property_name].values)
-        #ax.set_ylabel(r'$C_s(y)-C_s^B$')
-        #ax.set_xlabel(r'$y $')
-        #xmin,xmax=plt.xlim()
-        ax.set_xlim(lower_limit, upper_limit)
-        #ax.axhline(y=0, xmin=xmin, xmax=xmax,ls='--',c='black')
-        fig.tight_layout()
-        property_name = property_name.replace('/','_')
-        if save == True:
-            plt.savefig("%s.pdf" % (property_name))
-        
-        return fig, ax
     
     def get_gamma(self, lower_limit = 0, upper_limit = []):
         """
