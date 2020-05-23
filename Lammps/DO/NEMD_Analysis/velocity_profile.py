@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.General.chunk_utilities as cu
 import Lammps.core_functions as cf
-import density_analysis as da
+import Lammps.DO.EMD.density_analysis as da
 
 
 fluid = da.PropertyDistribution("properties_short.dat") 
@@ -41,7 +41,17 @@ ax.legend(["Fluid", "Solvent", "Solute"])
 fig.savefig('vprofile.pdf')
 
 
+ymin, ymax = plt.ylim()
+
 # Detail at the interface
 ax.set_xlim(0,2)
-ax.set_ylim(0,0.005)
+ax.set_ylim(ymin,0.005)
+fig.tight_layout()
 fig.savefig('vprofile_zoom.pdf')
+
+
+# Detail at the interface
+ax.set_xlim(0,5)
+ax.set_ylim(ymin,0.03)
+fig.tight_layout()
+fig.savefig('vprofile_zoom2.pdf')
