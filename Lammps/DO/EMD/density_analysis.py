@@ -115,7 +115,6 @@ class DensityDistribution(PropertyDistribution):
         self.rho_bulk = self.get_bulk_property('density/mass')
         self._lower_limit()
         
-    
     def _lower_limit(self):
         """
         Estimates the position of the last chunk without any particles,
@@ -123,16 +122,10 @@ class DensityDistribution(PropertyDistribution):
         integrals
         """
         index = np.min(np.where(self.rho_dist > 0))
-        if index >0: 
+        if index > 0: 
             index = index - 1
         self.lower_limit = self.positions[index]
         
-        
-        
-    def _get_data(self):
-        self.data_frame = cf.read_data_file(self.filename)
-        
-    
     def _set_bulk(self):
         """
         

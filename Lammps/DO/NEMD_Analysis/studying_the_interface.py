@@ -27,26 +27,38 @@ def plot_zoom(ax,fig, xlim, ylim, name):
     fig.tight_layout()
     fig.savefig("%s.pdf"%name)
     
-def get_ymax(xmax, fluid, solute, solvent, prop_name):
+def get_ymax(xmin, xmax, fluid, solute, solvent, prop_name):
     """
-    Returns the closest x to xmax (from below) and the largest value of the property 
-    at that point.
+    Returns the closest x to xmax (from below) and the bounding values in 
+    y for that range
     
     Assumes that the property grows
     """
     
-    ind_x = fluid.data_frame['Coord1'].iloc[(fluid.data_frame['Coord1']- xmax ).abs().argsort()[:2]].idxmin()
-    xmax = fluid.data_frame['Coord1'].iloc[ind_x]
-    ymax = max(fluid.data_frame[prop_name].iloc[ind_x], solute.data_frame[prop_name].iloc[ind_x], solvent.data_frame[prop_name].iloc[ind_x] )
+    # Assuming that all objects have the same x coordinates
+    ind_x_max = fluid.data_frame['Coord1'].iloc[(fluid.data_frame['Coord1']- xmax ).abs().argsort()[:2]].idxmin()
+    xmax = fluid.data_frame['Coord1'].iloc[ind_x_max]
     
-    return xmax, ymax
+    ind_x_min= fluid.data_frame['Coord1'].iloc[(fluid.data_frame['Coord1']- xmin ).abs().argsort()[:2]].idxmin()
+    xmin = fluid.data_frame['Coord1'].iloc[ind_x_min]
+    
+    # getting the maximum values in that range
+    ymax = max(fluid.data_frame[prop_name].iloc[ind_x_min:ind_x_max].max(), 
+               solute.data_frame[prop_name].iloc[ind_x_min:ind_x_max].max(), 
+               solvent.data_frame[prop_name].iloc[ind_x_min:ind_x_max].max())
+    
+    ymin = min(fluid.data_frame[prop_name].iloc[ind_x_min:ind_x_max].min(), 
+           solute.data_frame[prop_name].iloc[ind_x_min:ind_x_max].min(), 
+           solvent.data_frame[prop_name].iloc[ind_x_min:ind_x_max].min())
+
+    return xmin, xmax, ymin, ymax
  
 fluid = da.PropertyDistribution("properties_short.dat") 
 solute = da.PropertyDistribution("Sproperties_short.dat") 
 solvent = da.PropertyDistribution("Fproperties_short.dat") 
 
 # =============================================================================
-# Plotting
+# Plotting the velocities
 # =============================================================================
 cf.set_plot_appearance()
 
@@ -71,11 +83,50 @@ ymin = fluid.data_frame['vx'].min()
 
 
 # Getting the index closest to the limit
+xmin = 0
 xmax = 2
-xmax, ymax = get_ymax(xmax, fluid, solute, solvent, "vx" )
+xmin, xmax, ymin, ymax = get_ymax(xmin, xmax, fluid, solute, solvent, "vx" )
 plot_zoom(ax, fig,  [0,xmax], [ymin, ymax], "vprofile_zoom")
 
 
+xmin = 0
 xmax = 5
-xmax, ymax = get_ymax(xmax, fluid, solute, solvent, "vx" )
+xmin, xmax, ymin,ymax = get_ymax(xmin, xmax, fluid, solute, solvent, "vx" )
 plot_zoom(ax, fig,  [0, xmax], [ymin, ymax], "vprofile_zoom2")
+
+
+# =============================================================================
+# Plotting the densities
+# =============================================================================
+
+fig, ax = plt.subplots()
+
+fluid.plot_property_dist("density/mass", ax = ax)
+solvent.plot_property_dist("density/mass", ax = ax)
+solute.plot_property_dist("density/mass", ax = ax)
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+
+
+ax.set_xlim(0, fluid.positions[-1])
+ax.set_xlabel(r'$z[\sigma] $')
+ax.set_ylabel(r'$v_x(z)$')
+
+fig.tight_layout()
+ax.legend(["Fluid", "Solvent", "Solute"], loc = 'upper right')
+fig.savefig('rhoprofile.pdf')
+
+ymin = fluid.data_frame['vx'].min()
+
+
+# Getting the index closest to the limit
+xmin = 0
+xmax = 2
+xmin, xmax, ymin,ymax = get_ymax(xmin, xmax, fluid, solute, solvent, "density/mass" )
+plot_zoom(ax, fig,  [0,xmax], [ymin, ymax], "rhoprofile_zoom")
+
+xmin = 0
+xmax = 5
+xmin, xmax, ymin,ymax = get_ymax(xmin,xmax, fluid, solute, solvent, "density/mass" )
+plot_zoom(ax, fig,  [0, xmax], [ymin, ymax], "rhoprofile_zoom2")
+
+
