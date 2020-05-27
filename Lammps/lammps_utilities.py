@@ -118,6 +118,32 @@ def solid_surface(data, atom_type):
     f.close
 
 
+# Once Simulation gets all the variables, this class could be unified
+class SimulationType(object):
+    """Class to define the type of simulation analysed, for example N2 or
+    Octane
+    """
+    def __init__(self, name):
+        """
+        Args:
+            name: to identify the simulation type, eg. N2
+        """
+        self.name = name    
+        
+    def print_params(self, logger):
+        """
+        Args:
+            logger is an object of the class cf.log
+        """
+        logger.info("\nUsing the parameters from %s\n"%self.name)
+        dictionary = vars(self)
+        for key in dictionary.keys():
+            if key != 'name':
+                logger.info("Using %s as %s"%(key, dictionary[key]))
+        logger.info("\n")
+
+
+# Todo could create a method to get all the variables and their values and then create a dictionary
 class Simulation(object):
     """
     There are two classes that could be useful and probably merged later
