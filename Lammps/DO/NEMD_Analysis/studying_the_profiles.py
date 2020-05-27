@@ -111,11 +111,12 @@ fig, ax = plt.subplots()
 fluid.plot_property_dist("density/mass", ax = ax)
 solvent.plot_property_dist("density/mass", ax = ax)
 solute.plot_property_dist("density/mass", ax = ax)
-ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 ax.axvspan(fluid.limits_b[0], fluid.limits_b[1], alpha=0.5, color='green')
 
 
 ax.set_xlim(0, fluid.positions[-1])
+ax.set_ylim(0, None)
 ax.set_xlabel(r'$z[\sigma] $')
 ax.set_ylabel(r'$c(z)$')
 
