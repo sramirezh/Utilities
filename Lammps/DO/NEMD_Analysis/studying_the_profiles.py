@@ -75,7 +75,7 @@ fig, ax = plt.subplots()
 fluid.plot_property_dist("vx", ax = ax)
 solvent.plot_property_dist("vx", ax = ax)
 solute.plot_property_dist("vx", ax = ax)
-ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 
 
 ax.set_xlim(0, fluid.positions[-1])

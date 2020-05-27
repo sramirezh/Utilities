@@ -156,7 +156,7 @@ fig.savefig("raw_data.pdf")
 indexes = np.where((data[:,1]<= 0.5*lz_fluid)&(data[:,1]>= -0.5*lz_fluid))[0]
 data = data[indexes, :]
 
-
+#data = data[:-5,:]
 # New df with only the data from fluid region
 chunks_new = pd.DataFrame(data[:,1:], columns = chunks.columns[1:])
 
