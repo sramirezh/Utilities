@@ -277,7 +277,7 @@ def set_plot_appearance(presentation_type = False):
     if presentation_type == False: 
         axis_font=24
         tick_font=20
-        legend_font=18
+        legend_font=12
 
 
         #plt.rcParams['lines.linewidth'] = 1.5
