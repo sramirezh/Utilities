@@ -47,6 +47,7 @@ def inner_integral(low_limit, species):
         integral: the integral from the lower limit to the the start of the bulk 
     """
     integral = cf.integrate(species.positions, species.data_frame['integrand_k'], low_limit, species.limits_b[0])
+    
     return integral
 
 
@@ -73,6 +74,10 @@ def vx(z, sim, species, grad_c, low_limit = []):
     integral = cf.integrate(species.positions, species.data_frame['vx_integrand'], low_limit, z) 
     vx_z = - (sim.T)*grad_c * integral / sim.eta
     return    vx_z
+
+
+
+
     
 # =============================================================================
 # Main
@@ -121,6 +126,12 @@ logger.info("The contribution to the velocity due to the solutes is %s"%vx_s)
 logger.info("The contribution to the velocity due to the solvents is %s"%vx_f)
 logger.info("The predicted DO velocity is  %s" % (vx_total)) 
 
+
+
+
+
+
+
 # =============================================================================
 # Getting the velocity distributions
 # =============================================================================
@@ -129,14 +140,120 @@ logger.info("The predicted DO velocity is  %s" % (vx_total))
 solute.data_frame['vx_integrand'] = [inner_integral(x, solute) for x in solute.positions]
 solute.data_frame['vx_z'] = [vx(z, sim, solute, grad_c_s) for z in solute.positions]
     
-vx_z_0 = [vx(z, sim, solute, grad_c_s, 0) for z in solute.positions]
+vx_z_0 = [vx(z, sim, solute, grad_c_s, 0.000000001) for z in solute.positions]
 vx_z_f = [vx(z, sim, solute, grad_c_s, solvent.lower_limit) for z in solute.positions]
 
 # Plot comparison
+cf.set_plot_appearance()
+fig, ax = plt.subplots()
+
+solute.plot_property_dist("vx_z", ax = ax)
+ax.plot(solute.positions, vx_z_f)
+ax.plot(solute.positions, vx_z_0)
+
+ax.set_xlim(0, 20)
+ax.set_ylim(0, None)
+ax.set_xlabel(r'$z[\sigma] $')
+ax.set_ylabel(r'$v_x(z)$')
+
+fig.tight_layout()
+ax.legend([r'$z_0 = %s$'%solute.lower_limit, r'$z_0 = %s$'%solvent.lower_limit, r'$z_0 = 0$'], loc = 'lower right')
+
+fig.savefig('vprofile_theo_solutes.pdf')
+
+
+# For the solvents
+solvent.data_frame['vx_integrand'] = [inner_integral(x, solvent) for x in solvent.positions]
+solvent.data_frame['vx_z'] = [vx(z, sim, solvent, grad_c_f) for z in solvent.positions]
+    
+vx_z_0 = [vx(z, sim, solvent, grad_c_f, 0.000000001) for z in solvent.positions]
+vx_z_s = [vx(z, sim, solvent, grad_c_f, solute.lower_limit) for z in solvent.positions]
+
+# Plot comparison
+fig, ax = plt.subplots()
+
+ax.plot(solvent.positions, vx_z_s)
+solvent.plot_property_dist("vx_z", ax = ax)
+ax.plot(solvent.positions, vx_z_0)
+
+ax.set_xlim(0, 20)
+ax.set_ylim(0, None)
+ax.set_xlabel(r'$z[\sigma] $')
+ax.set_ylabel(r'$v_x(z)$')
+
+fig.tight_layout()
+ax.legend([r'$z_0 = %s$'%solute.lower_limit, r'$z_0 = %s$'%solvent.lower_limit, r'$z_0 = 0$'], loc = 'lower right')
+
+fig.savefig('vprofile_theo_solvents.pdf')
+
+
+# =============================================================================
+# # Plot total velocity
+# =============================================================================
+fig, ax = plt.subplots()
+solute.plot_property_dist("vx_z", ax = ax)
+solvent.plot_property_dist("vx_z", ax = ax)
+
+total_velocity = solute.data_frame['vx_z'] + solvent.data_frame['vx_z']
+
+ax.plot(solvent.positions,total_velocity )
+
+ax.set_xlim(0, 20)
+ax.set_ylim(0, None)
+ax.set_xlabel(r'$z[\sigma] $')
+ax.set_ylabel(r'$v_x(z)$')
+
+ax.legend(["Solute", "Solvent", "Fluid"], loc = 'upper right')
+
+fig.tight_layout()
+fig.savefig('vprofile_total.pdf')
+
+
+
+# =============================================================================
+# Density, Gamma, Integrand K, Integrand L
+# =============================================================================
+fig,(ax1,ax2,ax3)=plt.subplots(3,1,sharex='col')
+
+solute.plot_property_dist("density/mass", ax = ax1)
+solute.plot_property_dist("rho_exc", ax = ax2)
+solute.plot_property_dist("integrand_k", ax = ax3)
+
+plt.tight_layout()
+plt.subplots_adjust(wspace=0, hspace=0.1)
+
+fig.savefig("distributions.pdf", transparent=True)
 
 
 
 
+# =============================================================================
+# Showing L integrand to ephasise the effect of z0
+# =============================================================================
+
+fig, ax = plt.subplots()
+
+# Redefines the computation with the lower limit at solute's lower limit
+solute.get_l(solute.lower_limit)
+solute.plot_property_dist("integrand_first", ax = ax)
+
+solute.get_l(solvent.lower_limit)
+solute.plot_property_dist("integrand_first", ax = ax)
+
+solute.get_l(0)
+solute.plot_property_dist("integrand_first", ax = ax)
+
+
+ax.set_xlabel(r'$z[\sigma] $')
+ax.set_ylabel(r'$I_L(z)$')
+
+
+ax.legend([r'$z_0 = %s$'%solute.lower_limit, r'$z_0 = %s$'%solvent.lower_limit, r'$z_0 = 0$'], loc = 'upper right')
+
+ax = cf.plot_zoom(ax, [0,8])
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+fig.tight_layout()
+fig.savefig('first_moment_integrand.pdf')
 
 
 

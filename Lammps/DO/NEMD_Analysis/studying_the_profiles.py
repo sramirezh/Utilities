@@ -30,7 +30,8 @@ def plot_zoom(ax,fig, xlim, ylim, name):
     ax.set_ylim(ylim[0], ylim[1])
     fig.tight_layout()
     fig.savefig("%s.pdf"%name)
-    
+
+#   TODO generalise this
 def get_ymax(xmin, xmax, fluid, solute, solvent, prop_name):
     """
     Returns the closest x to xmax (from below) and the bounding values in 

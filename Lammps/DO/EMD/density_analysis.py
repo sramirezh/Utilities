@@ -217,6 +217,13 @@ class DensityDistribution(PropertyDistribution):
         
         # Transforming the positions
         positions = self.positions - lower_limit
+
+        # The positions below 0 have to be set to zero
+        # Notice that this is only relevant for the integrand_first distribution
+        # But not for the integral as the integral starts at zero
+
+        index_negative = np.where(positions < 0)
+        positions[index_negative] = 0
         integrand = positions * (self.rho_exc / self.rho_bulk)
 
         self.data_frame["integrand_first"] = integrand
