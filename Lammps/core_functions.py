@@ -517,3 +517,65 @@ def plateau_finder(data,tol=0.0003):
     plateaus=group_consecutive(plat_index)
     
     return plateaus
+
+
+def plot_zoom(ax, xlims):
+    """
+    Returns the zoomed axis such that it focuses on the limits given in the x
+    axis
+    
+    Args:
+        ax: Pyplot axis
+        xlims: array with the limits in x, eg. [0,10]
+        
+    Returns:
+        ax after the zooming
+    """
+    
+    xmin, xmax, ymin, ymax = get_y_lims(ax, xlims)
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    
+    return ax
+
+
+#   TODO generalise this
+def get_y_lims(ax, xlims):
+    """
+    
+    Returns the bounds for the given limits of the plot
+    
+    Assumes that all the plots share the same x positions
+    
+    Args:
+        ax: axis with all the lines that want to be plotted
+        xlims: the zooming region
+    
+    Returns:
+        xmin: x coordinate in ax that is equal or more than the lower bound
+        xmax: x coordinate in ax that is equal or less than the upper bound
+        ymin: minimum value from all the lines in ax that is whithin the interval
+        ymax: minimum value from all the lines in ax that is whithin the interval
+        
+    """
+    # Assuming that all objects have the same x coordinates
+    x = ax.lines[0].get_data()[0]
+    
+    min_index = np.min(np.where(x >= xlims[0]))
+    max_index = np.max(np.where(x <= xlims[1]))
+    xmax = x[max_index]
+    xmin = x[min_index]
+    
+    ymax_array = []
+    ymin_array = []
+    
+    for function in ax.lines:
+        y = function.get_data()[1]
+        
+        ymin_array.append(np.min(y[min_index:max_index]))
+        ymax_array.append(np.max(y[min_index:max_index]))
+    
+    ymax = max(ymax_array)
+    ymin = min(ymin_array)
+
+    return xmin, xmax, ymin, ymax
