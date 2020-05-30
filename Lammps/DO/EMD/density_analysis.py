@@ -25,15 +25,16 @@ class PropertyDistribution(object):
     TODO This could be the parent class of the timestep class in chunk utilities
     """
 
-    def __init__(self, filename, log_file = []):
+    def __init__(self, filename, log_file = "log.lammps", directory = [] ):
         """
         
         """
-        self.filename = filename
+        self.file_name = filename
+        self.directory = directory
+        self.log_file = log_file
+        self._initial_check()
         self._get_data()
         self.positions = self.data_frame['Coord1'].values
-        self.log_file = []
-        self._initial_check()
         self._get_properties()
     
     def _initial_check(self):
@@ -41,15 +42,18 @@ class PropertyDistribution(object):
         Checks if the required files were given
         TODO check if the filename also exists
         """
-        if len(self.log_file) !=0:
-            self.sim = lu.Simulation(self.log_file)
+        if not self.directory:
+            self.directory = os.getcwd()
+        
+        # Adding the path to each file
+        self.log_file = "%s/%s"%(self.directory, self.log_file)
+        self.sim = lu.Simulation(self.log_file)
 
+        self.file_name = "%s/%s"%(self.directory, self.file_name)
 
     def _get_data(self):
-        self.data_frame = cf.read_data_file(self.filename)
+        self.data_frame = cf.read_data_file(self.file_name)
 
-
-    
     def _get_properties(self):
         """
         get the names of all the properties given by the columns in the df
@@ -99,16 +103,17 @@ class PropertyDistribution(object):
 class DensityDistribution(PropertyDistribution):
     """
     Child including the simulation inside and a possible bulk region definition
+    and computing all the theoretical properties as per Anderson1984
     """
     
-    def __init__(self, filename, bulk_name, log_file = []):
+    def __init__(self, filename, bulk_name, log_file = "log.lammps", directory = []):
         """
         
         
         Attributes:
             properties: returns the name of the properties in the chunk
         """
-        super().__init__(filename, log_file)
+        super().__init__(filename, log_file, directory)
         self.bulk_name = bulk_name
         self._set_bulk()
         self.rho_dist = self.data_frame['density/mass'].values
@@ -131,7 +136,7 @@ class DensityDistribution(PropertyDistribution):
         
         
         """
-        self.h_b, self.limits_b = lu.read_region_height(self.bulk_name,geom_file = "log.lammps")
+        self.h_b, self.limits_b = lu.read_region_height(self.bulk_name, geom_file = self.log_file)
     
     def get_bulk_property(self, name):
         """
