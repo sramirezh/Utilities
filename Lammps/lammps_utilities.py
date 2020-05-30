@@ -172,7 +172,7 @@ class Simulation(object):
             sys.exit("The input file %s does not exist"%self.log_file)
 
     def _get_thermo_data(self):
-        self.thermo_ave = ta.thermo_analyser("log.lammps").astype('float')
+        self.thermo_ave = ta.thermo_analyser(self.log_file).astype('float')
         self.thermo_data = cf.read_data_file("Parameters.dat")
 
     def _read_box_limits(self):
