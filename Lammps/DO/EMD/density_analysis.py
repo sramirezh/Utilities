@@ -238,6 +238,63 @@ class DensityDistribution(PropertyDistribution):
         self.l = l
         
         return l
+
+    # TODO this could be added to the class
+    def _inner_integral(self, low_limit):
+        """
+        Computes the inner integral in equation (16) Anderson1984, from the lower limit
+        to the beginning of the bulk as given by species.limits_b[0]
+        Args:
+            low_limit: The lower limit for the integral
+            species: instance of the class da.DensityDistribution
+        
+        Returns:
+            integral: the integral from the lower limit to the the start of the bulk 
+        """
+        integral = cf.integrate(self.positions, self.data_frame['integrand_k'], low_limit, self.limits_b[0])
+        
+        return integral
+
+
+    def vx(self, z, sim, grad_c, low_limit = []):
+        """
+        Computes the velocity in the x direction at the heigth z from the wall,
+        as per equation (16) Anderson1984
+        
+        Args:
+            z: Heigth from the wall in which the velocity is computed
+            sim: Instance of the class SimulationEMD
+            grad_c: Concentration gradient of the species.
+            low_limit: Lower limit of the integral
+            
+        Returns:
+            The velocity at the given position
+            
+            
+        """
+        if not low_limit:
+            low_limit = self.lower_limit
+        
+        if self.data_frame['vx_integrand'].empty:
+            self.data_frame['vx_integrand'] = [self._inner_integral(x) for x in self.positions]
+        integral = cf.integrate(self.positions, self.data_frame['vx_integrand'], low_limit, z) 
+        vx_z = - (sim.T) * grad_c * integral / sim.eta
+        return    vx_z
+    
+    def vx_dist(self, sim, grad_c, low_limit = []):
+        """
+        Computes the velocity distribution in the x direction as a function
+        of the position in z
+            Args:
+            z: Heigth from the wall in which the velocity is computed
+            sim: Instance of the class SimulationEMD
+            grad_c: Concentration gradient of the species.
+            low_limit: Lower limit of the integral
+        """
+        self.data_frame['vx_integrand'] = [self._inner_integral(x) for x in self.positions]
+        self.data_frame['vx_z'] = [self.vx(z, sim, grad_c, low_limit) for z in self.positions]
+        self._get_properties()
+        return self.data_frame['vx_z'].copy()
     
     def compute_all_properties(self, lower_limit, upper_limit = []):
         
