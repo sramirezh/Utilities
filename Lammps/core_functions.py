@@ -545,7 +545,9 @@ def get_y_lims(ax, xlims):
     
     Returns the bounds for the given limits of the plot
     
-    Assumes that all the plots share the same x positions
+    Assumes that all the plots share the same x positions and that they 
+    are lines, not scatter points.
+    TODO: Generalise to scatter points
     
     Args:
         ax: axis with all the lines that want to be plotted
