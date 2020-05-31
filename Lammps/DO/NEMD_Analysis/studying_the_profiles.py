@@ -41,9 +41,12 @@ cf.set_plot_appearance()
 plt.close("all")
 fig1, ax1 = plt.subplots()
 
-fluid.plot_property_dist("vx", ax = ax1)
-solvent.plot_property_dist("vx", ax = ax1)
+
 solute.plot_property_dist("vx", ax = ax1)
+solvent.plot_property_dist("vx", ax = ax1)
+fluid.plot_property_dist("vx", ax = ax1)
+
+
 #ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 
 
