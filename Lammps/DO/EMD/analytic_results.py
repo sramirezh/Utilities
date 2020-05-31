@@ -7,13 +7,9 @@ Script to get the theoretical estimation of the diffusio-osmotic velocity
 @author: simon
 """
 
-import numpy as np
 import sys
 import os
-from shlex import split
 import matplotlib.pyplot as plt
-import linecache
-import re
 import density_analysis as da
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -34,51 +30,7 @@ class SimulationEMD(lu.SimulationType):
         self.grad_mu_s = grad_mu_s
         
        
-# TODO this could be added to the class
-def inner_integral(low_limit, species):
-    """
-    Computes the inner integral in equation (16) Anderson1984, from the lower limit
-    to the beginning of the bulk as given by species.limits_b[0]
-    Args:
-        low_limit: The lower limit for the integral
-        species: instance of the class da.DensityDistribution
-    
-    Returns:
-        integral: the integral from the lower limit to the the start of the bulk 
-    """
-    integral = cf.integrate(species.positions, species.data_frame['integrand_k'], low_limit, species.limits_b[0])
-    
-    return integral
-
-
-def vx(z, sim, species, grad_c, low_limit = []):
-    """
-    Computes the velocity in the x direction at the heigth z from the wall,
-    as per equation (16) Anderson1984
-    
-    Args:
-        z: Heigth from the wall in which the velocity is computed
-        sim: Instance of the class SimulationEMD
-        species:  instance of the class da.DensityDistribution
-        grad_c: Concentration gradient of the species.
-        low_limit: Lower limit of the integral
-        
-    Returns:
-        The velocity at the given position
-        
-        
-    """
-    if not low_limit:
-        low_limit = species.lower_limit
-        
-    integral = cf.integrate(species.positions, species.data_frame['vx_integrand'], low_limit, z) 
-    vx_z = - (sim.T)*grad_c * integral / sim.eta
-    return    vx_z
-
-
-
-
-    
+ 
 # =============================================================================
 # Main
 # =============================================================================
@@ -126,22 +78,15 @@ logger.info("The contribution to the velocity due to the solutes is %s"%vx_s)
 logger.info("The contribution to the velocity due to the solvents is %s"%vx_f)
 logger.info("The predicted DO velocity is  %s" % (vx_total)) 
 
-
-
-
-
-
-
 # =============================================================================
 # Getting the velocity distributions
 # =============================================================================
 
-# For the solutes
-solute.data_frame['vx_integrand'] = [inner_integral(x, solute) for x in solute.positions]
-solute.data_frame['vx_z'] = [vx(z, sim, solute, grad_c_s) for z in solute.positions]
-    
-vx_z_0 = [vx(z, sim, solute, grad_c_s, 0.000000001) for z in solute.positions]
-vx_z_f = [vx(z, sim, solute, grad_c_s, solvent.lower_limit) for z in solute.positions]
+# For the solutes assuming 3 different zeros
+
+vx_z_0 = solute.vx_dist(sim, grad_c_s, 0.000000001) # wall is zero
+vx_z_f = solute.vx_dist(sim, grad_c_s, solvent.lower_limit) #zero for solvents
+solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
 
 # Plot comparison
 cf.set_plot_appearance()
@@ -161,14 +106,12 @@ ax.legend([r'$z_0 = %s$'%solute.lower_limit, r'$z_0 = %s$'%solvent.lower_limit, 
 
 fig.savefig('vprofile_theo_solutes.pdf')
 
-
 # For the solvents
-solvent.data_frame['vx_integrand'] = [inner_integral(x, solvent) for x in solvent.positions]
-solvent.data_frame['vx_z'] = [vx(z, sim, solvent, grad_c_f) for z in solvent.positions]
-    
-vx_z_0 = [vx(z, sim, solvent, grad_c_f, 0.000000001) for z in solvent.positions]
-vx_z_s = [vx(z, sim, solvent, grad_c_f, solute.lower_limit) for z in solvent.positions]
 
+
+vx_z_0 = solvent.vx_dist(sim, grad_c_f, 0.000000001) # wall is zero
+vx_z_s = solvent.vx_dist(sim, grad_c_f, solute.lower_limit) #zero for solutes
+solvent.vx_dist(sim, grad_c_f, solvent.lower_limit) # zero for solvents
 # Plot comparison
 fig, ax = plt.subplots()
 
@@ -196,7 +139,7 @@ solvent.plot_property_dist("vx_z", ax = ax)
 
 total_velocity = solute.data_frame['vx_z'] + solvent.data_frame['vx_z']
 
-ax.plot(solvent.positions,total_velocity )
+ax.plot(solvent.positions, total_velocity )
 
 ax.set_xlim(0, 20)
 ax.set_ylim(0, None)
@@ -207,8 +150,6 @@ ax.legend(["Solute", "Solvent", "Fluid"], loc = 'upper right')
 
 fig.tight_layout()
 fig.savefig('vprofile_total.pdf')
-
-
 
 # =============================================================================
 # Density, Gamma, Integrand K, Integrand L
@@ -223,9 +164,6 @@ plt.tight_layout()
 plt.subplots_adjust(wspace=0, hspace=0.1)
 
 fig.savefig("distributions.pdf", transparent=True)
-
-
-
 
 # =============================================================================
 # Showing L integrand to ephasise the effect of z0
