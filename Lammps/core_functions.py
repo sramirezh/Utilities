@@ -275,9 +275,9 @@ def set_plot_appearance(presentation_type = False):
     use rcParams.keys() to see the available parameters
     """
     if presentation_type == False: 
-        axis_font=24
-        tick_font=20
-        legend_font=12
+        axis_font = 24
+        tick_font = 20
+        legend_font = 12
 
 
         #plt.rcParams['lines.linewidth'] = 1.5
@@ -285,7 +285,7 @@ def set_plot_appearance(presentation_type = False):
         #plt.rcParams['lines.markersize'] = 2.5
 
         # Colors
-        plt.rcParams['axes.prop_cycle'] = cycler(color='rbkgcmy')
+        plt.rcParams['axes.prop_cycle'] = cycler(linestyle=['-', '--', '-.'])* cycler(color=list('rbkgcmy'))
 
 
         # Fonts and symbols
@@ -331,8 +331,8 @@ def set_plot_appearance(presentation_type = False):
 
     if presentation_type == True: 
         axis_font= 30
-        tick_font=20
-        legend_font=18
+        tick_font = 20
+        legend_font = 18
 
 
         #plt.rcParams['lines.linewidth'] = 1.5
