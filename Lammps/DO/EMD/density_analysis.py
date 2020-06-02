@@ -233,11 +233,10 @@ class DensityDistribution(PropertyDistribution):
 
         self.data_frame["integrand_first"] = integrand
         self._get_properties()
-        l = cf.integrate(positions, integrand, 0, upper_limit) / self.k
-        
-        self.l = l
-        
-        return l
+        self.first_moment = cf.integrate(positions, integrand, 0, upper_limit) 
+        self.l = self.first_moment / self.k
+
+        return self.l
 
     # TODO this could be added to the class
     def _inner_integral(self, low_limit):
@@ -294,6 +293,7 @@ class DensityDistribution(PropertyDistribution):
         self.data_frame['vx_integrand'] = [self._inner_integral(x) for x in self.positions]
         self.data_frame['vx_z'] = [self.vx(z, sim, grad_c, low_limit) for z in self.positions]
         self._get_properties()
+        self.vx_bulk = self.data_frame['vx_z'].values[-1]
         return self.data_frame['vx_z'].copy()
     
     def compute_all_properties(self, lower_limit, upper_limit = []):
