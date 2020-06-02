@@ -23,22 +23,27 @@ class log(logging.Logger):
     Class to print everything to a file and to screen.
     Instead of using print, use log.info("text") or read the documentation
     """
-    def __init__(self, path, cwd):
+    def __init__(self, path, cwd, aux =[]):
         """
         file_name is the name of the python file currently running
         path: given by __file__
+        aux: Additional path to generate a copy of the log file
         """
         logging.Logger.__init__(self, "")  # run parent __init__ class\
         self.setLevel(logging.DEBUG)
         self.path = os.path.dirname(path)
         self.file_name = path.split('/')[-1]
         self.cwd = cwd
+        
         log_name = self.file_name.split('.')[0]
         self.log_file = "%s.log"%log_name       
-        
         self._set_console_handler()
         self._set_file_handler()
 
+        if aux:
+            self.aux = aux
+            self._set_aux_file_handler()
+        
         self.print_basic_info()
 
     def _set_console_handler(self):
@@ -51,6 +56,11 @@ class log(logging.Logger):
         fh = logging.FileHandler(self.log_file, 'w')
         fh.setLevel(logging.INFO)  # or any level you want
         self.addHandler(fh)
+
+    def _set_aux_file_handler(self):
+        ah = logging.FileHandler('%s/%s'%(self.aux, self.log_file), 'w')
+        ah.setLevel(logging.INFO)  # or any level you want
+        self.addHandler(ah)
 
     def _get_git_hash(self):
         os.chdir(self.path)
