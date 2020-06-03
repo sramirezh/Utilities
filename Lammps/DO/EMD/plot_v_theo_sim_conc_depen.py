@@ -13,12 +13,13 @@ import glob
 import os
 import sys
 import pandas as pd
+from copy import deepcopy
 import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.DO.EMD.density_analysis as da
 import Lammps.lammps_utilities as lu
-
+from Lammps.DO.EMD.Meyer_2018 import eta_meyer
 
 class SimulationEMD(lu.SimulationType):
     def __init__(self, name, T, eta, grad_mu_s):
@@ -79,7 +80,7 @@ logger = cf.log(__file__, os.getcwd(),plot_dir)
 mine = SimulationEMD("mine0125", 1, 1.57, -0.125)
 
 # Define the type of simulation
-sim = mine
+sim = deepcopy(mine)
 sim.print_params(logger)
 
 folders = glob.glob('x*')
@@ -109,9 +110,19 @@ for folder in folders:
     path_theo = '%s/3.Measuring/'%folder
     path_nemd = '%s/4.Applying_force_gradC/'%folder
     
-    fluid = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_nemd) 
+    fluid = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_nemd)
     solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = path_theo) 
     solvent = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = path_theo) 
+    
+    
+    # =============================================================================
+    # #changing the viscosity to the average local
+    # =============================================================================
+
+    average_density = fluid.get_property_ave('density/mass',[fluid.lower_limit, fluid.limits_b[0]])
+    sim.eta = eta_meyer(average_density, sim.T)
+    
+    logger.info("Changed the viscosity from %s to %s using Meyer et al for the average viscosity inint he diffusive layer"%(mine.eta,sim.eta))
 
     solute.compute_all_properties(solute.lower_limit)
     solvent.compute_all_properties(solvent.lower_limit)
