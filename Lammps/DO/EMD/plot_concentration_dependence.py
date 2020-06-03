@@ -100,7 +100,7 @@ for folder in folders:
     
     data_array.append([x_0, temp, temp_error, press, press_error, solute.rho_bulk, solvent.rho_bulk,
                          solute.gamma, solute.k, solute.l, solute.k*solute.l,
-                         solvent.gamma, solvent.k, solvent.l, solvent.k*solute.l,
+                         solvent.gamma, solvent.k, solvent.l, solvent.k*solvent.l,
                          cbSolu, cbSoluError ])
     
     

@@ -93,7 +93,7 @@ folders = [folders[i] for i in index_files]
 # Removing the extremely low concentrations
 folders = folders[2:]
 
-#folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
+folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
 
 # =============================================================================
 # Preparing the distribution plots
@@ -247,10 +247,10 @@ fig.savefig('%s/vel_bulk_vs_c_ratio.pdf'%(plot_dir))
 # Chemical potential solvent contribution vs c^B ration
 fig, ax = plt.subplots()
 ax.scatter(df['solute.rho_bulk']/df['solvent.rho_bulk'], df['grad_mu_f'])
-ax.set_ylabel(r'$v_x^B$')
+ax.set_ylabel(r'$\nabla \mu_f$')
 ax.set_xlabel(r'$c_s^B/c_f^B$')
 ymin, ymax = ax.get_ylim()
-ax.legend(loc = 'upper right')
+#ax.legend(loc = 'upper right')
 fig.tight_layout()
 fig.savefig('%s/grad_mu_f.pdf'%(plot_dir))
 

@@ -36,7 +36,12 @@ class SimulationEMD(lu.SimulationType):
 # =============================================================================
 # Main
 # =============================================================================
-logger = cf.log(__file__, os.getcwd())    
+plot_dir = "plots/1.theo_sim_predictions"
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
 # Write all the new types of simulations here
 Yoshida = SimulationEMD("Yoshida0125", 1, 1.57, -0.125)
@@ -52,6 +57,7 @@ dir_f1= "4.Applying_force_0.125/1"
 dir_f2 = "4.Applying_force_0.063/1"
 dir_f3 = "4.Applying_force_0.025/1"
 dir_theo = "3.Measuring"
+dir_benchmark= "4.Applying_force_hiroaki"
 
 #logger.info("The data for the main data is from %s" %dir_normal_bin)
 #logger.info("The data for the insert data is from %s" %dir_small_bin)
@@ -60,6 +66,7 @@ dir_theo = "3.Measuring"
 fluid_f1 = da.PropertyDistribution("properties_short.dat", directory = dir_f1) 
 fluid_f2 = da.PropertyDistribution("properties_short.dat", directory = dir_f2) 
 fluid_f3 = da.PropertyDistribution("properties_short.dat", directory = dir_f3) 
+fluid_f4 = da.PropertyDistribution("properties_short.dat", directory = dir_benchmark) 
 
 # Loading the EMD data
 solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = dir_theo) 
@@ -141,6 +148,22 @@ ax1.legend(loc = 'upper right')
 #
 #
 fig1.tight_layout()
-fig1.savefig('v_theo_sim.pdf')
+fig1.savefig('%s/v_theo_sim.pdf'%plot_dir)
+
+# Plotting With Hiroaki's results
+
+fig1, ax1 = plt.subplots()
 
 
+ax1.plot(fluid_f1.positions, fluid_f1.data_frame["vx"],marker = 'o', ls = '--', label = r'$F_s = -\nabla \mu_s = 0.125$')
+ax1.plot(solute.positions,velocity_t_dist[0], ls = '-.', label = "Theory solutes + solvents")
+ax1.plot(solute.positions,velocity_s_dist[0], ls = ':', label = "Theory only solutes")
+ax1.plot(fluid_f4.positions, fluid_f4.data_frame["vx"],marker = 'o', ls = '--', label = r'$F_s = -\frac{N^B-N_s^B}{N^B}\nabla \mu_s$')
+ax1.set_xlim(0, 30)
+ymin, ymax = ax1.get_ylim()
+ax1.set_ylim(0, 1.25* ymax)
+ax1.set_xlabel(r'$z[\sigma] $')
+ax1.set_ylabel(r'$v_x(z)$')
+ax1.legend(loc = 'lower right')
+fig1.tight_layout()
+fig1.savefig('%s/theo_sim_bench.pdf'%plot_dir)
