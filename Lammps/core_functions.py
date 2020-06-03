@@ -34,7 +34,7 @@ class log(logging.Logger):
         self.path = os.path.dirname(path)
         self.file_name = path.split('/')[-1]
         self.cwd = cwd
-        
+
         log_name = self.file_name.split('.')[0]
         self.log_file = "%s.log"%log_name       
         self._set_console_handler()
@@ -394,6 +394,26 @@ def set_plot_appearance(presentation_type = False):
         # Errorbar plots
         plt.rcParams['errorbar.capsize'] = 4
 
+def get_interval(array, min_value, max_value):
+    """
+    returns the indexes of the closest values to the require values in the array
+    from above for the minimum and from
+    below for the maxium that  
+
+    Args:
+        array: Array to analyse
+        min_value:
+        max_value
+    Returns:
+        indexes: an array with the indexes that fall within the given interval.
+    """
+    min_index = np.min(np.where(array >= min_value))
+    max_index = np.max(np.where(array <= max_value))
+
+    indexes = np.arange(min_index, max_index+1)
+
+    return indexes
+
 def integrate(x, y, xmin, xmax):
     """
     Integrate the data in x and y from xmin to xmax
@@ -406,9 +426,8 @@ def integrate(x, y, xmin, xmax):
         xmin : the lower limit of the integral
         xmax : the upper limit of the integral
     """
-    MinIndex = np.min(np.where(x >= xmin))
-    MaxIndex = np.max(np.where(x <= xmax))
-    integral = np.trapz(y[MinIndex:MaxIndex], x[MinIndex:MaxIndex])
+    indexes = get_interval(x, xmin, xmax)
+    integral = np.trapz(y[indexes], x[indexes])
 
     return integral
 
@@ -573,10 +592,9 @@ def get_y_lims(ax, xlims):
     # Assuming that all objects have the same x coordinates
     x = ax.lines[0].get_data()[0]
     
-    min_index = np.min(np.where(x >= xlims[0]))
-    max_index = np.max(np.where(x <= xlims[1]))
-    xmax = x[max_index]
-    xmin = x[min_index]
+    indexes = get_interval(x, xlims[0], xlims[1])
+    xmax = x[indexes[-1]]
+    xmin = x[indexes[0]]
     
     ymax_array = []
     ymin_array = []
@@ -584,8 +602,8 @@ def get_y_lims(ax, xlims):
     for function in ax.lines:
         y = function.get_data()[1]
         
-        ymin_array.append(np.min(y[min_index:max_index]))
-        ymax_array.append(np.max(y[min_index:max_index]))
+        ymin_array.append(np.min(y[indexes]))
+        ymax_array.append(np.max(y[indexes]))
     
     ymax = max(ymax_array)
     ymin = min(ymin_array)
