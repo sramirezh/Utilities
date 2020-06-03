@@ -78,6 +78,9 @@ fig5, ax5 = plt.subplots()
 # Figure for the solvent excess distributions
 fig6, ax6 = plt.subplots()
 
+# Figure for the solution concentration
+fig7, ax7 = plt.subplots()
+
 
 data_array = []
 for folder in folders:
@@ -89,6 +92,8 @@ for folder in folders:
     
     solvent = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = path) 
     solvent.compute_all_properties(solvent.lower_limit)
+    
+    solution = da.DensityDistribution("properties_short.dat", "rBulk", directory = path) 
     
     # Getting properties from the bulk
     temp = solute.sim.thermo_ave.loc['Temp','Average']
@@ -118,6 +123,7 @@ for folder in folders:
     ax4.plot(solvent.positions, solvent.rho_dist, label = '%s'%x_0)
     ax5.plot(solute.positions, solute.rho_exc, marker ='o', markersize=2, label = r'$\Gamma = %1.2f, x_0 =%s$'%(solute.gamma,x_0))
     ax6.plot(solvent.positions, solvent.rho_exc, marker ='o', markersize=2, label = r'$\Gamma = %1.2f, x_0 =%s$'%(solvent.gamma,x_0))
+    ax7.plot(solution.positions, solution.rho_dist, marker ='o', markersize=2, label = '%s'%x_0)
 
 # =============================================================================
 # Distribution plots
@@ -182,6 +188,16 @@ ax6.legend(loc = 'upper right')
 ax6.axvline(x=solvent.lower_limit,ls='-.',c='black')
 fig6.tight_layout()
 fig6.savefig('%s/solvent_excess.pdf'%(plot_dir))
+
+
+ax7.set_ylabel(r'$c(z)$')
+ax7.set_xlabel(r'$z$')
+ax7.set_xlim(0, 30)
+ax7.set_ylim(0, None)
+ax7.legend(loc = 'upper right')
+fig7.tight_layout()
+fig7.savefig('%s/solution_density_distributions.pdf'%(plot_dir))
+
 
 
 # =============================================================================
