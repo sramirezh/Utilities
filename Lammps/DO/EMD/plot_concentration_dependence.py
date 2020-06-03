@@ -123,7 +123,7 @@ for folder in folders:
     ax4.plot(solvent.positions, solvent.rho_dist, label = '%s'%x_0)
     ax5.plot(solute.positions, solute.rho_exc, marker ='o', markersize=2, label = r'$\Gamma = %1.2f, x_0 =%s$'%(solute.gamma,x_0))
     ax6.plot(solvent.positions, solvent.rho_exc, marker ='o', markersize=2, label = r'$\Gamma = %1.2f, x_0 =%s$'%(solvent.gamma,x_0))
-    ax7.plot(solution.positions, solution.rho_dist, marker ='o', markersize=2, label = '%s'%x_0)
+    ax7.plot(solution.positions, solution.rho_dist, marker ='o', markersize=2,lw = 0.5,  label = '%s'%x_0)
 
 # =============================================================================
 # Distribution plots
@@ -173,8 +173,8 @@ ax5.set_xlabel(r'$z$')
 ax5.set_xlim(0, 30)
 #ax5.set_ylim(0, None)
 ax5.legend(loc = 'upper right')
-ax5.axvline(x=solute.lower_limit,ls='-.',c='black')
 ax5 = cf.plot_zoom(ax5,[0,8])
+ax5.axvline(x=solute.lower_limit,ls='-.',c='black')
 fig5.tight_layout()
 fig5.savefig('%s/solute_excess.pdf'%(plot_dir))
 
@@ -192,9 +192,10 @@ fig6.savefig('%s/solvent_excess.pdf'%(plot_dir))
 
 ax7.set_ylabel(r'$c(z)$')
 ax7.set_xlabel(r'$z$')
-ax7.set_xlim(0, 30)
-ax7.set_ylim(0, None)
+ax7 = cf.plot_zoom(ax7,[0,8])
 ax7.legend(loc = 'upper right')
+ax7.axvline(solution.lower_limit,ls='--',c='black')
+ax7.axvline(solution.lower_limit+1,ls='--',c='black')
 fig7.tight_layout()
 fig7.savefig('%s/solution_density_distributions.pdf'%(plot_dir))
 
