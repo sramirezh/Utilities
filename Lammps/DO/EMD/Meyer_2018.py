@@ -82,58 +82,59 @@ def retrieve_results():
 # =============================================================================
 # Main
 # =============================================================================
-logger = cf.log(__file__, os.getcwd())
-
-
-if not os.path.exists("results.pkl"):
-    logger.info("\nRunning the analysis")
-    results = retrieve_results()
+if __name__ == "__main__":
+    logger = cf.log(__file__, os.getcwd())
     
-else: 
-    logger.info("\nReading the results from results.pkl")
-    results = cf.load_instance("results.pkl")
     
-
-
-# =============================================================================
-# Analysing the results
-# =============================================================================
-
-ave_results = np.zeros((len(results),3))  
-
-for i,res in enumerate(results):
-    ave_results[i,0] = res[0] #  Getting the temperature
-    ave_results[i,1] = np.average(res[1]) # Average
-    ave_results[i,2] = sem(res[1])  # Statistic mean error
+    if not os.path.exists("results.pkl"):
+        logger.info("\nRunning the analysis")
+        results = retrieve_results()
+        
+    else: 
+        logger.info("\nReading the results from results.pkl")
+        results = cf.load_instance("results.pkl")
+        
     
-
-
-# =============================================================================
-# Getting results from the empirical results in Meyer
-# =============================================================================
-rho = 0.8 
-
-logger.info("Obtaining results using the law in Meyer et al, with rho = %s" %rho)
-temperature = np.linspace(np.min(ave_results[:,0]), np.max(ave_results[:,0]))
-viscosity = eta_meyer(rho,temperature)
-# =============================================================================
-# Plot results
-# =============================================================================
-     
-plt.close('all')
-cf.set_plot_appearance()
-
-#For c11
-fig,ax = plt.subplots()
-
-
-
-ax.plot(temperature, viscosity, label = 'Meyer et al')
-ax.errorbar(ave_results[:,0], ave_results[:,1], yerr = ave_results[:,2], label="GK", fmt='o')
-ax.set_xlabel(r'$T^*$')
-ax.set_ylim([0,3])
-ax.set_ylabel(r'$\eta^*$')
-plt.legend( loc = 'upper right')
-plt.tight_layout()
-plt.savefig("validating_eta.pdf")
+    
+    # =============================================================================
+    # Analysing the results
+    # =============================================================================
+    
+    ave_results = np.zeros((len(results),3))  
+    
+    for i,res in enumerate(results):
+        ave_results[i,0] = res[0] #  Getting the temperature
+        ave_results[i,1] = np.average(res[1]) # Average
+        ave_results[i,2] = sem(res[1])  # Statistic mean error
+        
+    
+    
+    # =============================================================================
+    # Getting results from the empirical results in Meyer
+    # =============================================================================
+    rho = 0.8 
+    
+    logger.info("Obtaining results using the law in Meyer et al, with rho = %s" %rho)
+    temperature = np.linspace(np.min(ave_results[:,0]), np.max(ave_results[:,0]))
+    viscosity = eta_meyer(rho,temperature)
+    # =============================================================================
+    # Plot results
+    # =============================================================================
+         
+    plt.close('all')
+    cf.set_plot_appearance()
+    
+    #For c11
+    fig,ax = plt.subplots()
+    
+    
+    
+    ax.plot(temperature, viscosity, label = 'Meyer et al')
+    ax.errorbar(ave_results[:,0], ave_results[:,1], yerr = ave_results[:,2], label="GK", fmt='o')
+    ax.set_xlabel(r'$T^*$')
+    ax.set_ylim([0,3])
+    ax.set_ylabel(r'$\eta^*$')
+    plt.legend( loc = 'upper right')
+    plt.tight_layout()
+    plt.savefig("validating_eta.pdf")
     
