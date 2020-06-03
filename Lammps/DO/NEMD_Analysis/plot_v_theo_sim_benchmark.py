@@ -14,11 +14,12 @@ The EMD analysis is base on analytic_results.py
 import os
 import sys
 import matplotlib.pyplot as plt
+from copy import deepcopy
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.DO.EMD.density_analysis as da
 import Lammps.lammps_utilities as lu
-
+from Lammps.DO.EMD.Meyer_2018 import eta_meyer
 
 class SimulationEMD(lu.SimulationType):
     def __init__(self, name, T, eta, grad_mu_s):
@@ -47,7 +48,7 @@ logger = cf.log(__file__, os.getcwd(),plot_dir)
 Yoshida = SimulationEMD("Yoshida0125", 1, 1.57, -0.125)
 
 # Define the type of simulation
-sim = Yoshida
+sim = deepcopy(Yoshida)
 sim.print_params(logger)
 
 
@@ -71,9 +72,17 @@ fluid_f4 = da.PropertyDistribution("properties_short.dat", directory = dir_bench
 # Loading the EMD data
 solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = dir_theo) 
 solvent = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = dir_theo) 
+solution = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_theo) 
 
 ## Loading the data for the bin 0.25 \sigma
 #fluid_s = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_small_bin) 
+
+#changing the viscosity to the average local
+
+average_density = solution.get_property_ave('density/mass',[solution.lower_limit, solution.limits_b[0]])
+sim.eta = eta_meyer(average_density, sim.T)
+
+logger.info("Changed the viscosity from %s to %s using Meyer et al for the average viscosity int he diffusive layer"%(Yoshida.eta,sim.eta))
 
 # =============================================================================
 # Computing the analytic properties
@@ -167,3 +176,15 @@ ax1.set_ylabel(r'$v_x(z)$')
 ax1.legend(loc = 'lower right')
 fig1.tight_layout()
 fig1.savefig('%s/theo_sim_bench.pdf'%plot_dir)
+
+
+
+#xmin = solution.lower_limit
+#xmax = solution.limits_b[0]
+#
+#MinIndex = np.min(np.where(solution.positions >= xmin))
+#MaxIndex = np.max(np.where(solution.positions <= xmax))
+#
+#length = solution.positions[MaxIndex] - solution.positions[MinIndex] 
+#
+#cf.integrate(solution.positions, solution.rho_dist,solution.lower_limit, solution.limits_b[0] )
