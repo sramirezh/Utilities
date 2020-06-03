@@ -77,7 +77,10 @@ solution = da.DensityDistribution("properties_short.dat", "rBulk", directory = d
 ## Loading the data for the bin 0.25 \sigma
 #fluid_s = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_small_bin) 
 
-#changing the viscosity to the average local
+
+# =============================================================================
+# #changing the viscosity to the average local
+# =============================================================================
 
 average_density = solution.get_property_ave('density/mass',[solution.lower_limit, solution.limits_b[0]])
 sim.eta = eta_meyer(average_density, sim.T)
