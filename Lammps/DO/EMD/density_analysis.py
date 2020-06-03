@@ -142,9 +142,19 @@ class DensityDistribution(PropertyDistribution):
         """
         name is the column name, eg. density/mass
         """
+        bulk_property = self.get_property_ave(name, self.limits_b)
+        
+        return bulk_property
+
+
+    def get_property_ave(self, name, limits):
+        """
+        Get the property average between the limits
+        name is the column name, eg. density/mass
+        """
         
         data = self.data_frame[name].values
-        indexes = np.where((self.positions> self.limits_b[0]) & (self.positions<self.limits_b[1]))
+        indexes = np.where((self.positions> limits[0]) & (self.positions<limits[1]))
         
         ave_property = np.average(data[indexes])
         
