@@ -35,7 +35,6 @@ class PropertyDistribution(object):
         self._initial_check()
         self._get_data()
         self.positions = self.data_frame['Coord1'].values
-        self._get_properties()
     
     def _initial_check(self):
         """
@@ -55,13 +54,13 @@ class PropertyDistribution(object):
         self.data_frame = cf.read_data_file(self.file_name)
 
     @property
-    def _get_properties(self):
+    def property_dist(self):
         """
-        get the names of all the properties given by the columns in the df
+        Retuns the names of all the properties given by the columns in the df 
         """
-        self.property_dist = self.data_frame.columns
+        return self.data_frame.columns
     
-    def plot_property_dist(self, property_name, xlims = [], ylims = [], ax = [], save=True):
+    def plot_property_dist(self, property_name, xlims=[], ylims=[], ax=[], save=True):
         """
         Plots a property distribution, to get the name of the properties, run
         self.property_dist.
@@ -169,8 +168,6 @@ class DensityDistribution(PropertyDistribution):
         """
         self.rho_exc = self.rho_dist - self.rho_bulk
         self.data_frame['rho_exc'] = self.rho_exc
-        self._get_properties()
-        
         return self.rho_exc
     
     
@@ -209,8 +206,6 @@ class DensityDistribution(PropertyDistribution):
         integrand = self.rho_exc / self.rho_bulk
 
         self.data_frame["integrand_k"] = integrand
-        self._get_properties()
-
         k = cf.integrate(positions, integrand, 0, upper_limit)
         
         self.k = k
@@ -245,7 +240,6 @@ class DensityDistribution(PropertyDistribution):
         integrand = positions * (self.rho_exc / self.rho_bulk)
 
         self.data_frame["integrand_first"] = integrand
-        self._get_properties()
         self.first_moment = cf.integrate(positions, integrand, 0, upper_limit) 
         self.l = self.first_moment / self.k
 
@@ -305,7 +299,6 @@ class DensityDistribution(PropertyDistribution):
         """
         self.data_frame['vx_integrand'] = [self._inner_integral(x) for x in self.positions]
         self.data_frame['vx_z'] = [self.vx(z, sim, grad_c, low_limit) for z in self.positions]
-        self._get_properties()
         self.vx_bulk = self.data_frame['vx_z'].values[-1]
         return self.data_frame['vx_z'].copy()
     
