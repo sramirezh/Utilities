@@ -394,21 +394,28 @@ def set_plot_appearance(presentation_type = False):
         # Errorbar plots
         plt.rcParams['errorbar.capsize'] = 4
 
-def get_interval(array, min_value, max_value):
+def get_interval(array, min_value, max_value, epsilon_1 = 0, epsilon_2 = 0):
     """
     returns the indexes of the closest values to the require values in the array
     from above for the minimum and from
     below for the maxium that  
 
+    TODO: make epsilon smaller than the distances in the array, otherwise
+    the interval is ill defined
     Args:
         array: Array to analyse
         min_value:
         max_value
+        epsilon_1: if it is larger than 0 makes the interval open on the left
+                suggestion 0.000001
+        epsilon_2: if it is larger than 0 makes the interval open on right
+                suggestion 0.000001
+    
     Returns:
         indexes: an array with the indexes that fall within the given interval.
     """
-    min_index = np.min(np.where(array >= min_value))
-    max_index = np.max(np.where(array <= max_value))
+    min_index = np.min(np.where(array >= min_value + epsilon_1))
+    max_index = np.max(np.where(array <= max_value - epsilon_2))
 
     indexes = np.arange(min_index, max_index+1)
 
