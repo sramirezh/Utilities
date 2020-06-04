@@ -246,7 +246,7 @@ class DensityDistribution(PropertyDistribution):
         return self.l
 
     # TODO this could be added to the class
-    def _inner_integral(self, low_limit):
+    def _inner_integral(self, low_limit, sim):
         """
         Computes the inner integral in equation (16) Anderson1984, from the lower limit
         to the beginning of the bulk as given by species.limits_b[0]
@@ -257,7 +257,8 @@ class DensityDistribution(PropertyDistribution):
         Returns:
             integral: the integral from the lower limit to the the start of the bulk 
         """
-        integral = cf.integrate(self.positions, self.data_frame['integrand_k'], low_limit, self.limits_b[0])
+        integrand = self.data_frame['integrand_k'].values / sim.eta
+        integral = cf.integrate(self.positions, integrand , low_limit, self.limits_b[0])
         
         return integral
 
@@ -282,9 +283,9 @@ class DensityDistribution(PropertyDistribution):
             low_limit = self.lower_limit
         
         if self.data_frame['vx_integrand'].empty:
-            self.data_frame['vx_integrand'] = [self._inner_integral(x) for x in self.positions]
+            self.data_frame['vx_integrand'] = [self._inner_integral(x,sim) for x in self.positions]
         integral = cf.integrate(self.positions, self.data_frame['vx_integrand'], low_limit, z) 
-        vx_z = - (sim.T) * grad_c * integral / sim.eta
+        vx_z = - (sim.T) * grad_c * integral 
         return    vx_z
     
     def vx_dist(self, sim, grad_c, low_limit = []):
@@ -297,10 +298,11 @@ class DensityDistribution(PropertyDistribution):
             grad_c: Concentration gradient of the species.
             low_limit: Lower limit of the integral
         """
-        self.data_frame['vx_integrand'] = [self._inner_integral(x) for x in self.positions]
+        self.data_frame['vx_integrand'] = [self._inner_integral(x,sim) for x in self.positions]
         self.data_frame['vx_z'] = [self.vx(z, sim, grad_c, low_limit) for z in self.positions]
         self.vx_bulk = self.data_frame['vx_z'].values[-1]
         return self.data_frame['vx_z'].copy()
+
     
     def compute_all_properties(self, lower_limit, upper_limit = []):
         
