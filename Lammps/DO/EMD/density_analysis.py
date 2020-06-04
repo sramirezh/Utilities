@@ -54,6 +54,7 @@ class PropertyDistribution(object):
     def _get_data(self):
         self.data_frame = cf.read_data_file(self.file_name)
 
+    @property
     def _get_properties(self):
         """
         get the names of all the properties given by the columns in the df
@@ -104,6 +105,8 @@ class DensityDistribution(PropertyDistribution):
     """
     Child including the simulation inside and a possible bulk region definition
     and computing all the theoretical properties as per Anderson1984
+
+    TODO if no bulk given, infer from the density distribution
     """
     
     def __init__(self, filename, bulk_name, log_file = "log.lammps", directory = []):
@@ -315,9 +318,36 @@ class DensityDistribution(PropertyDistribution):
         self.get_k(lower_limit, upper_limit) 
         self.get_l(lower_limit, upper_limit) 
         
+    def compute_ladm(self, sigma, lower_limit = 0, upper_limit = [], epsilon = 0.00001):
+        """
+        Computes the Local Average Density Model (LADM) as in Bitsanis1988
+        but in the direction perpendicular to z.
+        sigma is the difference between the integral limits in eq 2.2
+        lower_limit: for the LADM application, in general starting from the wall, i.e =0
+        upper_limit: for the LADM application, after this, the density gets 
+        the values from self.rho_dis.
+        epsilon: to make open intervals in the limits of the integration.
+        """
+        if not upper_limit:
+            upper_limit = self.limits_b[0]
 
-        
-    
+        indexes = cf.get_interval(self.positions, lower_limit, upper_limit)
+        ladm = self.rho_dist.copy()
+
+        for index in indexes:
+            position = self.positions[index]  # point where ladm is computed
+            left_limit = position - 0.5 * sigma + epsilon 
+            right_limit = position + 0.5 * sigma - epsilon
+            indexes_2 = cf.get_interval(self.positions, left_limit, right_limit )
+
+            # Length of the integration interval
+            delta_z = self.positions[indexes_2[-1]] - self.positions[indexes_2[-0]]
+            ladm[index] = cf.integrate(self.positions, self.rho_dist, 
+                                    left_limit, right_limit) / delta_z
+
+        self.data_frame['ladm'] = ladm
+        return ladm
+            
     def print_summary(self):
         return 0
     
