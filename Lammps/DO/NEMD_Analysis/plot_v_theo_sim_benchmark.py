@@ -10,7 +10,7 @@ The EMD analysis is base on analytic_results.py
 """
 
 
-
+import numpy as np
 import os
 import sys
 import matplotlib.pyplot as plt
@@ -82,17 +82,22 @@ solution = da.DensityDistribution("properties_short.dat", "rBulk", directory = d
 # #changing the viscosity to the average local
 # =============================================================================
 
-average_density = solution.get_property_ave('density/mass',[solution.lower_limit, solution.limits_b[0]])
-sim.eta = eta_meyer(average_density, sim.T)
+rho_ladm = solution.compute_ladm(1)
 
-logger.info("Changed the viscosity from %s to %s using Meyer et al for the average viscosity int he diffusive layer"%(Yoshida.eta,sim.eta))
+viscosity_array = solution.rho_dist.copy()
+viscosity_array = [eta_meyer(rho, 1) for rho in rho_ladm]
+sim.eta = viscosity_array
+
+#average_density = solution.get_property_ave('density/mass',[solution.lower_limit, solution.limits_b[0]])
+#sim.eta = eta_meyer(average_density, sim.T)
+#
+#logger.info("Changed the viscosity from %s to %s using Meyer et al for the average viscosity int he diffusive layer"%(Yoshida.eta,sim.eta))
 
 # =============================================================================
 # Computing the analytic properties
 # =============================================================================
 solute.compute_all_properties(solute.lower_limit)
 solvent.compute_all_properties(solvent.lower_limit)
-
 
 grad_mu_s = [-0.125, -0.063, -0.025]
 velocity_t_dist = []
@@ -179,6 +184,34 @@ ax1.set_ylabel(r'$v_x(z)$')
 ax1.legend(loc = 'lower right')
 fig1.tight_layout()
 fig1.savefig('%s/theo_sim_bench.pdf'%plot_dir)
+
+
+# =============================================================================
+# Plotting LADM
+# =============================================================================
+
+# Densities
+fig, ax = plt.subplots()
+ax.plot(solution.positions, solution.rho_dist, label = 'Measured')
+ax.plot(solution.positions, solution.data_frame['ladm'], label = 'LADM')
+ax.set_ylabel(r'$c(z)$')
+ax.set_xlabel(r'$z$')
+ax.legend(loc = 'upper right')
+ax.set_ylim(0, None)
+ax.set_xlim(0, 8)
+fig.tight_layout()
+fig.savefig('%s/ladm.pdf'%(plot_dir))
+
+# Viscosity
+fig, ax = plt.subplots()
+ax.plot(solution.positions, sim.eta)
+ax.axhline(y=Yoshida.eta, xmin=0, xmax=1,ls='--',c='black')
+ax.set_ylabel(r'$\eta(z)$')
+ax.set_xlabel(r'$z$')
+ax.set_ylim(0, None)
+ax.set_xlim(0, 8)
+fig.tight_layout()
+fig.savefig('%s/eta.pdf'%(plot_dir))
 
 
 
