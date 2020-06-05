@@ -75,7 +75,7 @@ def fast_averager(input,min_limit=0, output_file = []):
         try:
             os.path.exists(input)
             data,names=read_from_file(input)
-            calculations(data,min_limit,output_file,names)
+            calculations(data,min_limit,output_file,names, function = True)
         except IOError:
             print('The input file for the statistical analysis does not exist ')
         return
@@ -83,7 +83,7 @@ def fast_averager(input,min_limit=0, output_file = []):
     else:
         data=input
 
-        output_array=calculations(data,min_limit,output_file,function='True')
+        output_array=calculations(data,min_limit,output_file,function = True)
 
         return output_array
 
@@ -141,9 +141,10 @@ def calculations(data, min_limit, output_file, names=None, function=False):
             try:
                 i_delete=exclude_parameters(names, exclude)
                 data_to_analyse=np.delete(data1,i_delete,axis=1)
-                print("skipped the next parameters from the analysis:")
-                for j,i in enumerate(i_delete):
-                    print("%s. %s"%(j,names[i]))
+                if function == False:
+                    print("skipped the next parameters from the analysis:")
+                    for j,i in enumerate(i_delete):
+                        print("%s. %s"%(j,names[i]))
                 names_to_analyse=np.delete(names,i_delete)
             except:
                 print("No columns to skip")
@@ -186,6 +187,7 @@ def calculations(data, min_limit, output_file, names=None, function=False):
         file.write("Property    Average    Error_autocorrelation    Error_blocking    Error_simple variance\n")
         for i in range(size):
             if function==False:
+                print(function)
                 print("%s = %lf %lf %lf %lf %lf"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i], variance_s[i]))
             file.write("%s = %lf %lf %lf %lf %lf\n"%(names_to_analyse[i],averages[i],error_c[i], error_b[i], error_s[i],variance_s[i] ))
         file.close()
@@ -212,4 +214,4 @@ if __name__ == "__main__":
     input_file=args.filename
     output_file=args.output
 
-    fast_averager(input_file,min_limit,output_file)
+    fast_averager(input_file,min_limit,output_file, function = False)
