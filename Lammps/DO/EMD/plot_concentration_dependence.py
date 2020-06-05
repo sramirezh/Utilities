@@ -18,6 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This fall
 import Lammps.core_functions as cf
 import Lammps.DO.EMD.density_analysis as da
 import Lammps.lammps_utilities as lu
+from Lammps.DO.EMD.Meyer_2018 import eta_meyer
 
 
 class SimulationEMD(lu.SimulationType):
@@ -59,6 +60,7 @@ folders = [folders[i] for i in index_files]
 #folders = folders[2:]
 
 folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
+#folders = ['x_0.05']
 
 # =============================================================================
 # Preparing the distribution plots
@@ -77,7 +79,6 @@ fig4, ax4 = plt.subplots()
 fig5, ax5 = plt.subplots()
 # Figure for the solvent excess distributions
 fig6, ax6 = plt.subplots()
-
 # Figure for the solution concentration
 fig7, ax7 = plt.subplots()
 
@@ -94,6 +95,13 @@ for folder in folders:
     solvent.compute_all_properties(solvent.lower_limit)
     
     solution = da.DensityDistribution("properties_short.dat", "rBulk", directory = path) 
+    
+    # LADM
+    logger.info("Performing LADM")
+    rho_ladm = solution.compute_ladm(1)
+    viscosity_array = solution.rho_dist.copy()
+    viscosity_array = [eta_meyer(rho, 1) for rho in rho_ladm]
+
     
     # Getting properties from the bulk
     temp = solute.sim.thermo_ave.loc['Temp','Average']
@@ -124,6 +132,7 @@ for folder in folders:
     ax5.plot(solute.positions, solute.rho_exc, marker ='o', markersize=2, label = r'$\Gamma = %1.2f, x_0 =%s$'%(solute.gamma,x_0))
     ax6.plot(solvent.positions, solvent.rho_exc, marker ='o', markersize=2, label = r'$\Gamma = %1.2f, x_0 =%s$'%(solvent.gamma,x_0))
     ax7.plot(solution.positions, solution.rho_dist, marker ='o', markersize=2,lw = 0.5,  label = '%s'%x_0)
+    ax7.plot(solution.positions, solution.data_frame['ladm'],lw = 0.5, color = ax7.lines[-1].get_color())
 
 # =============================================================================
 # Distribution plots
@@ -299,4 +308,40 @@ ax.legend(loc = 'upper right')
 ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 fig.tight_layout()
 fig.savefig('%s/kl.pdf'%(plot_dir))
+
+
+
+## Trying LADM
+
+#fig, ax = plt.subplots()
+#ax.plot(solution.positions, solution.rho_dist, label = 'Measured')
+#ax.plot(solution.positions, ladm, label = 'LADM')
+#ax.set_ylabel(r'$c(z)$')
+#ax.set_xlabel(r'$z$')
+#ax.legend(loc = 'upper right')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+#fig.tight_layout()
+#fig.savefig('%s/ladm.pdf'%(plot_dir))
+#
+#
+#indexes = cf.get_interval(solution.positions, solution.lower_limit, 8)
+#viscosity_array = [eta_meyer(rho, 1) for rho in ladm[indexes]]
+#
+#eta = 1.57
+#
+#fig, ax = plt.subplots()
+#ax.plot(solution.positions[indexes], viscosity_array)
+#ax.set_ylabel(r'$\eta(z)$')
+#ax.set_xlabel(r'$z$')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+#fig.tight_layout()
+#fig.savefig('%s/eta.pdf'%(plot_dir))
+#
+#
+## Now plotting the viscosity
+
+
+
 
