@@ -189,7 +189,7 @@ fig1.savefig('%s/theo_sim_bench.pdf'%plot_dir)
 # =============================================================================
 # Plotting LADM
 # =============================================================================
-
+logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
 # Densities
 fig, ax = plt.subplots()
 ax.plot(solution.positions, solution.rho_dist, label = 'Measured')
@@ -215,12 +215,28 @@ fig.savefig('%s/eta.pdf'%(plot_dir))
 
 
 
-#xmin = solution.lower_limit
-#xmax = solution.limits_b[0]
+
+## =============================================================================
+## # Testing LADM
+## =============================================================================
 #
-#MinIndex = np.min(np.where(solution.positions >= xmin))
-#MaxIndex = np.max(np.where(solution.positions <= xmax))
+#v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
 #
-#length = solution.positions[MaxIndex] - solution.positions[MinIndex] 
+#fig, ax = plt.subplots()
+#ax.plot(solute.positions, solute.data_frame['integrand_k'], label = 'integrand k', marker ='o', markersize=2)
+#ax.plot(solution.positions, solution.data_frame['ladm'], label = 'ladm', marker ='o', markersize=2)
+#ax.plot(solution.positions, solution.data_frame['density/mass'], label = 'density', marker ='o', markersize=2)
+#ax.plot(solution.positions, solution.data_frame['eta_ladm'], label = 'eta ladm', marker ='o', markersize=2)
+#ax.plot(solute.positions, solute.data_frame['vx_integrand'], label = 'integrand vx', marker ='o', markersize=2)
+#ax.plot(solute.positions, solute.data_frame['vx_z'], label = 'vx', marker ='o', markersize=2)
 #
-#cf.integrate(solution.positions, solution.rho_dist,solution.lower_limit, solution.limits_b[0] )
+#ax.set_xlabel(r'$z$')
+#ax = cf.plot_zoom(ax,[0,4])
+#ax.legend(loc = 'upper right')
+#ax.axhline(y = 0, ls='--',c='black')
+#ax.axvline(x = solute.lower_limit, ls='--',c='black')
+#fig.tight_layout()
+#fig.savefig('%s/test_integrand.pdf'%(plot_dir))
+
+
+
