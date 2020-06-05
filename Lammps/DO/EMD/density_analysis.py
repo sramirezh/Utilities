@@ -342,7 +342,6 @@ class DensityDistribution(PropertyDistribution):
             indexes_2 = cf.get_interval(positions, left_limit, right_limit )
             # Real length of the interval given by the limits
             real_sigma = positions[indexes_2[-1]] - positions[indexes_2[0]]
-            print (position, real_sigma, positions[indexes_2[-1]],positions[indexes_2[0]] )
             integrand = (0.25*real_sigma**2-(positions)**2)*self.rho_dist
             ladm[index] = (6/(real_sigma**3)) * cf.integrate(positions, integrand, 
                                     left_limit, right_limit) 
