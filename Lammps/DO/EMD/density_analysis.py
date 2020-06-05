@@ -282,8 +282,11 @@ class DensityDistribution(PropertyDistribution):
         if not low_limit:
             low_limit = self.lower_limit
         
+        indexes = cf.get_interval(self.positions, low_limit, z, 0.00001)
+        
         if self.data_frame['vx_integrand'].empty:
-            self.data_frame['vx_integrand'] = [self._inner_integral(x,sim) for x in self.positions]
+            self.data_frame['vx_integrand'] = 0
+            self.data_frame['vx_integrand'].iloc[indexes[0]:] = [self._inner_integral(x,sim) for x in self.positions[indexes[0]:]]
         integral = cf.integrate(self.positions, self.data_frame['vx_integrand'], low_limit, z) 
         vx_z = - (sim.T) * grad_c * integral 
         return    vx_z
@@ -298,7 +301,9 @@ class DensityDistribution(PropertyDistribution):
             grad_c: Concentration gradient of the species.
             low_limit: Lower limit of the integral
         """
-        self.data_frame['vx_integrand'] = [self._inner_integral(x,sim) for x in self.positions]
+        indexes = cf.get_interval(self.positions, low_limit, self.limits_b[0], 0.00001)
+        self.data_frame['vx_integrand'] = 0
+        self.data_frame['vx_integrand'].iloc[indexes[0]:] = [self._inner_integral(x,sim) for x in self.positions[indexes[0]:]]
         self.data_frame['vx_z'] = [self.vx(z, sim, grad_c, low_limit) for z in self.positions]
         self.vx_bulk = self.data_frame['vx_z'].values[-1]
         return self.data_frame['vx_z'].copy()
