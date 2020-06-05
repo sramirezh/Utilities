@@ -322,7 +322,7 @@ class DensityDistribution(PropertyDistribution):
         """
         Computes the Local Average Density Model (LADM) as in Bitsanis1988
         but in the direction perpendicular to z.
-        sigma is the difference between the integral limits in eq 2.2
+        sigma is the difference between the integral limits in eq 2.13
         lower_limit: for the LADM application, in general starting from the wall, i.e =0
         upper_limit: for the LADM application, after this, the density gets 
         the values from self.rho_dis.
@@ -336,14 +336,16 @@ class DensityDistribution(PropertyDistribution):
 
         for index in indexes:
             position = self.positions[index]  # point where ladm is computed
-            left_limit = position - 0.5 * sigma + epsilon 
-            right_limit = position + 0.5 * sigma - epsilon
-            indexes_2 = cf.get_interval(self.positions, left_limit, right_limit )
-
-            # Length of the integration interval
-            delta_z = self.positions[indexes_2[-1]] - self.positions[indexes_2[-0]]
-            ladm[index] = cf.integrate(self.positions, self.rho_dist, 
-                                    left_limit, right_limit) / delta_z
+            positions = self.positions - position # transforming to z-z' 
+            left_limit = -0.5 * sigma + epsilon 
+            right_limit = 0.5 * sigma - epsilon
+            indexes_2 = cf.get_interval(positions, left_limit, right_limit )
+            # Real length of the interval given by the limits
+            real_sigma = positions[indexes_2[-1]] - positions[indexes_2[0]]
+            print (position, real_sigma, positions[indexes_2[-1]],positions[indexes_2[0]] )
+            integrand = (0.25*real_sigma**2-(positions)**2)*self.rho_dist
+            ladm[index] = (6/(real_sigma**3)) * cf.integrate(positions, integrand, 
+                                    left_limit, right_limit) 
 
         self.data_frame['ladm'] = ladm
         return ladm
