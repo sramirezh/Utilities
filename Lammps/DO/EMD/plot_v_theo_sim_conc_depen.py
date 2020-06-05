@@ -13,6 +13,7 @@ import glob
 import os
 import sys
 import pandas as pd
+import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
@@ -93,8 +94,9 @@ folders = [folders[i] for i in index_files]
 
 # Removing the extremely low concentrations
 folders = folders[2:]
-
-folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
+#
+#folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
+#folders = ['x_0.05','x_0.9']
 
 # =============================================================================
 # Preparing the distribution plots
@@ -111,6 +113,7 @@ for folder in folders:
     path_nemd = '%s/4.Applying_force_gradC/'%folder
     
     fluid = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_nemd)
+    fluid_theo = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_theo)
     solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = path_theo) 
     solvent = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = path_theo) 
     
@@ -118,11 +121,17 @@ for folder in folders:
     # =============================================================================
     # #changing the viscosity to the average local
     # =============================================================================
+    logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
+    rho_ladm = fluid_theo.compute_ladm(1)
 
-    average_density = fluid.get_property_ave('density/mass',[fluid.lower_limit, fluid.limits_b[0]])
-    sim.eta = eta_meyer(average_density, sim.T)
+    viscosity_array = fluid_theo.rho_dist.copy()
+    viscosity_array = np.array([eta_meyer(rho, sim.T) for rho in rho_ladm])
+#    viscosity_array[:]  = mine.eta
+#    viscosity_array[6] = viscosity_array[5]
+    sim.eta = viscosity_array
+    fluid_theo.data_frame['eta_ladm'] = viscosity_array
     
-    logger.info("Changed the viscosity from %s to %s using Meyer et al for the average viscosity inint he diffusive layer"%(mine.eta,sim.eta))
+#    logger.info("Changed the viscosity from %s to %s using Meyer et al for the average viscosity inint he diffusive layer"%(mine.eta,sim.eta))
 
     solute.compute_all_properties(solute.lower_limit)
     solvent.compute_all_properties(solvent.lower_limit)
@@ -266,58 +275,29 @@ fig.tight_layout()
 fig.savefig('%s/grad_mu_f.pdf'%(plot_dir))
 
 
-#
-## Initial concentration in the box vs equilibrated concentration in the bulk 
-#fig, ax = plt.subplots()
-#ax.scatter(df['x0'], df['solute.rhobulk'])
-#ax.plot(df['x0'], df['x0'], label = r'$x_0 = x_0$')
-#ax.set_ylabel(r'$c_s^i$')
-#ax.set_xlabel(r'$c_s^B$')
-#ax.legend(loc = 'upper right')
-#fig.tight_layout()
-#fig.savefig('solute_rho_bulk.pdf')
-#
-## Gamma vs concentration in the bulk
-#fig, ax = plt.subplots()
-#ax.scatter(df['solute.rhobulk'],df['solute.gamma'],label = 'Solutes')
-#ax.scatter(df['solute.rhobulk'],df['solvent.gamma'],label = 'Solvents')
-#ax.set_ylabel(r'$\Gamma $')
-#ax.set_xlabel(r'$c_s^B$')
-#ax.legend(loc = 'upper right')
-#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-#fig.tight_layout()
-#fig.savefig('solute_gamma.pdf')
-#
-## L* vs concentration in the bulk
-#fig, ax = plt.subplots()
-#ax.scatter(df['solute.rhobulk'],df['solute.l'],label = 'Solutes')
-#ax.scatter(df['solute.rhobulk'],df['solvent.l'],label = 'Solvents')
-#ax.set_ylabel(r'$L^*$')
-#ax.set_xlabel(r'$c_s^B$')
-#ax.legend(loc = 'upper right')
-#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-#fig.tight_layout()
-#fig.savefig('solute_l.pdf')
-#
-#
-## K vs concentration in the bulk
-#fig, ax = plt.subplots()
-#ax.scatter(df['solute.rhobulk'],df['solute.k'],label = 'Solutes')
-#ax.scatter(df['solute.rhobulk'],df['solvent.k'],label = 'Solvents')
-#ax.set_xlabel(r'$c_s^B$')
-#ax.set_ylabel(r'$K$')
-#ax.legend(loc = 'upper right')
-#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-#fig.tight_layout()
-#fig.savefig('solute_k.pdf')
-#
-## K L* vs concentration in the bulk
-#fig, ax = plt.subplots()
-#ax.scatter(df['solute.rhobulk'],df['solute.kl'],label = 'Solutes')
-#ax.scatter(df['solute.rhobulk'],df['solvent.kl'],label = 'Solvents')
-#ax.set_xlabel(r'$c_s^B$')
-#ax.set_ylabel(r'$KL^*$')
-#ax.legend(loc = 'upper right')
-#ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-#fig.tight_layout()
-#fig.savefig('solute_kl.pdf')
+
+df = solute.data_frame
+df['eta'] = fluid_theo.data_frame['eta_ladm']
+df['rho_fluid'] = fluid_theo.data_frame['density/mass']
+df['rho_fluid_lamd'] = fluid_theo.data_frame['ladm']
+
+# Testing vx
+
+v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
+
+fig, ax = plt.subplots()
+ax.plot(solute.positions, solute.data_frame['integrand_k'], label = 'integrand k', marker ='o', markersize=2)
+ax.plot(fluid_theo.positions, fluid_theo.data_frame['ladm'], label = 'ladm', marker ='o', markersize=2)
+ax.plot(fluid_theo.positions, fluid_theo.data_frame['density/mass'], label = 'density', marker ='o', markersize=2)
+ax.plot(fluid_theo.positions, fluid_theo.data_frame['eta_ladm'], label = 'eta ladm', marker ='o', markersize=2)
+ax.plot(solute.positions, solute.data_frame['vx_integrand'], label = 'integrand vx', marker ='o', markersize=2)
+ax.plot(solute.positions, solute.data_frame['vx_z'], label = 'vx', marker ='o', markersize=2)
+
+ax.set_xlabel(r'$z$')
+ax = cf.plot_zoom(ax,[0,4])
+ax.legend(loc = 'upper right')
+ax.axhline(y = 0, ls='--',c='black')
+ax.axvline(x = solute.lower_limit, ls='--',c='black')
+fig.tight_layout()
+fig.savefig('%s/test_integrand.pdf'%(plot_dir))
+
