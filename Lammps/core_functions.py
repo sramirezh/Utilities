@@ -295,7 +295,7 @@ def set_plot_appearance(presentation_type = False):
         #plt.rcParams['lines.markersize'] = 2.5
 
         # Colors
-        plt.rcParams['axes.prop_cycle'] = cycler(linestyle=['-', '--', '-.'])* cycler(color=list('rbkgcmy'))
+        plt.rcParams['axes.prop_cycle'] = cycler(linestyle=['-', '--', '-.']) * cycler(color=list('rbkgcmy'))
 
 
         # Fonts and symbols
