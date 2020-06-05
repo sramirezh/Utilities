@@ -36,7 +36,7 @@ class SimulationEMD(lu.SimulationType):
 # =============================================================================
 # Main
 # =============================================================================
-plot_dir = "plots/1.theo_sim_predictions"
+plot_dir = "plots/0.analytic_results"
 if not os.path.exists(plot_dir):
     os.makedirs(plot_dir)
     
@@ -216,6 +216,13 @@ fig.savefig('%s/first_moment_integrand.pdf'%(plot_dir))
 # =============================================================================
 # # Testing LADM
 # =============================================================================
+
+fig, ax = plt.subplots()
+ax.plot(fluid.positions, fluid.data_frame['density/mass'], label = 'density')
+ax.plot(fluid.positions, fluid.data_frame['ladm'], label = 'ladm')
+ax.set_xlabel(r'$z$')
+fig.tight_layout()
+fig.savefig('%s/ladm.pdf'%(plot_dir))
 
 v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
 
