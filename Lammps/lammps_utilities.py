@@ -117,6 +117,35 @@ def solid_surface(data, atom_type):
     f.writelines("%lf \n" %Maxz)
     f.close
 
+def get_variables(file_name):
+    """
+    Creates a dictionary from all the numerical variables from the given input
+    file
+    Args:
+        file_name: Name of the input file to extract values.
+
+    Returns:
+        var_dir: dictionary containing the variable name as the keys and the 
+        values. 
+        You can use dictionary.keys() and dictionary.values on the output
+    TODO: extract also values from symbolic variables depending on other 
+          variables.
+    """
+    f = open(file_name)
+    names =[]
+    values =[]
+    for line in f.readlines():
+        if "variable" in line:
+            temp = line.split()
+            var_val = temp[3]
+            if '$' not in var_val:
+                values.append(cf.extract_digits(var_val)[0])
+                names.append(temp[1])
+    f.close()
+    var_dir = dict(zip(names, values))
+        
+    return var_dir
+
 
 # Once Simulation gets all the variables, this class could be unified
 class SimulationType(object):
@@ -146,6 +175,7 @@ class SimulationType(object):
 # Todo could create a method to get all the variables and their values and then create a dictionary
 class Simulation(object):
     """
+    TODO
     There are two classes that could be useful and probably merged later
     -system in widom_pylammps
     -simulation from qsub simulation results
