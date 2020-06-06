@@ -84,7 +84,9 @@ mine = SimulationEMD("mine0125", 1, 1.57, -0.125)
 sim = deepcopy(mine)
 sim.print_params(logger)
 
-folders = glob.glob('x*')
+# Getting all the folders with simulations applying forces inside 
+folders = glob.glob("x*/4.Applying_force")
+folders =  [f.split('/')[0] for f in folders]
 
 # sorting the folders by the digit
 a = cf.extract_digits(folders)
@@ -93,7 +95,7 @@ folders = [folders[i] for i in index_files]
 
 
 # Removing the extremely low concentrations
-folders = folders[2:]
+#folders = folders[2:]
 #
 #folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
 #folders = ['x_0.05','x_0.9']
@@ -110,7 +112,7 @@ for folder in folders:
     logger.info(folder)
     x_0 = float(folder.split('_')[-1])
     path_theo = '%s/3.Measuring/'%folder
-    path_nemd = '%s/4.Applying_force_gradC/'%folder
+    path_nemd = '%s/4.Applying_force/'%folder
     
     fluid = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_nemd)
     fluid_theo = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_theo)
@@ -118,18 +120,18 @@ for folder in folders:
     solvent = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = path_theo) 
     
     
-    # =============================================================================
-    # #changing the viscosity to the average local
-    # =============================================================================
-    logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
-    rho_ladm = fluid_theo.compute_ladm(1)
-
-    viscosity_array = fluid_theo.rho_dist.copy()
-    viscosity_array = np.array([eta_meyer(rho, sim.T) for rho in rho_ladm])
-#    viscosity_array[:]  = mine.eta
-#    viscosity_array[6] = viscosity_array[5]
-    sim.eta = viscosity_array
-    fluid_theo.data_frame['eta_ladm'] = viscosity_array
+#    # =============================================================================
+#    # #changing the viscosity to the average local
+#    # =============================================================================
+#    logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
+#    rho_ladm = fluid_theo.compute_ladm(1)
+#
+#    viscosity_array = fluid_theo.rho_dist.copy()
+#    viscosity_array = np.array([eta_meyer(rho, sim.T) for rho in rho_ladm])
+##    viscosity_array[:]  = mine.eta
+##    viscosity_array[6] = viscosity_array[5]
+#    sim.eta = viscosity_array
+#    fluid_theo.data_frame['eta_ladm'] = viscosity_array
     
 #    logger.info("Changed the viscosity from %s to %s using Meyer et al for the average viscosity inint he diffusive layer"%(mine.eta,sim.eta))
 
@@ -276,28 +278,31 @@ fig.savefig('%s/grad_mu_f.pdf'%(plot_dir))
 
 
 
-df = solute.data_frame
-df['eta'] = fluid_theo.data_frame['eta_ladm']
-df['rho_fluid'] = fluid_theo.data_frame['density/mass']
-df['rho_fluid_lamd'] = fluid_theo.data_frame['ladm']
 
-# Testing vx
+# Testing LADM
 
-v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
-
-fig, ax = plt.subplots()
-ax.plot(solute.positions, solute.data_frame['integrand_k'], label = 'integrand k', marker ='o', markersize=2)
-ax.plot(fluid_theo.positions, fluid_theo.data_frame['ladm'], label = 'ladm', marker ='o', markersize=2)
-ax.plot(fluid_theo.positions, fluid_theo.data_frame['density/mass'], label = 'density', marker ='o', markersize=2)
-ax.plot(fluid_theo.positions, fluid_theo.data_frame['eta_ladm'], label = 'eta ladm', marker ='o', markersize=2)
-ax.plot(solute.positions, solute.data_frame['vx_integrand'], label = 'integrand vx', marker ='o', markersize=2)
-ax.plot(solute.positions, solute.data_frame['vx_z'], label = 'vx', marker ='o', markersize=2)
-
-ax.set_xlabel(r'$z$')
-ax = cf.plot_zoom(ax,[0,4])
-ax.legend(loc = 'upper right')
-ax.axhline(y = 0, ls='--',c='black')
-ax.axvline(x = solute.lower_limit, ls='--',c='black')
-fig.tight_layout()
-fig.savefig('%s/test_integrand.pdf'%(plot_dir))
+#df = solute.data_frame
+#df['eta'] = fluid_theo.data_frame['eta_ladm']
+#df['rho_fluid'] = fluid_theo.data_frame['density/mass']
+#df['rho_fluid_lamd'] = fluid_theo.data_frame['ladm']
+#
+#
+#
+#v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
+#
+#fig, ax = plt.subplots()
+#ax.plot(solute.positions, solute.data_frame['integrand_k'], label = 'integrand k', marker ='o', markersize=2)
+#ax.plot(fluid_theo.positions, fluid_theo.data_frame['ladm'], label = 'ladm', marker ='o', markersize=2)
+#ax.plot(fluid_theo.positions, fluid_theo.data_frame['density/mass'], label = 'density', marker ='o', markersize=2)
+#ax.plot(fluid_theo.positions, fluid_theo.data_frame['eta_ladm'], label = 'eta ladm', marker ='o', markersize=2)
+#ax.plot(solute.positions, solute.data_frame['vx_integrand'], label = 'integrand vx', marker ='o', markersize=2)
+#ax.plot(solute.positions, solute.data_frame['vx_z'], label = 'vx', marker ='o', markersize=2)
+#
+#ax.set_xlabel(r'$z$')
+#ax = cf.plot_zoom(ax,[0,4])
+#ax.legend(loc = 'upper right')
+#ax.axhline(y = 0, ls='--',c='black')
+#ax.axvline(x = solute.lower_limit, ls='--',c='black')
+#fig.tight_layout()
+#fig.savefig('%s/test_integrand.pdf'%(plot_dir))
 
