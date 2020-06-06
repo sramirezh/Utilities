@@ -69,6 +69,8 @@ solvent.compute_all_properties(solvent.lower_limit)
 #  LADM
 # =============================================================================
 logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
+sigma_ladm = 1.5
+logger.info("Using sigma_ladm = %s\n"%sigma_ladm)
 rho_ladm = fluid.compute_ladm(1)
 viscosity_array = fluid.rho_dist.copy()
 viscosity_array = [eta_meyer(rho, 1) for rho in rho_ladm]
