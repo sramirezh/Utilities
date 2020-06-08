@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat June 1st 11:53:49 2020
-velocity profile using NEMD and theory
+velocity profile using NEMD and theory for simulations changing the concentration
+at constan chemical potential gradient
 
 The EMD analysis is base on analytic_results.py
 @author: simon
