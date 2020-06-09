@@ -170,9 +170,9 @@ def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, pl
 
 
 
-def main(ms_pat, mf_pat, ms_dir, mf_dir):
+def main(ms_pat, mp_pat, ms_dir, mp_dir):
     
-    global final_mus,final_muf
+    global final_mus,final_p
 
     # =============================================================================
     # Assumptions and external parameters
@@ -198,13 +198,13 @@ def main(ms_pat, mf_pat, ms_dir, mf_dir):
 
 
     final_mus = mu_simulations(ms_pat, ms_dir,rho_bulk,cs_bulk,"s")
-    final_muf = mu_simulations(mf_pat, mf_dir,rho_bulk,cs_bulk,"f")
+    final_p = mu_simulations(mp_pat, mp_dir, rho_bulk, cs_bulk,"p")
     
-    
-    plot_properties(final_mus, 'mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
-    plot_properties(final_mus, 'mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
-    plot_properties(final_muf, 'mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
-    plot_properties(final_muf, 'mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
+#    
+#    plot_properties(final_mus, 'mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
+#    plot_properties(final_mus, 'mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
+#    plot_properties(final_p, 'mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
+#    plot_properties(final_p, 'mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
     
 
 
@@ -215,12 +215,14 @@ if __name__ == "__main__":
     The arguments of this depend on the application
     """
     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='4.Applying_force_*')
-    parser.add_argument('-mp_pat', metavar='mp_pat',help='Generic name of the directories with p gradient',default='5.*')
+    parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='4.Applying_force_[0-9]*')
+    parser.add_argument('-mp_pat', metavar='mp_pat',help='Generic name of the directories with p gradient',default='5.Applying_force_p_[0-9]*')
     parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
     parser.add_argument('-mp_dir', metavar='mp_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
     args = parser.parse_args()
-
+    
+    logger = cf.log(__file__, os.getcwd()) 
+    print = logger.info
     
     main(args.ms_pat,args.mp_pat,args.ms_dir,args.mp_dir)
     
