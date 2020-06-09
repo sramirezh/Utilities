@@ -216,13 +216,13 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='4.Applying_force_*')
-    parser.add_argument('-mp_pat', metavar='mf_pat',help='Generic name of the directories with p gradient',default='5.*')
+    parser.add_argument('-mp_pat', metavar='mp_pat',help='Generic name of the directories with p gradient',default='5.*')
     parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
-    parser.add_argument('-mf_dir', metavar='mf_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
+    parser.add_argument('-mp_dir', metavar='mp_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
     args = parser.parse_args()
 
     
-    main(args.ms_pat,args.mf_pat,args.ms_dir,args.mf_dir)
+    main(args.ms_pat,args.mp_pat,args.ms_dir,args.mp_dir)
     
     
     
