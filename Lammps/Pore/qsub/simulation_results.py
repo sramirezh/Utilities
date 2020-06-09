@@ -13,7 +13,7 @@ Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
-import Lammps.General.Log_Analysis.Thermo_Analyser as thermo
+import Lammps.General.Thermo_Analyser as thermo
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
@@ -224,7 +224,7 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
         thermo_marker: Name of the file(s) that help to check if the themo analysis was performed ex:"thermo.dat"
 "thermo.dat"
     """
-    global cna
+#    global cna
     #Needed parameters
     roots = glob.glob(root_pattern)
     
