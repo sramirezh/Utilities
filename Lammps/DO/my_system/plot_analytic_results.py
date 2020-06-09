@@ -40,7 +40,7 @@ class SimulationEMD(lu.SimulationType):
 # =============================================================================
 # Main
 # =============================================================================
-plot_dir = "plots/0.concentration_dependence"
+plot_dir = "plots/0.concentration_dependence_grad_mu"
 if not os.path.exists(plot_dir):
     os.makedirs(plot_dir)
     
@@ -54,13 +54,7 @@ a = cf.extract_digits(folders)
 index_files = a[1]
 folders = [folders[i] for i in index_files]
 
-
-
-# Removing the extremely low concentrations
-#folders = folders[2:]
-
-folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
-#folders = ['x_0.05']
+folders = folders[3:]
 
 # =============================================================================
 # Preparing the distribution plots
@@ -81,11 +75,18 @@ fig5, ax5 = plt.subplots()
 fig6, ax6 = plt.subplots()
 # Figure for the solution concentration
 fig7, ax7 = plt.subplots()
+# Figure for the solution concentration LADM only
+fig8, ax8 = plt.subplots()
+# Figure for the solution viscosity LADM only
+fig9, ax9 = plt.subplots()
+
+
 
 
 data_array = []
 for folder in folders:
     x_0 = float(folder.split('_')[-1])
+    logger.info('\nAnalysing inside %s'%x_0)
     path = '%s/3.Measuring/'%folder
     
     solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = path) 
@@ -119,10 +120,12 @@ for folder in folders:
     
     # Plot how does the Number of solutes in the bulk, changes (To see if there is equilibration)
     fig, ax = plt.subplots()
-    solute.sim.thermo_data.plot(x = 'Step', y = 'v_cBSolu', ax = ax, label = False)
+    ax.plot(solute.sim.thermo_data['Step'], solute.sim.thermo_data['v_cBSolu'])
+#    solute.sim.thermo_data.plot(x = 'Step', y = 'v_cBSolu', ax = ax, label = False)
     ax.set_xlabel(r"$t$")
     ax.set_ylabel(r"$N_s^B$")
     ax.axhline(y=solute.sim.thermo_ave.loc['v_cBSolu','Average'], xmin=0, xmax=1,ls='--',c='black')
+    fig.tight_layout()
     fig.savefig('%s/Nsolu_%s.pdf'%(plot_dir, x_0))
     
     ax1.plot(solute.positions, solute.rho_dist, label = '%s'%x_0)
@@ -133,6 +136,8 @@ for folder in folders:
     ax6.plot(solvent.positions, solvent.rho_exc, marker ='o', markersize=2, label = r'$\Gamma = %1.2f, x_0 =%s$'%(solvent.gamma,x_0))
     ax7.plot(solution.positions, solution.rho_dist, marker ='o', markersize=2,lw = 0.5,  label = '%s'%x_0)
     ax7.plot(solution.positions, solution.data_frame['ladm'],lw = 0.5, color = ax7.lines[-1].get_color())
+    ax8.plot(solution.positions, solution.data_frame['ladm'], marker ='o', markersize=2,lw = 0.5,  label = '%s'%x_0)
+    ax9.plot(solution.positions, viscosity_array, marker ='o', markersize=2,lw = 0.5,  label = '%s'%x_0 )
 
 # =============================================================================
 # Distribution plots
@@ -207,6 +212,26 @@ ax7.axvline(solution.lower_limit,ls='--',c='black')
 ax7.axvline(solution.lower_limit+1,ls='--',c='black')
 fig7.tight_layout()
 fig7.savefig('%s/solution_density_distributions.pdf'%(plot_dir))
+
+
+ax8.set_ylabel(r'$c(z)$')
+ax8.set_xlabel(r'$z$')
+ax8 = cf.plot_zoom(ax8,[0,8])
+ax8.legend(loc = 'upper right')
+ax8.axvline(solution.lower_limit,ls='--',c='black')
+ax8.axvline(solution.lower_limit+1,ls='--',c='black')
+fig8.tight_layout()
+fig8.savefig('%s/solution_density_distributions_LADM.pdf'%(plot_dir))
+
+
+ax9.set_ylabel(r'$\eta(z)$')
+ax9.set_xlabel(r'$z$')
+ax9 = cf.plot_zoom(ax9,[0,8])
+ax9.legend(loc = 'upper right')
+ax9.axvline(solution.lower_limit,ls='--',c='black')
+ax9.axvline(solution.lower_limit+1,ls='--',c='black')
+fig9.tight_layout()
+fig9.savefig('%s/eta_LADM.pdf'%(plot_dir))
 
 
 
