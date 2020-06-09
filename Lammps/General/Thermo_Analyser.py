@@ -19,7 +19,7 @@ def read_chunk(file_name,i_line,f_line):
     data=[]
     for i in range(i_line,f_line):
         data.append(linecache.getline(file_name, i+1).strip('\n').split())
-    data=np.array(data,dtype='double')
+    data=np.array(data)
     return data
 
 def save_file(data,header):
