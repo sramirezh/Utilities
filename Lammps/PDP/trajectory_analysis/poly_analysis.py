@@ -82,6 +82,7 @@ def Box_limits(input_file):
         limits=[]
         for i in range(LineNumber,LineNumber+3):
             limits.append(linecache.getline(input_file, i+1).strip('\n').split())
+            linecache.clearcache()
         limits=np.array(limits,dtype='double')
         L=limits[:,1]-limits[:,0]
 
@@ -99,6 +100,9 @@ def number_of_monomers(file_name):
     out,err=cf.bash_command('grep -n -m1 "NUMBER OF ATOMS" '+file_name)
     line_number=int(out.split(":")[0])
     number_part=int(linecache.getline(file_name, line_number+1))
+    linecache.clearcache()
+    
+
 
 
     return number_part

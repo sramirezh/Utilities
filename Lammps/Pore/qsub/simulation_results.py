@@ -13,7 +13,7 @@ Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
-import Lammps.General.Thermo_Analyser as thermo
+import Lammps.General.thermo_analyser as thermo
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
@@ -228,11 +228,18 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
     #Needed parameters
     roots = glob.glob(root_pattern)
     
-    
+    print ("Reading the following directories:\n%s"%roots)
     bundles=[]
 
     for i,root in enumerate(roots):
+        
         directories = glob.glob('%s/%s'%(root,directory_pattern))
+        
+#        # If there are no directories inside
+#        if not directories:
+#            directories = root
+#            directory_pattern = '.'
+#        else:
         digits = cf.extract_digits(root, sort = False)[-1] 
         cna = check_n_analyse(root,directory_pattern)
         cna.check_finished("vdata.dat")
@@ -500,7 +507,7 @@ class simulation_bundle(simulation):
     """
     get_property should be generalised to return either the average or the values of each element of the bundle
     """
-    def __init__(self,simulations,parameter_id,parameter_value,root,dictionary = None,ave = True):
+    def __init__(self,simulations,parameter_id,parameter_value,root,dictionary = None, ave = True):
         """
         
         root is the directory where the plot folder and the statistic summary is going to be created
@@ -525,7 +532,7 @@ class simulation_bundle(simulation):
         """
         
         length_i = len(self.property_names)
-        new_properties = self.simulations[-1].property_names
+        new_properties = self.simulations[-1].property_names.copy()
         new_properties = [prop for prop in new_properties if prop not in self.property_names]
         self.property_names.extend(new_properties)  #is this very Ugly?????
         

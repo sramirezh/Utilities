@@ -67,6 +67,7 @@ def read_box_limits(log_name):
     out,err=cf.bash_command("""grep -n "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
     line=int(out.split()[0])
     limits=linecache.getline(log_name, line)
+    linecache.clearcache()
     limits=re.findall(r"[-+]?\d*\.?\d+", limits)
     limits=np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
     volume=(limits[1,0]-limits[0,0])*(limits[1,1]-limits[0,1])*(limits[1,2]-limits[0,2])

@@ -40,6 +40,7 @@ file.close()
 print() 
 initial=1
 final=int(linecache.getline(file_name, 4))
+linecache.clearcache()
 
 
 #Finding the first element of the polymer

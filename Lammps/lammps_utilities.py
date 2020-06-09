@@ -7,7 +7,7 @@ import linecache
 import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-import Lammps.General.Thermo_Analyser as ta
+import Lammps.General.thermo_analyser as ta
 
 
 
@@ -35,6 +35,7 @@ def read_box_limits(log_name, entry_num = 0):
     out,err = cf.bash_command("""grep -n -a "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
     line = int(out.split()[entry_num])
     limits = linecache.getline(log_name, line)
+    linecache.clearcache()
     limits = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits)
     limits = np.array(np.reshape(limits,(2,3)),dtype=float) #To have the box as with columns [x_i_min,x_i_max]
     volume = (limits[1,0]-limits[0,0])*(limits[1,1]-limits[0,1])*(limits[1,2]-limits[0,2])
@@ -61,6 +62,7 @@ def read_region_height(domain_name, geom_file = "in.geom"):
     out,err=cf.bash_command("""grep -n "%s" %s | awk -F":" '{print $1}' """%(domain_name,geom_file))
     line=int(out.split()[0])
     limits=linecache.getline(geom_file, line)
+    linecache.clearcache()
     limits=np.array(re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits),dtype = float)
     height = limits[1]-limits[0]
 
@@ -225,6 +227,7 @@ class Simulation(object):
         out, err = cf.bash_command("""grep -n -a "orthogonal box" %s | awk -F":" '{print $1}' """%self.log_file)
         line = int(out.split()[0])
         limits = linecache.getline(self.log_file, line)
+        linecache.clearcache()
         limits = re.findall(r"-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?", limits)
         limits = np.array(np.reshape(limits, (2,3)),dtype=float) # To have the box as with columns [x_i_min,x_i_max]
         self.volume = (limits[1, 0] - limits[0, 0]) * (limits[1, 1] - limits[0, 1]) * (limits[1, 2] - limits[0, 2])
