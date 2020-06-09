@@ -3,7 +3,7 @@
 """
 Created on Sat June 1st 11:53:49 2020
 velocity profile using NEMD and theory for simulations changing the concentration
-at constan chemical potential gradient
+at constant chemical potential gradient
 
 The EMD analysis is base on analytic_results.py
 @author: simon
@@ -73,7 +73,7 @@ def plot_sim_theo(fluid, solute, solvent):
 # =============================================================================
 # Main
 # =============================================================================
-plot_dir = "plots/1.theo_sim_grad_mu"
+plot_dir = "plots/1.theo_sim_grad_c"
 if not os.path.exists(plot_dir):
     os.makedirs(plot_dir)
     
@@ -87,12 +87,12 @@ mine = SimulationEMD("mine0125", 1, 1.57, -0.125, False)
 sim = deepcopy(mine)
 sim.print_params(logger)
 
-# Getting all the folders with simulations applying forces inside 
-folders = glob.glob("x*/4.Applying_force")
+# =============================================================================
+# Getting the specific folders
+# =============================================================================
+# Getting all the folders with simulations applying constant grad c inside
+folders = glob.glob("x*/4.Applying_force_gradC")
 folders =  [f.split('/')[0] for f in folders]
-
-
-#folders = ['x_0.2', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
 
 # sorting the folders by the digit
 a = cf.extract_digits(folders)
@@ -100,10 +100,10 @@ index_files = a[1]
 folders = [folders[i] for i in index_files]
 
 
-# Removing the extremely low concentrations
-#folders = folders[2:]
+# Removing the extremely low concentrations (starting from 0.2)
+folders = folders[4:]
 #
-#folders = ['x_0.05', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
+#folders = ['x_0.2', 'x_0.3', 'x_0.4', 'x_0.5', 'x_0.9']
 #folders = ['x_0.05','x_0.9']
 
 # =============================================================================
@@ -118,8 +118,14 @@ for folder in folders:
     logger.info(folder)
     x_0 = float(folder.split('_')[-1])
     path_theo = '%s/3.Measuring/'%folder
-    path_nemd = '%s/4.Applying_force/'%folder
+    path_nemd = '%s/4.Applying_force_gradC/'%folder
     
+    # Getting the chemical potential gradient
+    variables = lu.get_variables("%sinput.lmp"%path_nemd)
+    # redefinging the chemical potential gradient
+    sim.grad_mu_s = -variables['gradC']/variables['cs_bulk']
+    
+    # Loading all the data
     fluid = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_nemd)
     fluid_theo = da.DensityDistribution("properties_short.dat", "rBulk" , directory = path_theo)
     solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = path_theo) 
