@@ -198,10 +198,6 @@ def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
         os.chdir(cwd)
     return times
 
-    
-
-
-
 #TODO This function has to be generalised
 def initialise_sim_bundles(root_pattern, parameter_id, directory_pattern, 
                            dictionary={},finished_marker = "vdata.dat",
