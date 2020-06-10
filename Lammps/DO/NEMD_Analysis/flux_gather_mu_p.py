@@ -23,6 +23,7 @@ import glob
 import argparse
 import re
 import Lammps.lammps_utilities as lu
+import Lammps.DO.EMD.density_analysis as da
 
 cwd = os.getcwd() #current working directory
 
@@ -95,11 +96,11 @@ def build_bundle_mu(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type
 # =============================================================================
     if not glob.glob("%s"%sim_type):
         print("\nAnalysing the mu grad simulations\n")
-        bundles_mu = sr.initialise_sim_bundles(root_pattern,'mu',directory_pattern,dictionary)
+        bundles_mu = sr.initialise_sim_bundles(root_pattern,'mu',directory_pattern,dictionary, plot = False)
         final_mu = sr.simulation_bundle(bundles_mu,sim_type,3,cwd,dictionary = dictionary, ave = False)
         final_mu.save("%s"%sim_type)
     else:
-        final_mu = final_mu = cf.load_instance("%s"%sim_type) 
+        final_mu = cf.load_instance("%s"%sim_type) 
 
     # =============================================================================
     # Calculations of the transport coefficients from DP problem
@@ -137,10 +138,10 @@ def build_bundle_mu(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type
         #Adding specific properties to the secondary bundle
         
         bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
-#        bund.add_upd_properties() # To update the bundle
+        bund.update_properties() # To update the bundle
 
 
-#    final_mu.add_upd_properties()
+    final_mu.update_properties()
     
     
     return final_mu
@@ -186,7 +187,7 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
 # =============================================================================
     if not glob.glob("%s"%sim_type):
         print("\nAnalysing the mu grad simulations\n")
-        bundles_p = sr.initialise_sim_bundles(root_pattern,'p',directory_pattern,dictionary)
+        bundles_p = sr.initialise_sim_bundles(root_pattern,'p',directory_pattern,dictionary, plot = False)
         final_p = sr.simulation_bundle(bundles_p,sim_type,3,cwd,dictionary = dictionary, ave = False)
         final_p.save("%s"%sim_type)
     else:
@@ -211,7 +212,7 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
             vx_solu = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
 #            vx_solv = ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
             
-            J_s = c_solutes*vx_solu
+            J_s = c_solutes * vx_solu
             Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
             pref = c_total * cs_bulk/rho_bulk
             exc_sol_flux = J_s - pref * Q
@@ -225,13 +226,14 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
 
             count+=1
         
-        #Adding specific properties to the secondary bundle
+        # It has to be updated as new properties were added to the simulations
+        bund.update_properties()
         
 #        bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
-#        bund.add_upd_properties() # To update the bundle
+#        .update_properties() # To update the bundle
 
-
-#    final_p.add_upd_properties()
+        # It has to be updated as new properties were added to the subbundle
+        final_p.update_properties()
     
     
     return final_p
@@ -240,7 +242,8 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
 
 def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, plot_name=None):
     """
-    TODO this could be part of the class simulation_bundle, actually I could make the get_property to return either the average or the list
+    TODO this could be part of the class simulation_bundle, actually I could 
+    make the get_property to return either the average or the list
     This is a partly based on simulation_bundle.plot_property that 
     """
     
@@ -255,9 +258,6 @@ def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, pl
     fig,ax=plt.subplots()
 
     plt.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
-
-
-
     pinit=[1.0]
     out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
     pfinal = out[0] #fitting coefficients
@@ -287,9 +287,13 @@ def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, pl
     cf.save_instance(ax,"%s"%plot_name)
 
 
-
+# =============================================================================
+#     Main
+# =============================================================================
 
 def main(ms_pat, mp_pat, ms_dir, mp_dir):
+    
+    dir_measure = "3.Measuring"
     
     global final_mus,final_p
 
@@ -298,13 +302,15 @@ def main(ms_pat, mp_pat, ms_dir, mp_dir):
     # =============================================================================
 
 
-    ##The following two parameters are obtained from the knowledge of the bulk properties
-    # TODO this can be obtained with lammps_utilities.py, add this property to class
-    
-    rho_bulk =  0.752375
-    cs_bulk = 0.375332
+    #Obtaining some basic properties from the bulk, assuming that the NEDM
+    #Run does not alter the densities distribution
+    fluid = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_measure) 
+    solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = dir_measure) 
 
-    print("I am using the following parameters:\n rho_bulk = %f\n cs_bulk = %f\n"%(rho_bulk, cs_bulk ))
+    rho_bulk = fluid.rho_bulk
+    cs_bulk = solute.rho_bulk
+    
+    logger.info("Using the following parameters:\n rho_bulk = %f\n cs_bulk = %f\n"%(rho_bulk, cs_bulk ))
 
 
     # Transport coefficients from GK
@@ -316,14 +322,14 @@ def main(ms_pat, mp_pat, ms_dir, mp_dir):
     # T_ss = 0.0167278
 
 
-    final_mus = build_bundle_mu(ms_pat, ms_dir,rho_bulk,cs_bulk,"s")
-    final_p = build_bundle_p(mp_pat, mp_dir, rho_bulk, cs_bulk,"p")
+    final_mus = build_bundle_mu(ms_pat, ms_dir, rho_bulk, cs_bulk,"grad_mu_s")
+    final_p = build_bundle_p(mp_pat, mp_dir, rho_bulk, cs_bulk,"grad_p")
     
     
-#    plot_properties(final_mus, 'mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
+    plot_properties(final_mus, 'grad_mu','Q', x_label = r"$-\nabla \mu'_{s}$", y_label = r'$Q$', plot_name ="q_vs_grad_mu" )
 #    plot_properties(final_mus, 'mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
-#    plot_properties(final_p, 'mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
-#    plot_properties(final_p, 'mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
+    plot_properties(final_p, 'p','Js',x_label = r'$-\nabla P$', y_label = r'$J_s$' ,plot_name ="Js_vs_grad_P" )
+    plot_properties(final_p, 'p','Js_exc', x_label = r'$-\nabla P$', y_label = r'$J_s-c^*_sQ$', plot_name ="Js_exc_vs_grad_P"  )
     
 
 
@@ -345,9 +351,6 @@ if __name__ == "__main__":
     
     main(args.ms_pat,args.mp_pat,args.ms_dir,args.mp_dir)
     
-    
-    
-
 # # =============================================================================
 # # Peclet number computation
 # # =============================================================================
