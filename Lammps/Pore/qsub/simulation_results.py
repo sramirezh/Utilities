@@ -5,7 +5,7 @@ Created on Sun Jul 28 19:08:44 2019
 Here I will include all the functions an classes necessary to gather and analyse simulations
 @author: sr802
 """
-
+import pandas as pd
 import os
 import sys
 import glob
@@ -169,9 +169,6 @@ def run_thermo_directories(directories,log_name,dmin):
 
    # def print_log(self,text,print_to_screen='False'):
 
-
-
-
 def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
     """
 
@@ -206,23 +203,48 @@ def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
 
 
 #TODO This function has to be generalised
-def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionary={},finished_marker=[],stat_markers=[],thermo_markers = []):
+def initialise_sim_bundles(root_pattern, parameter_id, directory_pattern, 
+                           dictionary={},finished_marker = "vdata.dat",
+                           stat_markers="statistics.dat",
+                           thermo_markers = "thermo.dat", plot = True):
+     
     """
     
     This is VERY SPECIFIC for flux gatherer
     
-    Initialises the instances of
-    Args:
-        root_pattern: Is the patter of the folders that contain each simulation that forms the bundle ex:"mu_force*"
-                        Regarding this, the digit that is assumed to describe the simulation is taken as the last numerical value in the name
-                        for instance 6.Applying_force_s_0.125, would have 0.125
-        parameter_id: The name of the parameter that defines the simulation folders, it is free to choose  "Number"
-        directory_pattern: The numbering that goes in the * root_pattern , ex for restart files like 2020000, is '[0-9]*'
-        dictionary: Dictionary for the variables that are inside the analysis_markers below ex: dictionary={'vx_Solv':r'$v^x_{f}$'}
-        finished_marker: Name of a file that helps to check if the simulations finished, ex "vdata.dat"
-        stat_marker: Name of the file(s) that help to check if the statistical analysis was performed ex: "statistics.dat"
-        thermo_marker: Name of the file(s) that help to check if the themo analysis was performed ex:"thermo.dat"
-"thermo.dat"
+    
+    Constructs a bundle of simulations based on a directory tree.
+    suppose a directory tree as follows:
+         |-4.Applying_force_0.025
+         | |-1
+         | |-2
+         | |-3
+         | |-4
+         |-4.Applying_force_0.030
+         | |-1
+         | |-2
+         | |-3
+         | |-4
+         
+    And creates the specific parameters for this analysis
+         
+    Args: 
+        root_pattern: in the example above "4.Applying_force_*"
+        
+                      
+        parameter_id: The name of the parameter that defines the simulation 
+                    folders, it is free to choose  "Number"
+                
+        directory_pattern: the runs inside each root, in the example "[0-9]*"
+        
+        dictionary: Dictionary for the variables that are inside the 
+                    analysis_markers below ex: dictionary={'vx_Solv':r'$v^x_{f}$'}
+        finished_marker: Name of a file that helps to check if the simulations 
+                    finished, ex "vdata.dat"
+        stat_marker: Name of the file(s) that help to check if the statistical 
+                    analysis was performed ex: "statistics.dat"
+        thermo_marker: Name of the file(s) that help to check if the themo 
+                    analysis was performed ex:"thermo.dat"
     """
 #    global cna
     #Needed parameters
@@ -233,7 +255,7 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
 
     for i,root in enumerate(roots):
         
-        directories = glob.glob('%s/%s'%(root,directory_pattern))
+#        directories = glob.glob('%s/%s'%(root,directory_pattern))
         
 #        # If there are no directories inside
 #        if not directories:
@@ -242,10 +264,10 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
 #        else:
         digits = cf.extract_digits(root, sort = False)[-1] 
         cna = check_n_analyse(root,directory_pattern)
-        cna.check_finished("vdata.dat")
-        cna.check_stat("statistics.dat")
+        cna.check_finished(finished_marker)
+        cna.check_stat(stat_markers)
         cna.stat_analysis("vdata.dat")
-        cna.check_thermo("thermo.dat")
+        cna.check_thermo(thermo_markers)
         cna.thermo_analysis("log.lammps")
         
         array = gather_statistics(cna.dir_fin,'Time',root)
@@ -264,7 +286,8 @@ def initialise_sim_bundles(root_pattern,parameter_id,directory_pattern,dictionar
         #Creating the bundle
         bundles.append(simulation_bundle(times, parameter_id, digits, root, dictionary = dictionary))
         
-        bundles[-1].plot_all_properties()
+        if plot == True:
+            bundles[-1].plot_all_properties()
         
     return bundles
         
@@ -316,23 +339,19 @@ def gather_statistics(directories,folder_name,root,files=["statistics.dat","ther
     f.close()
     return array
 
-
-
-
-
-
 """
 *******************************************************************************
 CLASS DEFINITION
 *******************************************************************************
 """
 
-#Class to check if all simulations finished well and perfrome the required analysis 
 #TODO, this might be added to simulation
 class check_n_analyse(object):
     """
-    Class to check if the simulations finished. Then also checks if the analysis finished, if not performs the analysis
-    TODO the markers have to have the same size as the files len(thermo_markers)=len(thermo_files), check this!
+    Class to check if the simulations finished. Then also checks if the 
+    analysis finished, if not performs the analysis
+    TODO the markers have to have the same size as the files 
+    len(thermo_markers)=len(thermo_files), check this!
     """
     def __init__(self,root,directory_pattern):
         """
@@ -390,8 +409,6 @@ class check_n_analyse(object):
             run_thermo_directories(self.dir_thermo[i],fil,discard)
 
 
-
-
 class simulation(object):
     """
     Defines a generic class of simulation that has a characteristic parameter ex= time, Temperature, etc and then fills the instance with properties
@@ -445,7 +462,7 @@ class simulation(object):
         self.property_names.insert(0,self.param_id)
         self.properties.insert(0,self.param_value)
         
-    def add_property(self,prop_name,prop_value):
+    def add_property(self, prop_name, prop_value):
         """
         adding just one property this could be used to add number of particles, etc
         """
@@ -454,6 +471,8 @@ class simulation(object):
             
         self.properties.append(prop_value)
         self.property_names.append(prop_name)
+        
+    
 
     def get_property(self,name,exact=False, text = False ):
         """
@@ -521,43 +540,50 @@ class simulation_bundle(simulation):
         self.root = root
         self.average = ave
         #Ask Shaltiel if this is oK?
-        self.add_upd_properties()
+        self.update_properties()
         self.dictionary = dictionary
         
-        
-    def add_upd_properties(self):
+    
+    def update_properties(self):
         """
         Adds or updates the properties based in the property names in the first simulation of the bundle
         TODO make the get_property to return either the average or the list
         """
-        
         length_i = len(self.property_names)
         new_properties = self.simulations[-1].property_names.copy()
         new_properties = [prop for prop in new_properties if prop not in self.property_names]
         self.property_names.extend(new_properties)  #is this very Ugly?????
         
-        #Now I will add the average with error
-        
+        # Now I will add the average with error
+        data = []
         for prop in new_properties:
             array=[]
+            data_simulation = []
             for sim in self.simulations:
-                value=sim.get_property(prop,exact=True)[1][0]
+                value = sim.get_property(prop,exact=True)[1][0]
                 if np.size(value)>1:  #Has error
                     array.append(un.ufloat(value[0],value[1])) 
                 else:
                     array.append(un.ufloat(value,0))
             if self.average == True:
-                ave=sum(array)/len(array)
-                self.properties.append([ave.n,ave.s])
+                ave = sum(array)/len(array)
+                self.properties.append([ave.n ,ave.s])
+                data_simulation.append(ave)
+
             else:
                 self.properties.append(array)
-
+            data.append(data_simulation)
+        data = np.transpose(np.array(data))
+#            
+#        
         
-        #Adding the property identifier
+#        self.data_frame = pd.DataFrame(data, columns = new_properties)
+        
+        # Adding the property identifier
         if length_i == 0:
             
-            self.property_names.insert(0,self.param_id)
-            self.properties.insert(0,self.param_value)
+            self.property_names.insert(0, self.param_id)
+            self.properties.insert(0, self.param_value)
             
             
     def plot_property(self,p_name,plot_name=None,x_name=None,y_name=None,fit=False):
@@ -635,6 +661,31 @@ class simulation_bundle(simulation):
             if prop!="time" and i>0:
                 print("\ncreating the plot of %s"%prop)
                 self.plot_property(prop)
+    
+
+    @property
+    def data_frame(self):
+        """
+        TODO  most of this has been done in update_properties
+        """
+        data = []
+        for i,bundle in enumerate(self.simulations):
+            data_bundle = []
+            for prop in bundle.properties:
+                
+                # it has error
+                if np.size(prop) >1:
+                    data_bundle.append(un.ufloat(prop[0],prop[1]))
+                else:
+                    data_bundle.append(un.ufloat(prop,0))
+            data.append(data_bundle)
+        
+        columns = bundle.property_names
+        data = np.array(data)
+        
+        df = pd.DataFrame(data, columns = columns)
+        
+        return df
 
     
 
