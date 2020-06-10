@@ -2,9 +2,15 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Jun  1 17:35:55 2019
-THIS IS A VERY SPECIFIC FILE THAT HAS TO BE MODIFIED DEPENDING ON THE PROBLEM
-Gathers the flow from diffusio-osmotic simulations, both from chemical potentials of solutes and solvents
+
+Gathers the flow from diffusio-osmotic simulations, both from chemical 
+potentials of solutes and solvents
 Uses the classes in simulation_results.py
+
+Some details about the simulations:
+    1. There are two volumes where the fluxes are measured in both grad mu and
+    grad p simulations. rBulk (z between 10-25) and rSystem (z between 0-25)
+    
 
 @author: sr802
 """
@@ -27,6 +33,73 @@ import Lammps.DO.EMD.density_analysis as da
 
 cwd = os.getcwd() #current working directory
 
+
+def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, 
+                    plot_name = None, plot_fit = True):
+    """
+    TODO this could be part of the class simulation_bundle, actually I could 
+    make the get_property to return either the average or the list
+    This is a partly based on simulation_bundle.plot_property 
+    
+    Args:
+        instance: instance of simulation bundle
+        x_name: property in the x axis
+        y_name: property in the y axis
+        x_label: label of the x axis in latex format, eg: r'\nabla p'
+        y_label: label of the y axis in latex format
+        plot_name: name of the pdf file without extension
+    
+    Returns:
+        fig:
+        ax:
+    """
+    
+    cf.set_plot_appearance()
+    
+    y = [i.n for i in instance.get_property(y_name, exact = True)[1][0]]
+    y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
+
+    x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
+    
+    fig, ax = plt.subplots()
+
+    plt.errorbar(x, y,yerr=y_error,xerr=None,fmt='o')
+    pinit=[1.0]
+    out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
+    pfinal = out[0] #fitting coefficients
+
+    
+    error = np.sqrt(out[1]) 
+    print("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name,x_name, pfinal[0],error[0][0]))
+    
+    if plot_fit == True:
+        x.sort()
+        y_fit = fitfunc1(pfinal, x)
+        ax.plot(x, y_fit, ls = '--', c = ax.lines[-1].get_color())
+    
+    #Checking if there are axis names
+    if x_label == None:
+        x_label = re.sub('_',' ', x_name)
+        ax.set_xlabel(x_label) #The zeroth-property is the param_id
+    else:
+        ax.set_xlabel(x_label)
+        
+    if y_label == None:
+
+        if y_name in list(instance.dictionary.keys()):
+            y_label = instance.dictionary[y_name]
+        else:
+            y_label = re.sub('_',' ',y_name)
+        ax.set_ylabel(y_label)
+    else:
+        ax.set_ylabel(y_label)
+     
+    plt.tight_layout()
+    
+    fig.savefig("%s.pdf"%plot_name, transparent=True)
+    cf.save_instance(ax,"%s"%plot_name)
+    
+    return fig, ax
 
 def specific_plot_all(sim_bundle,fit=True):
     """
@@ -101,6 +174,26 @@ def build_bundle_mu(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type
         final_mu.save("%s"%sim_type)
     else:
         final_mu = cf.load_instance("%s"%sim_type) 
+        
+        
+        
+ # =============================================================================
+#     Obtaining some geometry parameters
+# =============================================================================
+    #         TODO improve this 
+    root = glob.glob(root_pattern)[0]
+    folder = glob.glob("%s/%s"%(root,directory_pattern))[0]
+    
+    # Getting the dimensions of the simulation box and the regions
+    box_volume, box_limits = lu.read_box_limits('%s/log.lammps'%folder)
+    
+    bulk_heigth  = lu.read_region_height('rBulk','%s/in.geom'%folder)
+    
+    #This is a region defined as the bulk+interface
+    sys_heigth  = lu.read_region_height('rSystem','%s/in.geom'%folder) 
+    
+    vol_bulk = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*bulk_heigth[0]
+    vol_sys = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*sys_heigth[0]
 
     # =============================================================================
     # Calculations of the transport coefficients from DP problem
@@ -112,18 +205,20 @@ def build_bundle_mu(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type
         #This is just to compute the excess of solute flux
         
         for sim in bund.simulations:
-            n_solutes = sim.get_property('cSolu')[1][0][0]
-            n_solvents = sim.get_property('cSolv')[1][0][0]
-            c_total =  (n_solutes+n_solvents)/sim.volume 
+            n_s = sim.get_property('cSolu')[1][0][0]
+            n_f = sim.get_property('cSolv')[1][0][0]
+            n_s_bulk = sim.get_property('cBSolu',True)[1][0][0]
+            n_f_bulk = sim.get_property('cBSolv',True)[1][0][0]
+            c_total =  (n_s+n_f)/vol_sys
 #            c_solvents = n_solvents/sim.volume
-            c_solutes = n_solutes/sim.volume
+            c_s = n_s / vol_sys
 #            
             vx_solu = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
 #            vx_solv = ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
             
-            J_s = c_solutes*vx_solu
+            J_s = c_s * vx_solu
             Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-            pref = c_total * cs_bulk/rho_bulk
+            pref = (n_s_bulk/(n_s_bulk+n_f_bulk)*c_total)
             exc_sol_flux = J_s - pref * Q
             
             
@@ -182,6 +277,7 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
     """
 
     dictionary = {'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+    
 # =============================================================================
 #     Create or read the bundle
 # =============================================================================
@@ -192,7 +288,28 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
         final_p.save("%s"%sim_type)
     else:
         final_p = cf.load_instance("%s"%sim_type) 
-
+        
+        
+        
+# =============================================================================
+#     Obtaining some geometry parameters
+# =============================================================================
+    #         TODO improve this 
+    root = glob.glob(root_pattern)[0]
+    folder = glob.glob("%s/%s"%(root,directory_pattern))[0]
+    
+    # Getting the dimensions of the simulation box and the regions
+    box_volume, box_limits = lu.read_box_limits('%s/log.lammps'%folder)
+    
+    bulk_heigth  = lu.read_region_height('rBulk','%s/in.geom'%folder)
+    
+    #This is a region defined as the bulk+interface
+    sys_heigth  = lu.read_region_height('rSystem','%s/in.geom'%folder) 
+    
+    vol_bulk = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*bulk_heigth[0]
+    vol_sys = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*sys_heigth[0]
+        
+    
     # =============================================================================
     # Calculations of the transport coefficients from DP problem
     # =============================================================================
@@ -203,18 +320,20 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
         #This is just to compute the excess of solute flux
         
         for sim in bund.simulations:
-            n_solutes = sim.get_property('cSolu')[1][0][0]
-            n_solvents = sim.get_property('cSolv')[1][0][0]
-            c_total =  (n_solutes+n_solvents)/sim.volume 
+            n_s = sim.get_property('cSolu')[1][0][0]
+            n_f = sim.get_property('cSolv')[1][0][0]
+            n_s_bulk = sim.get_property('cBSolu',True)[1][0][0]
+            n_f_bulk = sim.get_property('cBSolv',True)[1][0][0]
+            c_total =  (n_s+n_f)/vol_sys
 #            c_solvents = n_solvents/sim.volume
-            c_solutes = n_solutes/sim.volume
+            c_s = n_s / vol_sys
 #            
             vx_solu = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
 #            vx_solv = ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
             
-            J_s = c_solutes * vx_solu
+            J_s = c_s * vx_solu
             Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-            pref = c_total * cs_bulk/rho_bulk
+            pref = (n_s_bulk/(n_s_bulk+n_f_bulk)*c_total)
             exc_sol_flux = J_s - pref * Q
             
             
@@ -238,138 +357,63 @@ def build_bundle_p(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type)
     
     return final_p
 
-
-
-def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, plot_name=None):
-    """
-    TODO this could be part of the class simulation_bundle, actually I could 
-    make the get_property to return either the average or the list
-    This is a partly based on simulation_bundle.plot_property that 
-    """
-    
-    cf.set_plot_appearance()
-    
-    y = [i.n for i in instance.get_property(y_name, exact = True)[1][0]]
-    y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
-
-    x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
-
-
-    fig,ax=plt.subplots()
-
-    plt.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
-    pinit=[1.0]
-    out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
-    pfinal = out[0] #fitting coefficients
-    error = np.sqrt(out[1]) 
-    print("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name,x_name, pfinal[0],error[0][0]))
-        
-    #Checking if there are axis names
-    if x_label == None:
-        x_label = re.sub('_',' ', x_name)
-        ax.set_xlabel(x_label) #The zeroth-property is the param_id
-    else:
-        ax.set_xlabel(x_label)
-        
-    if y_label == None:
-
-        if y_name in list(instance.dictionary.keys()):
-            y_label = instance.dictionary[y_name]
-        else:
-            y_label = re.sub('_',' ',y_name)
-        ax.set_ylabel(y_label)
-    else:
-        ax.set_ylabel(y_label)
-     
-    plt.tight_layout()
-    
-    fig.savefig("%s.pdf"%plot_name, transparent=True)
-    cf.save_instance(ax,"%s"%plot_name)
-
-
 # =============================================================================
 #     Main
 # =============================================================================
 
-def main(ms_pat, mp_pat, ms_dir, mp_dir):
-    
-    dir_measure = "3.Measuring"
-    
-    global final_mus,final_p
+#def main(ms_pat, mp_pat, ms_dir, mp_dir):
 
-    # =============================================================================
-    # Assumptions and external parameters
-    # =============================================================================
+logger = cf.log(__file__, os.getcwd())
+
+ms_path = '4.Applying_force_[0-9]*'
+mp_path = '5.Applying_force_p_[0-9]*'
+ms_dir = '[0-9]*'
+mp_dir = '[0-9]*'
+# =============================================================================
+# Assumptions and external parameters
+# =============================================================================
+
+#Obtaining some basic properties from the bulk, assuming that the NEDM
+#Run does not alter the densities distribution
+
+dir_measure = "3.Measuring"
+fluid = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_measure) 
+solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = dir_measure) 
+
+rho_bulk = fluid.rho_bulk
+cs_bulk = solute.rho_bulk
+
+logger.info("Using the following parameters:\n rho_bulk = %f\n cs_bulk = %f\n"%(rho_bulk, cs_bulk ))
+
+# =============================================================================
+#     Loading all the results for different gradients
+# =============================================================================
+final_mus = build_bundle_mu(ms_path, ms_dir, rho_bulk, cs_bulk,"grad_mu_s")
+final_p = build_bundle_p(mp_path, mp_dir, rho_bulk, cs_bulk,"grad_p")
 
 
-    #Obtaining some basic properties from the bulk, assuming that the NEDM
-    #Run does not alter the densities distribution
-    fluid = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_measure) 
-    solute = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = dir_measure) 
-
-    rho_bulk = fluid.rho_bulk
-    cs_bulk = solute.rho_bulk
-    
-    logger.info("Using the following parameters:\n rho_bulk = %f\n cs_bulk = %f\n"%(rho_bulk, cs_bulk ))
-
-
-    # Transport coefficients from GK
-
-    # # E_3.0
-    # T_sq = 0.0601964
-    # T_qq = 0.3412958
-    # T_qs = 0.0594056
-    # T_ss = 0.0167278
-
-
-    final_mus = build_bundle_mu(ms_pat, ms_dir, rho_bulk, cs_bulk,"grad_mu_s")
-    final_p = build_bundle_p(mp_pat, mp_dir, rho_bulk, cs_bulk,"grad_p")
-    
-    
-    plot_properties(final_mus, 'grad_mu','Q', x_label = r"$-\nabla \mu'_{s}$", y_label = r'$Q$', plot_name ="q_vs_grad_mu" )
-#    plot_properties(final_mus, 'mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
-    plot_properties(final_p, 'p','Js',x_label = r'$-\nabla P$', y_label = r'$J_s$' ,plot_name ="Js_vs_grad_P" )
-    plot_properties(final_p, 'p','Js_exc', x_label = r'$-\nabla P$', y_label = r'$J_s-c^*_sQ$', plot_name ="Js_exc_vs_grad_P"  )
+plot_properties(final_mus, 'grad_mu','Q', x_label = r"$-\nabla \mu'_{s}$", 
+                y_label = r'$Q$', plot_name ="q_vs_grad_mu" )
+plot_properties(final_p, 'p','Js_exc', x_label = r'$-\nabla P$', 
+                y_label = r'$J_s-c^*_sQ$', plot_name ="Js_exc_vs_grad_P"  )
     
 
 
-# TODO change group pattern to something more flexible as just file_names
-if __name__ == "__main__":
-    """
-    THIS IS VERY SPECIFIC
-    The arguments of this depend on the application
-    """
-    parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='4.Applying_force_[0-9]*')
-    parser.add_argument('-mp_pat', metavar='mp_pat',help='Generic name of the directories with p gradient',default='5.Applying_force_p_[0-9]*')
-    parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
-    parser.add_argument('-mp_dir', metavar='mp_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
-    args = parser.parse_args()
-    
-    logger = cf.log(__file__, os.getcwd()) 
-    print = logger.info
-    
-    main(args.ms_pat,args.mp_pat,args.ms_dir,args.mp_dir)
-    
-# # =============================================================================
-# # Peclet number computation
-# # =============================================================================
-
-# D = 0.066 # Diffusion coefficient
-# L = 2
-# pe_p = []
-# for bund in final_p.simulations:
-#     pe_p.append(bund.get_property('Q')[1][0][0]/D * L)
-#     pe_p.sort()
-    
-    
-    
-    
-# # =============================================================================
-# # Peclet number computation
-# # =============================================================================
-
-# pe_mu = []
-# for bund in final_mu.simulations:
-#     pe_mu.append(bund.get_property('Q')[1][0][0]/D * L)
-#     pe_mu.sort()
+## TODO change group pattern to something more flexible as just file_names
+#if __name__ == "__main__":
+#    """
+#    THIS IS VERY SPECIFIC
+#    The arguments of this depend on the application
+#    """
+#    parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+#    parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='4.Applying_force_[0-9]*')
+#    parser.add_argument('-mp_pat', metavar='mp_pat',help='Generic name of the directories with p gradient',default='5.Applying_force_p_[0-9]*')
+#    parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
+#    parser.add_argument('-mp_dir', metavar='mp_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
+#    args = parser.parse_args()
+#    
+#    logger = cf.log(__file__, os.getcwd()) 
+#    print = logger.info
+#    
+#    main(args.ms_pat,args.mp_pat,args.ms_dir,args.mp_dir)
+#    
