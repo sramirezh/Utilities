@@ -67,4 +67,4 @@ pdfjoin  --rotateoversize false -o out.pdf *.pdf
 
 # Creates a directory tree
 
-find . -type d | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"
+``find . -type d | sed -e "s/[^-][^\/]*\//  |/g" -e "s/|\([^ ]\)/|-\1/"``
