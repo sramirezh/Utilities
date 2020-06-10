@@ -16,7 +16,7 @@ import linecache
 import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-import Lammps.General.Thermo_Analyser as ta
+import Lammps.General.thermo_analyser as ta
 import Lammps.lammps_utilities as lu
 
 
@@ -134,8 +134,10 @@ class DensityDistribution(PropertyDistribution):
         self.lower_limit = self.positions[index]
         
     def _set_bulk(self):
-        """
         
+        """
+        TODO give the option of the bulk to be given by an interval, so the bulk_name
+        is actually a name in the geometry file or an interval 
         
         """
         self.h_b, self.limits_b = lu.read_region_height(self.bulk_name, geom_file = self.log_file)
