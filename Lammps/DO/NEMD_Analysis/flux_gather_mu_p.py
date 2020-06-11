@@ -26,7 +26,6 @@ from scipy import optimize
 import Lammps.Pore.qsub.simulation_results as sr
 from uncertainties import ufloat,unumpy
 import glob
-import argparse
 import re
 import Lammps.lammps_utilities as lu
 import Lammps.DO.EMD.density_analysis as da
@@ -34,8 +33,7 @@ import Lammps.DO.EMD.density_analysis as da
 cwd = os.getcwd() #current working directory
 
 
-def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, 
-                    plot_name = None, plot_fit = True):
+def plot_properties(instance, x_name, y_name, ax, plot_fit = True):
     """
     TODO this could be part of the class simulation_bundle, actually I could 
     make the get_property to return either the average or the list
@@ -48,58 +46,35 @@ def plot_properties(instance, x_name, y_name, x_label = None, y_label = None,
         x_label: label of the x axis in latex format, eg: r'\nabla p'
         y_label: label of the y axis in latex format
         plot_name: name of the pdf file without extension
+        ax: an axis could be passed
     
     Returns:
-        fig:
         ax:
     """
-    
-    cf.set_plot_appearance()
     
     y = [i.n for i in instance.get_property(y_name, exact = True)[1][0]]
     y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
 
     x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
     
-    fig, ax = plt.subplots()
 
-    plt.errorbar(x, y,yerr=y_error,xerr=None,fmt='o')
-    pinit=[1.0]
+    ax.errorbar(x, y, yerr=y_error, fmt='o')
+    pinit = [1.0]
     out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
     pfinal = out[0] #fitting coefficients
 
     
     error = np.sqrt(out[1]) 
-    print("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name,x_name, pfinal[0],error[0][0]))
+    logger.info("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name, x_name, pfinal[0],error[0][0]))
     
     if plot_fit == True:
         x.sort()
         y_fit = fitfunc1(pfinal, x)
         ax.plot(x, y_fit, ls = '--', c = ax.lines[-1].get_color())
     
-    #Checking if there are axis names
-    if x_label == None:
-        x_label = re.sub('_',' ', x_name)
-        ax.set_xlabel(x_label) #The zeroth-property is the param_id
-    else:
-        ax.set_xlabel(x_label)
-        
-    if y_label == None:
-
-        if y_name in list(instance.dictionary.keys()):
-            y_label = instance.dictionary[y_name]
-        else:
-            y_label = re.sub('_',' ',y_name)
-        ax.set_ylabel(y_label)
-    else:
-        ax.set_ylabel(y_label)
-     
     plt.tight_layout()
     
-    fig.savefig("%s.pdf"%plot_name, transparent=True)
-    cf.save_instance(ax,"%s"%plot_name)
-    
-    return fig, ax
+    return ax
 
 def specific_plot_all(sim_bundle,fit=True):
     """
@@ -169,7 +144,7 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
 #     Create or read the bundle
 # =============================================================================
     if not glob.glob("%s"%sim_type):
-        print("\nAnalysing the mu grad simulations\n")
+        logger.info("\nAnalysing the mu grad simulations\n")
         bundles_mu = sr.initialise_sim_bundles(root_pattern,sim_type,directory_pattern,dictionary, plot = False)
         final_mu = sr.simulation_bundle(bundles_mu, "bundle" , 3,cwd,dictionary = dictionary, ave = False)
         final_mu.save("%s"%sim_type)
@@ -204,33 +179,73 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
         #This is just to compute the excess of solute flux
         
         for sim in bund.simulations:
-            n_s = sim.get_property('cSolu')[1][0][0]
-            n_f = sim.get_property('cSolv')[1][0][0]
+            
+            
+            
+# =============================================================================
+#             # Quantities in the bulk 
+# =============================================================================
             n_s_bulk = sim.get_property('cBSolu',True)[1][0][0]
             n_f_bulk = sim.get_property('cBSolv',True)[1][0][0]
-            c_total =  (n_s+n_f)/vol_sys
-#            c_solvents = n_solvents/sim.volume
-            c_s = n_s / vol_sys
-#            
-            vx_solu = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
-#            vx_solv = ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
+            n_fluid_bulk = n_f_bulk + n_s_bulk
+            rho_bulk = n_fluid_bulk/vol_bulk
+            cs_bulk = n_s_bulk/vol_bulk
             
-            J_s = c_s * vx_solu
+            vx_s_bulk = ufloat(sim.get_property('vxB_Solu')[1][0][0],sim.get_property('vxB_Solu')[1][0][1])
+            J_s_bulk = cs_bulk*vx_s_bulk
+            Q_bulk = ufloat(sim.get_property('vxB_Sol',exact=True)[1][0][0],sim.get_property('vxB_Sol',exact=True)[1][0][1])
+            
+            exc_s_bulk = J_s_bulk- cs_bulk * Q_bulk
+            
+            sim.add_property('Q_bulk',Q_bulk)
+            sim.add_property('J_s_bulk',J_s_bulk)
+            sim.add_property('J_s_exc_bulk',exc_s_bulk)
+            
+# =============================================================================
+#             # Quantities in the entire system
+# =============================================================================
+            n_s = sim.get_property('cSolu',True)[1][0][0]
+            n_f = sim.get_property('cSolv',True)[1][0][0]
+            n_fluid = n_f + n_s
+            
+            rho = n_fluid/vol_sys
+            cs = n_s/vol_sys
+            
+            vx_s = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
+            J_s = cs*vx_s
             Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-            pref = (n_s_bulk/(n_s_bulk+n_f_bulk)*c_total)
-            exc_sol_flux = J_s - pref * Q
+            
+            exc_s = J_s- cs*Q
+            
+            sim.add_property('Q',Q)
+            sim.add_property('J_s',J_s)
+            sim.add_property('J_s_exc',exc_s)
+            
+# =============================================================================
+# Quantities in the entire Volume weighted by the bulk
+# =============================================================================
+
+            exc_s_hyb = J_s- cs_bulk*Q
+            sim.add_property('J_s_exc_hyb',exc_s_hyb)
+
+
+# =============================================================================
+# Quantities difference of velocities
+# =============================================================================
+
+            exc_s_vel = cs_bulk*(vx_s-Q)
+            exc_s_HY = J_s-(n_s_bulk/(n_s_bulk+n_f_bulk)*rho)*Q
+            
+            sim.add_property('J_s_exc_vel',exc_s_vel)
+            sim.add_property('J_s_exc_HY',exc_s_HY)
             
             
-            #Adding specific properties to the individual simulations
-            
-            sim.add_property('Q', Q)
-            sim.add_property('Js',J_s)
-            sim.add_property('Js_exc',exc_sol_flux)
+        # To add all the properties that we just added in the sub bundle
+            bund.update_properties()
+
 
             count+=1
         
-
-
 
     final_mu.update_properties()
     
@@ -241,9 +256,11 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
 #     Main
 # =============================================================================
 
-#def main(ms_pat, mp_pat, ms_dir, mp_dir):
-
-logger = cf.log(__file__, os.getcwd())
+plot_dir = "plots/3.fluxes"
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
 ms_path = '4.Applying_force_[0-9]*'
 mp_path = '5.Applying_force_p_[0-9]*'
@@ -253,8 +270,8 @@ mp_dir = '[0-9]*'
 # Assumptions and external parameters
 # =============================================================================
 
-#Obtaining some basic properties from the bulk, assuming that the NEDM
-#Run does not alter the densities distribution
+# Obtaining some basic properties from the bulk, assuming that the NEDM
+# run does not alter the densities distribution
 
 dir_measure = "3.Measuring"
 fluid = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_measure) 
@@ -272,17 +289,64 @@ final_mus = build_bundle(ms_path, ms_dir, rho_bulk, cs_bulk,"grad_mu_s")
 final_p = build_bundle(mp_path, mp_dir, rho_bulk, cs_bulk,"grad_p")
 
 
-#plot_properties(final_mus, 'grad_mu','Q', x_label = r"$-\nabla \mu'_{s}$", 
-#                y_label = r'$Q$', plot_name ="q_vs_grad_mu" )
-#plot_properties(final_p, 'p','Js_exc', x_label = r'$-\nabla P$', 
-#                y_label = r'$J_s-c^*_sQ$', plot_name ="Js_exc_vs_grad_P"  )
-#    
-
-
-
-
-        #Adding specific properties to the secondary bundle
+# =============================================================================
+# Getting the grad s primed
+# =============================================================================
+for bund in final_mus.simulations:
         
-#        bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
-#        bund.update_properties() # To update the bundle
+        bund.add_property('grad_mu_primed',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('grad_mu_s',exact=True)[1][0]))
+        bund.update_properties() # To update the bundle
+
+final_mus.update_properties()
+
+
+# =============================================================================
+#  Plotting
+# =============================================================================
+cf.set_plot_appearance()
+plt.close("all")
+
+# Q vs grad mu primed
+fig1, ax1 = plt.subplots()
+plot_properties(final_mus, 'grad_mu_primed','Q',ax1) 
+ax1.set_ylabel(r'$Q$')
+ax1.set_xlabel(r"$-\nabla \mu'_{s}$")
+#ax.legend(loc = 'upper right')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+fig1.tight_layout()
+fig1.savefig('%s/q_vs_grad_mu.pdf'%(plot_dir), Transparent = True)
+                
+# Js vs grad P
+fig2, ax2 = plt.subplots()
+plot_properties(final_p, 'grad_p','J_s_exc_HY', ax2)
+ax2.set_ylabel(r'$J_s-c^*_sQ$')
+ax2.set_xlabel(r'$-\nabla P$')
+#ax.legend(loc = 'upper right')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+fig2.tight_layout()
+fig2.savefig('%s/Js_exc_HY_vs_grad_P.pdf'%(plot_dir), Transparent = True)
+
+# Checking the different exess fluxes
+
+fig3, ax3 = plt.subplots()
+plot_properties(final_p, 'grad_p', 'J_s_exc_bulk', ax3)
+plot_properties(final_p, 'grad_p', 'J_s_exc', ax3)
+plot_properties(final_p, 'grad_p', 'J_s_exc_hyb', ax3)
+plot_properties(final_p, 'grad_p', 'J_s_exc_vel', ax3)
+plot_properties(final_p, 'grad_p', 'J_s_exc_HY', ax3)
+ax3.set_ylabel(r'$J_s$')
+ax3.set_xlabel(r'$-\nabla P$')
+ax3.legend([r"$J'^B_s$", r"$J_s'$", r"$J_s'^{hyb}$", 
+            r"$J_s'^{vel}$", r"$J_s'^{HY}$"], loc = 'upper left', ncol = 2)
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+fig3.tight_layout()
+fig3.savefig('%s/Js_exc_comparison.pdf'%(plot_dir), Transparent = True)
+
+ 
+    
+
+
 
