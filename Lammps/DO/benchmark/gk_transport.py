@@ -65,7 +65,7 @@ def run_analysis(flux_file, time_step, max_tau):
     
     
     etha11 = fc.correlation(Q_flux, Js_flux, max_delta)
-    etha11.evaluate_ccf()
+    etha11.evaluate()
     etha11.save("etha11")
     
     return etha11
