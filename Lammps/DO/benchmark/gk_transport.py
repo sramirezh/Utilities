@@ -76,7 +76,7 @@ def run_analysis(flux_file, time_step, max_tau):
 logger = cf.log(__file__, os.getcwd())
 
 time_step = 0.005 # In LJ time
-max_tau = 100 # in LJ time  Max tau to analyse
+max_tau = 1000 # in LJ time  Max tau to analyse
 tau_integration = 10 # limit for the integration
 Kb = 1  
 Temperature = 1
@@ -114,7 +114,7 @@ else:
 integral = etha11.transport_coeff(1, 0, tau_integration) 
 eta_tau_int = integral * prefactor 
 
-logger.info("The viscosity is %2.5f+/- %2.5f in LJ units"%(eta_tau_int.n, eta_tau_int.s))
+#logger.info("The viscosity is %2.5f+/- %2.5f in LJ units"%(eta_tau_int.n, eta_tau_int.s))
 
 # =============================================================================
 # Ploting all the correlations
@@ -140,7 +140,7 @@ xmin,xmax = ax.get_xlim()
 ax.set_xlim(xmin, max_tau)
 ax.set_xlabel(r'$t^*$')
 
-plt.legend([r'$xy$',r'$xz$',r'$yz$',"Total"], loc = 'upper right', fontsize = 12, ncol = 2)
+plt.legend([r'$xx$',r'$yy$',r'$zz$',"Total"], loc = 'upper right', fontsize = 12, ncol = 2)
 ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(etha11.flux1.name,etha11.flux2.name))
 plt.tight_layout()
 plt.savefig("correlation11.pdf")
