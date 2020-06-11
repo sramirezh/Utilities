@@ -77,7 +77,7 @@ class log(logging.Logger):
         self.info("Running %s"%self.file_name)
         self.info("The git hash is %s" % self.hash)
         self.info("Running inside %s" % self.cwd)
-        if self.aux:
+        if hasattr(self, 'aux'):
             self.info("Auxiliary information saved at %s"%self.aux)
         self.info("--------------------------------------------------------\n")
         

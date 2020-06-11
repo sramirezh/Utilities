@@ -125,6 +125,11 @@ def get_variables(file_name):
     file
     Args:
         file_name: Name of the input file to extract values.
+        
+        
+        assumes
+        variable equal VALUE
+        if Value is not numeric, it is not added to the dictionary
 
     Returns:
         var_dir: dictionary containing the variable name as the keys and the 
@@ -132,15 +137,18 @@ def get_variables(file_name):
         You can use dictionary.keys() and dictionary.values on the output
     TODO: extract also values from symbolic variables depending on other 
           variables.
+          # THIS function could be easily implemented with Pylammps
     """
     f = open(file_name)
     names =[]
     values =[]
     for line in f.readlines():
-        if "variable" in line:
+        if line.startswith("variable"):
             temp = line.split()
             var_val = temp[3]
-            if '$' not in var_val:
+            
+            # assuming assigned lammps variables start with a digit
+            if var_val[0].isdigit():
                 values.append(cf.extract_digits(var_val)[0])
                 names.append(temp[1])
     f.close()
