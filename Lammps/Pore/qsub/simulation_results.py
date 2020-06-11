@@ -199,6 +199,7 @@ def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
     return times
 
 #TODO This function has to be generalised
+# TODO add to the bundle method
 def initialise_sim_bundles(root_pattern, parameter_id, directory_pattern, 
                            dictionary={},finished_marker = "vdata.dat",
                            stat_markers="statistics.dat",
@@ -521,6 +522,11 @@ Class Inheritage creating the superclass
 class simulation_bundle(simulation):
     """
     get_property should be generalised to return either the average or the values of each element of the bundle
+
+
+    Note: Everytime a new property is added, the bundle has to be updated with
+            update properties.
+            TODO improve what I mentioned above
     """
     def __init__(self,simulations,parameter_id,parameter_value,root,dictionary = None, ave = True):
         """
