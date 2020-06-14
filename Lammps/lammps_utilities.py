@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import os
+from copy import deepcopy
 from shlex import split
 import matplotlib.pyplot as plt
 import linecache
@@ -32,7 +33,7 @@ def read_box_limits(log_name, entry_num = 0):
         sys.exit("The log file specified does not exist")
         
         
-    out,err = cf.bash_command("""grep -n -a "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
+    out, err = cf.bash_command("""grep -n -a "orthogonal box" %s | awk -F":" '{print $1}' """%log_name)
     line = int(out.split()[entry_num])
     limits = linecache.getline(log_name, line)
     linecache.clearcache()
@@ -161,6 +162,10 @@ def get_variables(file_name):
 class SimulationType(object):
     """Class to define the type of simulation analysed, for example N2 or
     Octane
+
+
+    TODO: merge lu.SimulationType to include an atribute given by 
+        lu.Simulation to include all the thermo information
     """
     def __init__(self, name):
         """
@@ -180,6 +185,10 @@ class SimulationType(object):
             if key != 'name':
                 logger.info("Using %s as %s"%(key, dictionary[key]))
         logger.info("\n")
+    
+    @property
+    def copy(self):
+        return deepcopy(self)
 
 
 # Todo could create a method to get all the variables and their values and then create a dictionary
