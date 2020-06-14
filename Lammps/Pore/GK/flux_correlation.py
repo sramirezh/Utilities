@@ -242,15 +242,34 @@ class correlation(object):
         pickle.dump(self, afile)
         afile.close()
 
-    def transport_coeff(self, pref, xmin, xmax):
+    def transport_coeff_comp(self, xmin, xmax, component):
+        """
+        Returns the integral of the correlation in one component
+        Args:
+            xmin: lower limit of the integral
+            xmax: upper limit of the integral
+            component: could be 0,1,2,-1, ie. x,y,z,total
+        Returns:
+            integral: of the correlation
+        """
+        
+        integral = cf.integrate(self.times, self.cor[component], xmin, xmax)
+
+        return integral
+
+    def transport_coeff(self, xmin, xmax):
         """
         Returns
-        The transport coefficient in the
-        pref is the prefactor, eg.system volume etc
-        xmin
+        self.coeff = The transport coefficients in all directions without 
+        multiplying for any
+        prefactor, so, only the integration of the correlation
+
         """
-        integral = cf.integrate(self.times, self.cor[-1], xmin, xmax)
-        self.coeff = (pref) * integral
+        coeff = []
+        for dim in range(self.dimension):
+            integral = self.transport_coeff_comp(xmin, xmax, dim)
+            coeff.append(integral)
+        self.coeff = np.array(coeff)
         return self.coeff
 
 
