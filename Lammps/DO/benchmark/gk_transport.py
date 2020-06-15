@@ -152,7 +152,7 @@ sim.print_params(logger)
 # Getting the sampling times
 #spd = lu.read_value_from("log.lammps", "fluxes.dat")
 
-folder_pattern = '2.1'
+folder_pattern = '2'
 
 logger.info("\nUsing the folder pattern %s"%folder_pattern )
 
@@ -165,12 +165,22 @@ correlation_dist =[]
 transport_coeff=[]
 cwd = os.getcwd()
 
+
+
+# Preparing the plots
+
+plt.close('all')
+cf.set_plot_appearance()
+
+#For m_qs
+fig, ax = plt.subplots()
+
 for i, folder in enumerate(folders):
     Kb = 1
     logger.info("Analysing the folder %s"%folder)
     # Computing this only once, assuming all runs have the same
     os.chdir(folder)
-    partial_runs = glob.glob("%s*"%sim.flux_file_prefix)
+    partial_runs = glob.glob("%s[1-4]*"%sim.flux_file_prefix)
     for j, file in enumerate(partial_runs):
         if i == 0 and j == 0:            
             # Heigth of the volume where the fluxes are measured
@@ -205,6 +215,10 @@ for i, folder in enumerate(folders):
         
         # Getting all the correlation distributions only in x
         correlation_dist.append(m_qs.cor[0])
+        
+        fig,ax = m_qs.plot_individual(fig, ax, dim = 0, norm = False)
+        ax.lines[-1].set_label(sim.save_name)
+        
     os.chdir(cwd)
 
 
@@ -214,13 +228,11 @@ for i, folder in enumerate(folders):
 # Ploting all the correlations only for the last etha
 # =============================================================================
 
-plt.close('all')
-cf.set_plot_appearance()
 
-#For c11
-fig,ax = plt.subplots()
 
-fig,ax = m_qs.plot_all(fig, ax, norm = False)
+
+
+
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
@@ -234,10 +246,10 @@ xmin,xmax = ax.get_xlim()
 ax.set_xlim(xmin, sim.max_tau)
 ax.set_xlabel(r'$t^*$')
 
-plt.legend([r'$xx$',r'$yy$',r'$zz$',"Total"], loc = 'upper right', fontsize = 12, ncol = 2)
+plt.legend(loc = 'upper right', fontsize = 12)
 ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_qs.flux1.name, m_qs.flux2.name))
 plt.tight_layout()
-plt.savefig("%s/c_qs_%s.pdf"%(plot_dir,sim.save_name))
+plt.savefig("%s/c_qs.pdf"%(plot_dir))
 #
 #
 #
