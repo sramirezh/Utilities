@@ -169,6 +169,7 @@ class correlation(object):
 
     def evaluate_ccf(self):
         """
+        TODO it is very slow
         Performs the correlation of the 1d components,using 
         statsmodels.tsa.stattools.ccf
         See my ipython about autocorrelation and GK

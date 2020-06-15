@@ -91,7 +91,7 @@ class SimulationGK(lu.SimulationType):
         self.sampling_interval = times[1]-times[0] 
     
         # int(len(times)*0.1) #Maximum delta of time to measure the correlation
-        max_delta = int(self.max_tau/self.sampling_interval)  
+        self.max_delta = int(self.max_tau/self.sampling_interval)  
         
         # Name of the components
         Q_components = ["v_Qx", "v_Qy", "v_Qz"]
@@ -104,7 +104,7 @@ class SimulationGK(lu.SimulationType):
         Js_flux = fc.flux(Js ,times, "J_s")
         
         #  Creating the correlation instance
-        m_qs = fc.correlation(Q_flux, Js_flux, max_delta)
+        m_qs = fc.correlation(Q_flux, Js_flux, self.max_delta)
         m_qs.evaluate()
         m_qs.save("Mqs_%s"%sim.save_name)
         
@@ -142,8 +142,9 @@ logger = cf.log(__file__, os.getcwd(),plot_dir)
 # =============================================================================
 
 # High sampling frequency
-high = SimulationGK("high", 0.005, 1000, 150, 1, "log.lammps", "fluxes.dat") 
+high = SimulationGK("high", 0.005, 1000, 150, 1, "log.lammps", "fluxes_high.dat") 
 low = SimulationGK("low", 0.005, 1000, 150, 1, "log.lammps", "fluxes_low.dat") 
+other = SimulationGK("low", 0.005, 1000, 150, 1, "log.lammps", "fluxes_other.dat") 
 
 # Define the type of simulation
 sim = high.copy
@@ -180,7 +181,7 @@ for i, folder in enumerate(folders):
     logger.info("Analysing the folder %s"%folder)
     # Computing this only once, assuming all runs have the same
     os.chdir(folder)
-    partial_runs = glob.glob("%s[1-4]*"%sim.flux_file_prefix)
+    partial_runs = glob.glob("%s*"%sim.flux_file_prefix)
     for j, file in enumerate(partial_runs):
         if i == 0 and j == 0:            
             # Heigth of the volume where the fluxes are measured
@@ -203,13 +204,12 @@ for i, folder in enumerate(folders):
         # Loading the correlations if they were already computed, this saves almost 50 minutes in 16 cores (dexter)
         if (len(glob.glob("Mqs_%s.pkl"%sim.save_name)) == 1):
             
-            logger.info("\nThere is a pkl, we need to load etha11!\n")
+            logger.info("\nThere is a pkl, we need to load Mqs_%s.pkl\n"%sim.save_name)
             m_qs = cf.load_instance("Mqs_%s.pkl"%sim.save_name)
             
         else:
             logger.info("There is no pkl file, so we need to analyse")
             m_qs = sim.run_analysis()
-        
         
         transport_coeff.append( prefactor * m_qs.transport_coeff(0, sim.tau_integration) )
         
@@ -228,12 +228,6 @@ for i, folder in enumerate(folders):
 # Ploting all the correlations only for the last etha
 # =============================================================================
 
-
-
-
-
-
-
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
 #ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["v_pxy*v_pxy"],label =r"$P_{xy}^{Lammps}$")
@@ -249,11 +243,54 @@ ax.set_xlabel(r'$t^*$')
 plt.legend(loc = 'upper right', fontsize = 12)
 ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_qs.flux1.name, m_qs.flux2.name))
 plt.tight_layout()
-plt.savefig("%s/c_qs.pdf"%(plot_dir))
+plt.savefig("%s/c_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+#
+
+
+
+## Test for acf
+#
+#from  scipy.signal import correlate
+#fig, ax = plt.subplots()
 #
 #
+#Q_flux = fc.flux(m_qs.flux1.components[:,0],m_qs.flux1.times, "Q")
+#m_qs = fc.correlation(Q_flux, Q_flux, sim.max_delta)
+#
+## Using my method
+#m_qs.evaluate()
+#m_qs.transport_coeff(0, sim.tau_integration)
+#print("the transport using evaluate is %s"%m_qs.transport_coeff(0, sim.tau_integration))
+#fig,ax = m_qs.plot_individual(fig, ax, dim = 0, norm = False)
+#
+## Using stat acf
+#m_qs.evaluate_acf()
+#m_qs.transport_coeff(0, sim.tau_integration)
+#print("the transport using evaluate_acf is %s"%m_qs.transport_coeff(0, sim.tau_integration))
+#fig,ax = m_qs.plot_individual(fig, ax, dim = 0, norm = False)
 #
 #
+##m_qs.evaluate_ccf()
+##m_qs.transport_coeff(0, sim.tau_integration)
+##print("the transport using evaluate_ccf is %s"%m_qs.transport_coeff(0, sim.tau_integration))
+#
+## Using scipy
+#correlation = correlate(m_qs.flux1.components[:,0],m_qs.flux1.components[:,0])
+#amplitude = np.correlate(m_qs.flux1.components[:,0],m_qs.flux1.components[:,0])/len(m_qs.flux1.components[:,0])
+#correlation = amplitude * correlation
+#
+#
+#ax.axvline(x = sim.tau_integration,ls='-.',c='black')
+#ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+#
+#ax.set_xscale('log')
+#xmin,xmax = ax.get_xlim()
+#ax.set_xlim(xmin, sim.max_tau)
+#ax.set_xlabel(r'$t^*$')
+#plt.tight_layout()
+#plt.savefig("%s/test_acf_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+
+
 ## =============================================================================
 ## Some operations on the correlation distribution in the x-direction
 ## =============================================================================
