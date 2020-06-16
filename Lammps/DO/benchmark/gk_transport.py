@@ -143,11 +143,18 @@ logger = cf.log(__file__, os.getcwd(),plot_dir)
 
 # High sampling frequency
 high = SimulationGK("high", 0.005, 1000, 150, 1, "log.lammps", "fluxes_high.dat") 
+# Low sampling frequency but averaging
 low = SimulationGK("low", 0.005, 1000, 150, 1, "log.lammps", "fluxes_low.dat") 
-other = SimulationGK("low", 0.005, 1000, 150, 1, "log.lammps", "fluxes_other.dat") 
+# Low sampling frequency but averaging
+other = SimulationGK("other", 0.005, 1000, 150, 1, "log.lammps", "fluxes_other.dat") 
+# Low sampling frequency but averaging with static prefactor
+stat = SimulationGK("stat_low", 0.005, 1000, 150, 1, "log.lammps", "fluxes_stat_low.dat") 
+
+
+sim_array = [high, low, other]
 
 # Define the type of simulation
-sim = high.copy
+sim = low.copy
 sim.print_params(logger)
 
 # Getting the sampling times
@@ -246,6 +253,7 @@ plt.tight_layout()
 plt.savefig("%s/c_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 #
 
+# Testing the different types of averaging
 
 
 ## Test for acf
