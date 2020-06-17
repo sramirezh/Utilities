@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jun 11 17:40:14 2020
-Script to compute the viscosity based on the stress autocorrelation function, 
+Script to compute the Transport coefficients from DO simulations
 it uses 1 output from lammps:
 
     fluxes.dat that contains TimeStep v_Qx v_Jsx_exc v_Qy v_Jsy_exc v_Qz v_Jsz_exc
@@ -75,8 +75,8 @@ class SimulationGK(lu.SimulationType):
 
     def run_analysis(self):
         """
+        Specific method for this problem
         This asssumes that the cwd is where all the files are
-        TODO: this could be a method of the SimulationGK class
         Specific analysis where all the fluxes are their components are defined
         
         """
@@ -117,6 +117,70 @@ class SimulationGK(lu.SimulationType):
         
         return m_qs, m_sq
     
+    def run_analysis_vdata(self, vdata_file, vol_system, vol_bulk):
+        """
+        Specific method for this 
+        This asssumes that the cwd is where all the files are
+        Specific analysis where all the fluxes are their components are defined
+        from a vdata.dat file
+        
+        args:
+            vdata_file: name of the vdata file to analyse
+            vol_system: is the omega, all the volume but far from the reflective
+            wall
+            
+        """
+        
+        data =  cf.read_data_file(vdata_file)
+        times = data['TimeStep']
+        times = (times-times[0])* self.time_step
+        
+        # Assuming times are homogeneous
+        self.sampling_interval = times[1]-times[0] 
+    
+        # int(len(times)*0.1) #Maximum delta of time to measure the correlation
+        self.max_delta = int(self.max_tau/self.sampling_interval) 
+        
+        
+        # Creating the fluxes 
+        
+        data['Qx'] = data['v_vx_Sol']
+        data['Qy'] = data['v_vy_Sol']
+        
+        cs = data['v_cSolu']/vol_system # Concentration of solutes in vol
+        
+        Js_x = cs * data['v_vx_Solu']
+        Js_y = cs * data['v_vy_Solu']
+        
+        pref = data['v_cBSolu']/(data['v_cBSolu']+data['v_cBSolv'])*data['v_rho_ave_sys']
+        
+        data['Jsx_exc'] = Js_x - pref * data['Qx']
+        data['Jsy_exc'] = Js_y - pref * data['Qy']
+        
+        
+        Q_components = ["Qx", "Qy"]
+        Js_components = ["Jsx_exc", "Jsy_exc"]
+        
+        Q = data[Q_components].values
+        Js = data[Js_components].values
+        
+        Q_flux = fc.flux(Q ,times, "Q")
+        Js_flux = fc.flux(Js ,times, "J_s'")
+        
+        #  Creating the correlation instance
+        m_qs = fc.correlation(Q_flux, Js_flux, self.max_delta)
+        m_qs.evaluate()
+        m_qs.save("Mqs_vdata%s"%sim.save_name)
+        
+        m_sq = fc.correlation( Js_flux,Q_flux, self.max_delta)
+        m_sq.evaluate()
+        m_sq.save("Msq_vdata%s"%sim.save_name)
+        
+        return m_qs, m_sq
+        
+        
+        
+        
     @property
     def save_name(self):
         """
@@ -156,6 +220,7 @@ if not os.path.exists(plot_dir):
     
 logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
+cwd = os.getcwd()
 
 # =============================================================================
 # Simulation type definitions
@@ -174,18 +239,14 @@ stat = SimulationGK("stat", 0.005, 1000, 150, 1, "log.lammps", "fluxes_stat_low.
 #sim_array = [high, low, other]
 
 # Define the type of simulation
-sim = other.copy
+sim = low.copy
 sim.print_params(logger)
 
-# Getting the sampling times
-#spd = lu.read_value_from("log.lammps", "fluxes.dat")
 
-folder_pattern = 'r*'
 
+folder_pattern = 'r1'
 logger.info("\nUsing the folder pattern %s"%folder_pattern )
-
 folders = glob.glob(folder_pattern)
-
 logger.info("Analysing the results in %s"%folders )
 
 # Array to store all the correlations
@@ -193,9 +254,6 @@ correlation_dist = []
 correlation_dist1 = []
 transport_coeff = []
 transport_coeff1 = []
-cwd = os.getcwd()
-
-
 
 # Preparing the plots
 
@@ -217,13 +275,16 @@ for i, folder in enumerate(folders):
         if i == 0 and j == 0:            
             # Heigth of the volume where the fluxes are measured
             sim.get_thermo()
-            lz_system = sim.thermo.limits[1,2] - sim.thermo.limits[0,2]
-            lz_box = lu.read_value_from("in.geom", 'rSystem')[-1]
+            lz_box = sim.thermo.limits[1,2] - sim.thermo.limits[0,2]
+            lz_system = lu.read_value_from("in.geom", 'rSystem')[-1]
+            lz_bulk = lu.read_value_from("in.geom", 'rBulk')
+            lz_bulk = lz_bulk[-1] - lz_bulk[0]
             
             # We need the volume where the fluxes were measured
-            volume_eff = sim.thermo.volume * lz_box/lz_system
+            volume_system = sim.thermo.volume * lz_system/lz_box
+            volume_bulk = sim.thermo.volume * lz_bulk/lz_box
             
-            prefactor = volume_eff / (Kb * sim.temp)
+            prefactor = volume_system / (Kb * sim.temp)
         
         # The name of the 
         sim.flux_file = file
@@ -256,10 +317,42 @@ for i, folder in enumerate(folders):
         ax.lines[-1].set_label(r"$%s_y$"%sim.save_name)
         
         
-        fig1,ax1 = m_sq.plot_individual(fig, ax, dim = 0, norm = False)
+
+        
+        
+        fig1,ax1 = m_sq.plot_individual(fig1, ax1, dim = 0, norm = False)
         ax1.lines[-1].set_label(r"$%s_x$"%sim.save_name)
-        fig1,ax1 = m_sq.plot_individual(fig, ax, dim = 1, norm = False)
+        fig1,ax1 = m_sq.plot_individual(fig1, ax1, dim = 1, norm = False)
         ax1.lines[-1].set_label(r"$%s_y$"%sim.save_name)
+        
+# =============================================================================
+#         test with other vdata
+# =============================================================================
+        if (len(glob.glob("Mqs_vdata%s.pkl"%sim.save_name)) == 1):
+    
+            logger.info("\nThere is a pkl, we need to load Mqs_%s.pkl\n"%sim.save_name)
+            m_qs_vdata = cf.load_instance("Mqs_vdata%s.pkl"%sim.save_name)
+            m_sq_vdata = cf.load_instance("Msq_vdata%s.pkl"%sim.save_name)
+            
+        else:
+            logger.info("There is no pkl file, so we need to analyse")
+            m_qs_vdata, m_sq_vdata = sim.run_analysis_vdata("vdata_low.dat", volume_system, volume_bulk)
+            
+            
+        fig,ax = m_qs_vdata.plot_individual(fig, ax, dim = 0, norm = False)
+        ax.lines[-1].set_label(r"$vdata_x$")
+        fig,ax = m_qs_vdata.plot_individual(fig, ax, dim = 1, norm = False)
+        ax.lines[-1].set_label(r"$vdata_y$")
+        
+        
+        fig1,ax1 = m_sq_vdata.plot_individual(fig1, ax1, dim = 0, norm = False)
+        ax1.lines[-1].set_label(r"$vdata_x$")
+        fig1,ax1 = m_sq_vdata.plot_individual(fig1, ax1, dim = 1, norm = False)
+        ax1.lines[-1].set_label(r"$vdata_y$")
+        
+        transport_coeff.append( prefactor * m_qs_vdata.transport_coeff(0, sim.tau_integration) )
+        transport_coeff1.append( prefactor * m_sq_vdata.transport_coeff(0, sim.tau_integration) )
+        
         
     os.chdir(cwd)
 
@@ -267,13 +360,10 @@ for i, folder in enumerate(folders):
 
 
 # =============================================================================
-# Ploting all the correlations only for the last etha
+# Ploting all the correlations both in x and y
 # =============================================================================
 
-#ax.set_xlim(1000,2000)
-#ax.set_ylim(-0.0005,0.0005)
-#ax.plot(lammps_df["TimeDelta"]*time_step, lammps_df["v_pxy*v_pxy"],label =r"$P_{xy}^{Lammps}$")
-
+# c_qs
 ax.axvline(x = sim.tau_integration,ls='-.',c='black')
 ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
 
@@ -282,11 +372,12 @@ xmin,xmax = ax.get_xlim()
 ax.set_xlim(xmin, sim.max_tau)
 ax.set_xlabel(r'$t^*$')
 
-plt.legend(loc = 'upper right', fontsize = 8, ncol = 4)
+ax.legend(loc = 'upper right', fontsize = 8, ncol = 4)
 ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_qs.flux1.name, m_qs.flux2.name))
-plt.tight_layout()
-plt.savefig("%s/c_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+fig.tight_layout()
+fig.savefig("%s/c_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
+# c_sq
 ax1.axvline(x = sim.tau_integration,ls='-.',c='black')
 ax1.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
 
@@ -295,56 +386,10 @@ xmin,xmax = ax1.get_xlim()
 ax1.set_xlim(xmin, sim.max_tau)
 ax1.set_xlabel(r'$t^*$')
 
-plt.legend(loc = 'upper right', fontsize = 8, ncol = 4)
+ax1.legend(loc = 'upper right', fontsize = 8, ncol = 4)
 ax1.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_sq.flux1.name, m_sq.flux2.name))
-plt.tight_layout()
-plt.savefig("%s/c_sq_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-#
-
-# Testing the different types of averaging
-
-
-## Test for acf
-#
-#from  scipy.signal import correlate
-#fig, ax = plt.subplots()
-#
-#
-#Q_flux = fc.flux(m_qs.flux1.components[:,0],m_qs.flux1.times, "Q")
-#m_qs = fc.correlation(Q_flux, Q_flux, sim.max_delta)
-#
-## Using my method
-#m_qs.evaluate()
-#m_qs.transport_coeff(0, sim.tau_integration)
-#print("the transport using evaluate is %s"%m_qs.transport_coeff(0, sim.tau_integration))
-#fig,ax = m_qs.plot_individual(fig, ax, dim = 0, norm = False)
-#
-## Using stat acf
-#m_qs.evaluate_acf()
-#m_qs.transport_coeff(0, sim.tau_integration)
-#print("the transport using evaluate_acf is %s"%m_qs.transport_coeff(0, sim.tau_integration))
-#fig,ax = m_qs.plot_individual(fig, ax, dim = 0, norm = False)
-#
-#
-##m_qs.evaluate_ccf()
-##m_qs.transport_coeff(0, sim.tau_integration)
-##print("the transport using evaluate_ccf is %s"%m_qs.transport_coeff(0, sim.tau_integration))
-#
-## Using scipy
-#correlation = correlate(m_qs.flux1.components[:,0],m_qs.flux1.components[:,0])
-#amplitude = np.correlate(m_qs.flux1.components[:,0],m_qs.flux1.components[:,0])/len(m_qs.flux1.components[:,0])
-#correlation = amplitude * correlation
-#
-#
-#ax.axvline(x = sim.tau_integration,ls='-.',c='black')
-#ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
-#
-#ax.set_xscale('log')
-#xmin,xmax = ax.get_xlim()
-#ax.set_xlim(xmin, sim.max_tau)
-#ax.set_xlabel(r'$t^*$')
-#plt.tight_layout()
-#plt.savefig("%s/test_acf_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+fig1.tight_layout()
+fig1.savefig("%s/c_sq_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
 
 # =============================================================================
@@ -518,4 +563,4 @@ ax.set_ylabel(r'$M^{SQ}$')
 #plt.legend( loc = 'lower right')
 plt.tight_layout()
 plt.savefig("%s/Msq_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-#
+
