@@ -70,10 +70,13 @@ class correlation(object):
         norm: normalisation factor for each dimension  t=0 (var1(0) var2(0))
         cor_norm: list to store the normalised correlations, the last is the
             total
+        half_max: half of the time steps, in order to sample all the correlation
+                  tau with the same number of samples, as for the 
+                  diffusion coefficient.
+                such that <v(0)v(tau)> + <v(1)v(tau+1)> + ...
+                <v(half_max)v(tau+half_max)>
 
-
-
-
+                where half_max is (max time step)/2 
     """
     def __init__(self, flux1, flux2, max_delta):
         """
@@ -93,7 +96,8 @@ class correlation(object):
         self.dic_label = {0: r'$x$', 1: r'$y$', 2: r'$z$', self.dimension: 'Total'}
         
     def initial_check(self):
-        """Checks if the time series are equal and the fluxes have the same
+        """
+        Checks if the time series are equal and the fluxes have the same
         number of components
         """
         self.dimension = self.flux1.dimension
@@ -106,6 +110,9 @@ class correlation(object):
             print("The fluxes were not measured for the same times")
         else:
             self.times = self.flux1.times[:self.max_delta]
+        
+        self.half_max = int(len(self.flux1.times)*0.5)
+
             
     def correlate_one_d(self, dim):
         """Performs a correlation between 1d components by evaluating the
@@ -350,12 +357,17 @@ def compute_correlation_dt(var1, var2, delta):
         the correlation
     """
     # cf.blockPrint()
+    # Covariance need to be reduced as it returns a matrix that is why the 0, 1 
+    # component is taken
+
+    # Defining the half of the total of samples as in diffusion coefficient
+    half_max = int(len(var1) * 0.5)
+
     if delta != 0:
-        cor = np.cov(var1[:-delta], np.roll(var2[:-delta], 
-                     - delta, axis=0))[0][1]
+        cor = np.cov(var1[:half_max], var2[delta:half_max + delta])[0][1]
     else:
         cor = np.cov(var1, var2)[0][1] 
 
     # cf.enablePrint()
-    # Covariance need to be reduced as it returns a matrix
+    
     return cor
