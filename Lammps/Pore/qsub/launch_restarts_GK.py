@@ -23,7 +23,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 # =============================================================================
 # Main
 # =============================================================================
-def main(name,root,template,conf_folder,n_conf,identifier,run):
+def main(name, root, template, conf_folder, n_conf, identifier, run):
     """
     Args:
     """       
@@ -57,23 +57,24 @@ def main(name,root,template,conf_folder,n_conf,identifier,run):
     #     Creating the simulation instance 
     # =============================================================================
         
-        sim=simulation(home,template,name,restart)
+        sim = simulation(home, template, name, restart)
         sim.create_folder()
         # TODO if there is a qsub in template, keep it
-        sim.create_qsub('short',1,16,1,'input.lmp')
+        sim.create_qsub('short', 1, 16, 1, 'input.lmp')
+
     # =============================================================================
     #     #Mofications to the files here (THIS IS SPECIFIC)
     # =============================================================================
         
-        file_name="input.lmp"
-        file_path=sim.folder+'/'+file_name
-        value_modify=sim.initial_conf.split('/')[-1]
-        cf.modify_file(file_path,'read_restart','read_restart\t%s\n'%value_modify)
+        file_name = "input.lmp"
+        file_path = sim.folder+'/'+file_name
+        value_modify = sim.initial_conf.split('/')[-1]
+        cf.modify_file(file_path, 'read_restart', 'read_restart\t%s\n'%value_modify)
         
     # =============================================================================
     #     Running the simulation
     # =============================================================================
-        if run==True:
+        if run == True:
             sim.run_simulation()
         os.chdir(cwd)
             
@@ -94,4 +95,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     
-    main(args.name,args.root,args.template,args.conf_folder,args.n_conf,args.identifier,args.run)
+    main(args.name, args.root, args.template, args.conf_folder, args.n_conf,
+        args.identifier, args.run)
