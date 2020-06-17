@@ -61,7 +61,7 @@ def read_from_file(input_file):
 
     return data1,names
 
-def fast_averager(input,min_limit=0, output_file = []):
+def fast_averager(input, min_limit = 0, output_file = [], function=True):
     """
     Function to call from another python script
     Args:
@@ -75,7 +75,7 @@ def fast_averager(input,min_limit=0, output_file = []):
         try:
             os.path.exists(input)
             data,names=read_from_file(input)
-            calculations(data,min_limit,output_file,names, function = True)
+            calculations(data,min_limit,output_file,names, function )
         except IOError:
             print('The input file for the statistical analysis does not exist ')
         return
@@ -83,7 +83,7 @@ def fast_averager(input,min_limit=0, output_file = []):
     else:
         data=input
 
-        output_array=calculations(data,min_limit,output_file,function = True)
+        output_array=calculations(data,min_limit,output_file,function )
 
         return output_array
 
@@ -106,7 +106,7 @@ def discard_data(data,nmin):
     return data
 
 
-def calculations(data, min_limit, output_file, names=None, function=False):
+def calculations(data, min_limit, output_file, names=None, function = False):
     """
     This script evaluates the average of a quantity
 
@@ -214,4 +214,4 @@ if __name__ == "__main__":
     input_file=args.filename
     output_file=args.output
 
-    fast_averager(input_file,min_limit,output_file, function = False)
+    fast_averager(input_file, min_limit, output_file, function = False )
