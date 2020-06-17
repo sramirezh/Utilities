@@ -6,8 +6,6 @@ Created on Mon May 27 17:48:19 2019
 This is a modification of the class created by Raman Ganti
 """
 
-
-
 import os
 import glob
 import shutil
@@ -34,10 +32,9 @@ def sec_to_pbs_time(seconds, nodays=False):
     
     
     
-class simulation(object):
-    def __init__(self,home,template,name,initial_conf=None):
+class simulation_launcher(object):
+    def __init__(self, home, template, name, initial_conf=None):
         """
-
         home is where the folder for all the simulation is going to be created
         template points to the folder where the template is hosted
         name ex. DP_0020, the name of the folder that contains everything
@@ -48,7 +45,7 @@ class simulation(object):
         self.template = template
         self.name = name
 
-    def clean_template(self,keep_qsub = False):
+    def clean_template(self, keep_qsub = False):
         """
         Clean the template files except for in* or optionally the qsub file
         """
@@ -56,12 +53,12 @@ class simulation(object):
         if keep_qsub == True:
             useful_files.extend(glob.glob(self.template+'/*.qsub'))
         all_files = glob.glob(self.template+'/*')
-        remove_files=[f for f in all_files if f not in useful_files]
+        remove_files = [f for f in all_files if f not in useful_files]
         for fil in remove_files:
             os.remove(fil)
         
     
-    def create_folder(self,keep_qsub=False):
+    def create_folder(self, keep_qsub = False):
         """
         Copies the template and adds the input configuration to the folder
         """
@@ -70,19 +67,19 @@ class simulation(object):
         self.clean_template(keep_qsub)
         
         #Copy the template
-        self.folder=self.home+'/%s'%self.name
+        self.folder = self.home+'/%s'%self.name
 
         #Copy the template folder
         shutil.copytree(self.template,self.folder)
         
         #Copy the initial configuration
-        if self.initial_conf!=None:
-            shutil.copy(self.initial_conf,self.folder)
+        if self.initial_conf != None:
+            shutil.copy(self.initial_conf, self.folder)
 
         
     def create_qsub(self,queue_type, nodes, cores, wall_time, lammps_script,lammps_version='/home/sr802/Programs/lammps-12Dec18/src/lmp_dexter'):
         
-        self.qsub=BuildPBSScript(queue_type,nodes,cores,wall_time,"input.lmp")
+        self.qsub = BuildPBSScript(queue_type,nodes,cores,wall_time,"input.lmp")
         self.qsub.writePBSscript(self.folder+'/run.qsub',self.name)
         
         
