@@ -228,8 +228,9 @@ def plot_coeff_vs_tau(transport, sim, correlation_dist):
     
     coeff_array = np.array(coeff_array)
     coeff_error = np.array(coeff_error)
-        
-    ax.errorbar(tau_array, coeff_array, yerr = coeff_error)
+    
+    ax.plot(tau_array, coeff_array)
+    ax.fill_between(tau_array, coeff_array - coeff_error, coeff_array + coeff_error, alpha=0.4)
     ax.set_xlabel(r'$t^*$')
     ax.axvline(x = sim.tau_integration,ls='-.',c='black')
     return fig, ax
@@ -253,17 +254,17 @@ logger = cf.log(__file__, os.getcwd(),plot_dir)
 # High sampling frequency
 high = SimulationGK("high", 0.005, 1000, 150, 1, "log.lammps", "fluxes_high.dat") 
 # Low sampling frequency but averaging
-low = SimulationGK("low", 0.005, 1000, 150, 1, "log.lammps", "fluxes_low.dat") 
-# Low sampling frequency but averaging
+low = SimulationGK("low", 0.005, 2000, 150, 1, "log.lammps", "fluxes_low.dat") 
+# Low sampling frequency no averaging
 other = SimulationGK("other", 0.005, 1000, 150, 1, "log.lammps", "fluxes_other.dat") 
 # Low sampling frequency but averaging with static prefactor
-stat = SimulationGK("stat", 0.005, 1000, 150, 1, "log.lammps", "fluxes_stat_low.dat") 
+stat = SimulationGK("stat", 0.005, 2000, 150, 1, "log.lammps", "fluxes_stat_low.dat") 
 
 # Define the type of simulation
 sim = low.copy
 sim.print_params(logger)
 
-folder_pattern = 'r[2-8]'
+folder_pattern = 'r*'
 logger.info("\nUsing the folder pattern %s"%folder_pattern )
 folders = glob.glob(folder_pattern)
 logger.info("Analysing the results in %s"%folders )
@@ -399,6 +400,14 @@ ax.set_xlim(xmin, sim.max_tau)
 ax.set_xlabel(r'$t^*$')
 fig.tight_layout()
 fig.savefig("%s/correlation_ave_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+
+# Adding the other
+fig, ax = m_sq_bundle.plot(fig, ax)
+ax.lines[-2].set_label('sq')
+ax.lines[0].set_label('qs')
+ax.legend()
+fig.savefig("%s/correlation_ave_comparison_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+
 
 fig, ax = plt.subplots()
 fig, ax = m_sq_bundle.plot(fig, ax)
