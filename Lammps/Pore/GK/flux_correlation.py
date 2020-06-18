@@ -283,9 +283,20 @@ class correlation(object):
 
 class bundle_correlation(correlation):
     """
-    The bundle is made of an array of correlations
+    The bundle is made of an array of correlations (correlation.cor), it is not
+    a bundle of correlation objects as this might become very expensive.
+
     """
     def __init__(self, array, times, flux1_name, flux2_name):
+        """
+        Args:
+            array: contanining all the correlations
+            times: times at which the correlations where measured. Couls be 
+                    taken from one of the correlation instances as 
+                    instance.times
+            flux1_name: Name of the flux 1, also can be taken from the instance
+            flux2_name: Name of the flux 2, also can be taken from the instance
+        """
         self.arrays = array
         self.averaging()
         self.dimension = 1
@@ -298,7 +309,7 @@ class bundle_correlation(correlation):
     def averaging(self):
         ddof = 1
         array = self.arrays
-        if len(array):
+        if len(array) == 0:
             ddof = 0
         self.cor = unumpy.uarray(np.average(array, axis=0), sem(array,
                                     axis=0, ddof=ddof))
@@ -316,6 +327,9 @@ class bundle_correlation(correlation):
             norm: True if normalised
             ax_label: The axis label is given here but it could be renamed
                       later
+
+        Returns:
+            fig, ax
         """
         if norm == True:
             cor = self.cor_norm[dim]
@@ -330,12 +344,27 @@ class bundle_correlation(correlation):
         # It mostly means that the plot will not be further used, for example 
         # not used to compare correlations
         if ax_label == True:
-            ax.axhline(y=0, xmin=0, xmax=1, ls=':', c='black')
+            ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
             ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1_name, 
                                                            self.flux2_name))
-            ax.set_xlabel(r'$\log (t)$ ')
+            ax.set_xlabel(r'$t$ ')
 
         return fig, ax
+
+    def plot_bundle(self, fig, ax):
+        """
+        Plots all the correlations
+
+        Returns:
+            fig, ax
+        """
+
+        for cor in self.arrays:
+            ax.plot(self.times, cor)
+        ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+        return fig, ax
+        
+
        
 
 def compute_correlation_dt(var1, var2, delta):
