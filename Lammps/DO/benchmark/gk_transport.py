@@ -7,21 +7,20 @@ it uses 1 output from lammps:
 
     fluxes.dat that contains TimeStep v_Qx v_Jsx_exc v_Qy v_Jsy_exc v_Qz v_Jsz_exc
     
-and if new combinations of the fluxes are wanted, use:
-    vdata.dat
+and if new combinations of the fluxes are wanted, use run_analysis_vdata:
+    vdata.dat 
     v_vx_Solv v_vx_Solu v_vx_Sol v_cSolu v_cSolv
     
 Run inside 6.GJ_analysis
 
-Define which folder pattern to use
+Define which folder pattern to use in 
+
+folder_pattern eg "r*'
+
 
 Based on viscosity from DO project
 @author: simon
 """
-
-
-
-
 import sys
 import os
 import numpy as np
@@ -31,12 +30,7 @@ from scipy.stats import sem
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.lammps_utilities as lu
-
-
-
 import Lammps.Pore.GK.flux_correlation as fc
-
-
 
 class SimulationGK(lu.SimulationType):
     def __init__(self, name, time_step, max_tau, tau_integration, temp,
@@ -178,9 +172,6 @@ class SimulationGK(lu.SimulationType):
         
         return m_qs, m_sq
         
-        
-        
-        
     @property
     def save_name(self):
         """
@@ -210,17 +201,50 @@ def remove_pkl(root):
         os.remove(file)
 
 
+def plot_coeff_vs_tau(transport, sim, correlation_dist):
+    """
+    Plots the evolution of the transport coefficient
+    TODO this can be added to the correlation class
+    """
+    fig, ax = plt.subplots()
+    
+    times = transport.times
+    tau_array = np.linspace([1], times[-1], 20)
+    # Need to add the integration time
+    tau_array = np.sort(np.append(tau_array, sim.tau_integration)) 
+    
+    coeff_array = []
+    coeff_error = []
+    
+    for t in tau_array:
+        coeff_t = [] 
+        for cor in correlation_dist:
+            # Taking only the nominal value
+            coeff_t.append(cf.integrate(times, cor, 0, t,))
+        
+        coeff_array.append(np.average(coeff_t))
+        coeff_error.append(sem(coeff_t))
+    
+    
+    coeff_array = np.array(coeff_array)
+    coeff_error = np.array(coeff_error)
+        
+    ax.errorbar(tau_array, coeff_array, yerr = coeff_error)
+    ax.set_xlabel(r'$t^*$')
+    ax.axvline(x = sim.tau_integration,ls='-.',c='black')
+    return fig, ax
 
 # =============================================================================
 # Main
 # =============================================================================
+
+cwd = os.getcwd()
 plot_dir = "plots/0.gk_transport"
+
 if not os.path.exists(plot_dir):
     os.makedirs(plot_dir)
     
 logger = cf.log(__file__, os.getcwd(),plot_dir)   
-
-cwd = os.getcwd()
 
 # =============================================================================
 # Simulation type definitions
@@ -235,35 +259,22 @@ other = SimulationGK("other", 0.005, 1000, 150, 1, "log.lammps", "fluxes_other.d
 # Low sampling frequency but averaging with static prefactor
 stat = SimulationGK("stat", 0.005, 1000, 150, 1, "log.lammps", "fluxes_stat_low.dat") 
 
-
-#sim_array = [high, low, other]
-
 # Define the type of simulation
 sim = low.copy
 sim.print_params(logger)
 
-
-
-folder_pattern = 'r1'
+folder_pattern = 'r[2-8]'
 logger.info("\nUsing the folder pattern %s"%folder_pattern )
 folders = glob.glob(folder_pattern)
 logger.info("Analysing the results in %s"%folders )
 
 # Array to store all the correlations
+#m_qs
 correlation_dist = []
-correlation_dist1 = []
 transport_coeff = []
+#m_sq
+correlation_dist1 = []
 transport_coeff1 = []
-
-# Preparing the plots
-
-plt.close('all')
-cf.set_plot_appearance()
-
-#For m_qs
-fig, ax = plt.subplots()
-#For m_sq
-fig1, ax1 = plt.subplots()
 
 for i, folder in enumerate(folders):
     Kb = 1
@@ -283,9 +294,8 @@ for i, folder in enumerate(folders):
             # We need the volume where the fluxes were measured
             volume_system = sim.thermo.volume * lz_system/lz_box
             volume_bulk = sim.thermo.volume * lz_bulk/lz_box
-            
             prefactor = volume_system / (Kb * sim.temp)
-        
+            
         # The name of the 
         sim.flux_file = file
         logger.info("\nAnalysing the file %s"%file)
@@ -311,256 +321,106 @@ for i, folder in enumerate(folders):
         correlation_dist.extend([m_qs.cor[0], m_qs.cor[1]])
         correlation_dist1.extend([m_sq.cor[0], m_sq.cor[1]])
         
-        fig,ax = m_qs.plot_individual(fig, ax, dim = 0, norm = False)
-        ax.lines[-1].set_label(r"$%s_x$"%sim.save_name)
-        fig,ax = m_qs.plot_individual(fig, ax, dim = 1, norm = False)
-        ax.lines[-1].set_label(r"$%s_y$"%sim.save_name)
-        
-        
-
-        
-        
-        fig1,ax1 = m_sq.plot_individual(fig1, ax1, dim = 0, norm = False)
-        ax1.lines[-1].set_label(r"$%s_x$"%sim.save_name)
-        fig1,ax1 = m_sq.plot_individual(fig1, ax1, dim = 1, norm = False)
-        ax1.lines[-1].set_label(r"$%s_y$"%sim.save_name)
-        
 # =============================================================================
 #         test with other vdata
 # =============================================================================
-        if (len(glob.glob("Mqs_vdata%s.pkl"%sim.save_name)) == 1):
-    
-            logger.info("\nThere is a pkl, we need to load Mqs_%s.pkl\n"%sim.save_name)
-            m_qs_vdata = cf.load_instance("Mqs_vdata%s.pkl"%sim.save_name)
-            m_sq_vdata = cf.load_instance("Msq_vdata%s.pkl"%sim.save_name)
-            
-        else:
-            logger.info("There is no pkl file, so we need to analyse")
-            m_qs_vdata, m_sq_vdata = sim.run_analysis_vdata("vdata_low.dat", volume_system, volume_bulk)
-            
-            
-        fig,ax = m_qs_vdata.plot_individual(fig, ax, dim = 0, norm = False)
-        ax.lines[-1].set_label(r"$vdata_x$")
-        fig,ax = m_qs_vdata.plot_individual(fig, ax, dim = 1, norm = False)
-        ax.lines[-1].set_label(r"$vdata_y$")
-        
-        
-        fig1,ax1 = m_sq_vdata.plot_individual(fig1, ax1, dim = 0, norm = False)
-        ax1.lines[-1].set_label(r"$vdata_x$")
-        fig1,ax1 = m_sq_vdata.plot_individual(fig1, ax1, dim = 1, norm = False)
-        ax1.lines[-1].set_label(r"$vdata_y$")
-        
-        transport_coeff.append( prefactor * m_qs_vdata.transport_coeff(0, sim.tau_integration) )
-        transport_coeff1.append( prefactor * m_sq_vdata.transport_coeff(0, sim.tau_integration) )
-        
-        
+#        if (len(glob.glob("Mqs_vdata%s.pkl"%sim.save_name)) == 1):
+#    
+#            logger.info("\nThere is a pkl, we need to load Mqs_%s.pkl\n"%sim.save_name)
+#            m_qs_vdata = cf.load_instance("Mqs_vdata%s.pkl"%sim.save_name)
+#            m_sq_vdata = cf.load_instance("Msq_vdata%s.pkl"%sim.save_name)
+#            
+#        else:
+#            logger.info("There is no pkl file, so we need to analyse")
+#            m_qs_vdata, m_sq_vdata = sim.run_analysis_vdata("vdata_low.dat", volume_system, volume_bulk)
+#            
+#            
+#        fig,ax = m_qs_vdata.plot_individual(fig, ax, dim = 0, norm = False)
+#        ax.lines[-1].set_label(r"$vdata_x$")
+#        fig,ax = m_qs_vdata.plot_individual(fig, ax, dim = 1, norm = False)
+#        ax.lines[-1].set_label(r"$vdata_y$")
+#        
+#        
+#        fig1,ax1 = m_sq_vdata.plot_individual(fig1, ax1, dim = 0, norm = False)
+#        ax1.lines[-1].set_label(r"$vdata_x$")
+#        fig1,ax1 = m_sq_vdata.plot_individual(fig1, ax1, dim = 1, norm = False)
+#        ax1.lines[-1].set_label(r"$vdata_y$")
+#        
+#        transport_coeff.append( prefactor * m_qs_vdata.transport_coeff(0, sim.tau_integration) )
+#        transport_coeff1.append( prefactor * m_sq_vdata.transport_coeff(0, sim.tau_integration) )
     os.chdir(cwd)
 
+# =============================================================================
+# Creating the correlation bundles
+# =============================================================================
+correlation_dist = prefactor * np.array(correlation_dist)
+m_qs_bundle = fc.bundle_correlation(correlation_dist, m_qs.times, m_qs.flux1.name, m_qs.flux2.name)
 
-
+correlation_dist1 = prefactor * np.array(correlation_dist1)
+m_sq_bundle = fc.bundle_correlation(correlation_dist1, m_sq.times, m_sq.flux1.name, m_sq.flux2.name)
 
 # =============================================================================
 # Ploting all the correlations both in x and y
 # =============================================================================
 
-# c_qs
-ax.axvline(x = sim.tau_integration,ls='-.',c='black')
-ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+# Preparing the plots
+plt.close('all')
+cf.set_plot_appearance()
 
+fig, ax = plt.subplots()
+fig, ax = m_qs_bundle.plot_bundle(fig, ax)
+ax.axvline(x = sim.tau_integration,ls='-.',c='black')
 ax.set_xscale('log')
 xmin,xmax = ax.get_xlim()
 ax.set_xlim(xmin, sim.max_tau)
 ax.set_xlabel(r'$t^*$')
-
-ax.legend(loc = 'upper right', fontsize = 8, ncol = 4)
-ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_qs.flux1.name, m_qs.flux2.name))
 fig.tight_layout()
 fig.savefig("%s/c_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
-# c_sq
-ax1.axvline(x = sim.tau_integration,ls='-.',c='black')
-ax1.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
-
-ax1.set_xscale('log')
-xmin,xmax = ax1.get_xlim()
-ax1.set_xlim(xmin, sim.max_tau)
-ax1.set_xlabel(r'$t^*$')
-
-ax1.legend(loc = 'upper right', fontsize = 8, ncol = 4)
-ax1.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_sq.flux1.name, m_sq.flux2.name))
-fig1.tight_layout()
-fig1.savefig("%s/c_sq_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-
-
-# =============================================================================
-# Some operations on the correlation distribution in the x-direction
-# =============================================================================
-
-correlation_dist = prefactor * np.array(correlation_dist)
-corr_dist_ave = np.average(correlation_dist, axis = 0)
-corr_dist_error = sem(correlation_dist, axis = 0)
-
-
-
-# Now plotting
 fig, ax = plt.subplots()
-
-ax.plot(m_qs.times, corr_dist_ave)
-ax.fill_between(m_qs.times, corr_dist_ave - corr_dist_error, corr_dist_ave + corr_dist_error, alpha=0.4)
+fig, ax = m_sq_bundle.plot_bundle(fig, ax)
 ax.axvline(x = sim.tau_integration,ls='-.',c='black')
-ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
-
 ax.set_xscale('log')
 xmin,xmax = ax.get_xlim()
 ax.set_xlim(xmin, sim.max_tau)
 ax.set_xlabel(r'$t^*$')
+fig.tight_layout()
+fig.savefig("%s/c_sq_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
-#plt.legend([r'$xx$',r'$yy$',r'$zz$',"Total"], loc = 'upper right', fontsize = 12, ncol = 2)
-ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_qs.flux1.name,m_qs.flux2.name))
-plt.tight_layout()
-plt.savefig("%s/correlation_ave_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-
-
-
-correlation_dist1 = prefactor * np.array(correlation_dist1)
-corr_dist_ave1 = np.average(correlation_dist1, axis = 0)
-corr_dist_error1 = sem(correlation_dist1, axis = 0)
-
-
-
-# Now plotting
-fig,ax = plt.subplots()
-
-ax.plot(m_sq.times, corr_dist_ave1)
-ax.fill_between(m_sq.times, corr_dist_ave1 - corr_dist_error1, corr_dist_ave1 + corr_dist_error1, alpha=0.4)
+# =============================================================================
+# Ploting the average correlation distribution for each coefficient
+# =============================================================================
+fig, ax = plt.subplots()
+fig, ax = m_qs_bundle.plot(fig, ax)
 ax.axvline(x = sim.tau_integration,ls='-.',c='black')
-ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
-
 ax.set_xscale('log')
 xmin,xmax = ax.get_xlim()
 ax.set_xlim(xmin, sim.max_tau)
 ax.set_xlabel(r'$t^*$')
+fig.tight_layout()
+fig.savefig("%s/correlation_ave_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
-#plt.legend([r'$xx$',r'$yy$',r'$zz$',"Total"], loc = 'upper right', fontsize = 12, ncol = 2)
-ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(m_sq.flux1.name,m_sq.flux2.name))
-plt.tight_layout()
-plt.savefig("%s/correlation_ave_sq_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-
-
-
-# =============================================================================
-# # Plot M_qs vs tau for the average correlation distribution in x
-# =============================================================================
-
-fig,ax = plt.subplots()
-
-tau_array = np.linspace([1], m_qs.times[-1])
-# Need to add the integration time
-tau_array = np.sort(np.append(tau_array, sim.tau_integration)) 
-
-m_qs_array = []
-
-
-for t in tau_array:
-    # Taking only the nominal value
-    m_qs_inst = cf.integrate(m_qs.times, corr_dist_ave, 0, t,)
-    m_qs_array.append(m_qs_inst)
-
-
-m_qs_array = np.array(m_qs_array)
-    
-ax.plot(tau_array, m_qs_array)
-#ax.fill_between(tau_array, eta_array - eta_error, eta_array + eta_error, alpha=0.4)
-ax.set_xlabel(r'$t^*$')
-#ax.axhline(y = eta_tau_int.n , xmin=0, xmax=1,ls='--',c='black', label = r'$\eta^* = %2.4f$' %eta_tau_int.n)
+fig, ax = plt.subplots()
+fig, ax = m_sq_bundle.plot(fig, ax)
 ax.axvline(x = sim.tau_integration,ls='-.',c='black')
-#xmin,xmax = ax.get_xlim()
-#ymin,ymax = ax.get_ylim()
-##ax.set_xlim(0, etha11.times[-1])
-##ax.set_ylim(0, ymax)
-ax.set_ylabel(r'$M^{QS}$')
-#plt.legend( loc = 'lower right')
-plt.tight_layout()
-plt.savefig("%s/Mqs_vs_tau_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-
+ax.set_xscale('log')
+xmin,xmax = ax.get_xlim()
+ax.set_xlim(xmin, sim.max_tau)
+ax.set_xlabel(r'$t^*$')
+fig.tight_layout()
+fig.savefig("%s/correlation_ave_sq_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
 # =============================================================================
 # # Plot M_qs vs tau for all
 # =============================================================================
-
-fig,ax = plt.subplots()
-
-tau_array = np.linspace([1], m_qs.times[-1], 20)
-# Need to add the integration time
-tau_array = np.sort(np.append(tau_array, sim.tau_integration)) 
-
-m_qs_array = []
-m_qs_error = []
-
-for t in tau_array:
-    m_qs_t = []
-    for cor in correlation_dist:
-        # Taking only the nominal value
-        m_qs_t.append(cf.integrate(m_qs.times, cor, 0, t,))
-    
-    m_qs_array.append(np.average(m_qs_t))
-    m_qs_error.append(sem(m_qs_t))
-
-
-m_qs_array = np.array(m_qs_array)
-m_qs_error = np.array(m_qs_error)
-    
-ax.errorbar(tau_array, m_qs_array, yerr = m_qs_error)
-#ax.fill_between(tau_array, eta_array - eta_error, eta_array + eta_error, alpha=0.4)
-ax.set_xlabel(r'$t^*$')
-#ax.axhline(y = eta_tau_int.n , xmin=0, xmax=1,ls='--',c='black', label = r'$\eta^* = %2.4f$' %eta_tau_int.n)
-ax.axvline(x = sim.tau_integration,ls='-.',c='black')
-#xmin,xmax = ax.get_xlim()
-#ymin,ymax = ax.get_ylim()
-##ax.set_xlim(0, etha11.times[-1])
-##ax.set_ylim(0, ymax)
+fig, ax = plot_coeff_vs_tau(m_sq, sim, correlation_dist)
 ax.set_ylabel(r'$M^{QS}$')
-#plt.legend( loc = 'lower right')
-plt.tight_layout()
+ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+fig.tight_layout()
 plt.savefig("%s/Mqs_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
-
-
-
-
-fig,ax = plt.subplots()
-
-tau_array = np.linspace([1], m_qs.times[-1], 20)
-# Need to add the integration time
-tau_array = np.sort(np.append(tau_array, sim.tau_integration)) 
-
-m_sq_array = []
-m_sq_error = []
-
-for t in tau_array:
-    m_sq_t = []
-    for cor in correlation_dist1:
-        # Taking only the nominal value
-        m_sq_t.append(cf.integrate(m_sq.times, cor, 0, t,))
-    
-    m_sq_array.append(np.average(m_sq_t))
-    m_sq_error.append(sem(m_sq_t))
-
-
-m_sq_array = np.array(m_sq_array)
-m_sq_error = np.array(m_sq_error)
-    
-ax.errorbar(tau_array, m_sq_array, yerr = m_sq_error)
-#ax.fill_between(tau_array, eta_array - eta_error, eta_array + eta_error, alpha=0.4)
-ax.set_xlabel(r'$t^*$')
-#ax.axhline(y = eta_tau_int.n , xmin=0, xmax=1,ls='--',c='black', label = r'$\eta^* = %2.4f$' %eta_tau_int.n)
-ax.axvline(x = sim.tau_integration,ls='-.',c='black')
-#xmin,xmax = ax.get_xlim()
-#ymin,ymax = ax.get_ylim()
-##ax.set_xlim(0, etha11.times[-1])
-##ax.set_ylim(0, ymax)
+fig, ax = plot_coeff_vs_tau(m_qs, sim, correlation_dist1)
 ax.set_ylabel(r'$M^{SQ}$')
-#plt.legend( loc = 'lower right')
-plt.tight_layout()
-plt.savefig("%s/Msq_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-
+ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+fig.tight_layout()
+fig.savefig("%s/Msq_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
