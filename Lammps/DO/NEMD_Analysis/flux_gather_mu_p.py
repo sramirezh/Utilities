@@ -64,7 +64,7 @@ def plot_properties(instance, x_name, y_name, ax, plot_fit = True):
     pfinal = out[0] #fitting coefficients
 
     
-    error = np.sqrt(out[1]) 
+    error = np.sqrt(out[1])
     logger.info("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name, x_name, pfinal[0],error[0][0]))
     
     if plot_fit == True:
@@ -179,8 +179,6 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
         #This is just to compute the excess of solute flux
         
         for sim in bund.simulations:
-            
-            
             
 # =============================================================================
 #             # Quantities in the bulk 

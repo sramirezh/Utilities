@@ -261,7 +261,7 @@ other = SimulationGK("other", 0.005, 1000, 150, 1, "log.lammps", "fluxes_other.d
 stat = SimulationGK("stat", 0.005, 2000, 150, 1, "log.lammps", "fluxes_stat_low.dat") 
 
 # Define the type of simulation
-sim = low.copy
+sim = stat.copy
 sim.print_params(logger)
 
 folder_pattern = 'r*'
@@ -403,11 +403,14 @@ fig.savefig("%s/correlation_ave_qs_%s_%s.pdf"%(plot_dir, sim.name, folder_patter
 
 # Adding the other
 fig, ax = m_sq_bundle.plot(fig, ax)
-ax.lines[-2].set_label('sq')
-ax.lines[0].set_label('qs')
-ax.legend()
+ax.lines[-2].set_label(r'$I_{sq}$')
+ax.lines[0].set_label(r'$I_{qs}$')
+ax.set_ylabel(None)
+ax.set_xlabel(r'$t^*$')
+ax.legend(loc = 'upper right')
+fig.savefig("%s/correlation_ave_comparison_log_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+ax.set_xscale("linear")
 fig.savefig("%s/correlation_ave_comparison_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
-
 
 fig, ax = plt.subplots()
 fig, ax = m_sq_bundle.plot(fig, ax)
@@ -423,13 +426,13 @@ fig.savefig("%s/correlation_ave_sq_%s_%s.pdf"%(plot_dir, sim.name, folder_patter
 # # Plot M_qs vs tau for all
 # =============================================================================
 fig, ax = plot_coeff_vs_tau(m_sq, sim, correlation_dist)
-ax.set_ylabel(r'$M^{QS}$')
+ax.set_ylabel(r'$|Gamma^{QS}$')
 ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
 fig.tight_layout()
 plt.savefig("%s/Mqs_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
 fig, ax = plot_coeff_vs_tau(m_qs, sim, correlation_dist1)
-ax.set_ylabel(r'$M^{SQ}$')
+ax.set_ylabel(r'$|Gamma^{SQ}$')
 ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
 fig.tight_layout()
 fig.savefig("%s/Msq_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
