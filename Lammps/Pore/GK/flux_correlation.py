@@ -301,7 +301,7 @@ class bundle_correlation(correlation):
         self.averaging()
         self.dimension = 1
         self.times = times
-        self.norm = self.cor[0].nominal_value
+        self.norm = max(self.cor).nominal_value
         self.cor_norm = [self.cor / self.norm]
         self.flux1_name = flux1_name
         self.flux2_name = flux2_name
