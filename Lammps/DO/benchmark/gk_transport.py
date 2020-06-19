@@ -18,6 +18,8 @@ Define which folder pattern to use in
 folder_pattern eg "r*'
 
 
+Run it as: gk_transport.py r1 -t "low"
+
 Based on viscosity from DO project
 @author: simon
 """
@@ -108,11 +110,11 @@ class SimulationGK(lu.SimulationType):
         #  Creating the correlation instance
         m_qs = fc.correlation(Q_flux, Js_flux, self.max_delta)
         m_qs.evaluate()
-        m_qs.save("Mqs_%s"%sim.save_name)
+        m_qs.save("Mqs_%s"%self.save_name)
         
         m_sq = fc.correlation( Js_flux,Q_flux, self.max_delta)
         m_sq.evaluate()
-        m_sq.save("Msq_%s"%sim.save_name)
+        m_sq.save("Msq_%s"%self.save_name)
         
         return m_qs, m_sq
     
@@ -169,11 +171,11 @@ class SimulationGK(lu.SimulationType):
         #  Creating the correlation instance
         m_qs = fc.correlation(Q_flux, Js_flux, self.max_delta)
         m_qs.evaluate()
-        m_qs.save("Mqs_vdata%s"%sim.save_name)
+        m_qs.save("Mqs_vdata%s"%self.save_name)
         
         m_sq = fc.correlation( Js_flux,Q_flux, self.max_delta)
         m_sq.evaluate()
-        m_sq.save("Msq_vdata%s"%sim.save_name)
+        m_sq.save("Msq_vdata%s"%self.save_name)
         
         return m_qs, m_sq
         
@@ -460,11 +462,6 @@ def main(pattern, sim_type):
 # =============================================================================
 # Main
 # =============================================================================
-
-
-
-
-
 
 cwd = os.getcwd()
 plot_dir = "plots/0.gk_transport"
