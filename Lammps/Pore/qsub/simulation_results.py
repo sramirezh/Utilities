@@ -201,7 +201,7 @@ def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
 #TODO This function has to be generalised
 # TODO add to the bundle method
 def initialise_sim_bundles(root_pattern, parameter_id, directory_pattern, 
-                           dictionary={},finished_marker = "vdata.dat",
+                           dictionary={}, finished_marker = "vdata.dat",
                            stat_markers="statistics.dat",
                            thermo_markers = "thermo.dat", plot = True):
      
@@ -562,11 +562,19 @@ class simulation_bundle(simulation):
             array=[]
             data_simulation = []
             for sim in self.simulations:
-                value = sim.get_property(prop,exact=True)[1][0]
-                if np.size(value)>1:  #Has error
-                    array.append(un.ufloat(value[0],value[1])) 
+                output = sim.get_property(prop,exact=True)[1]
+                
+                #If there is not such a property, this typically happens 
+                #when the last simulation contains new variables that the 
+                #older did not have
+                if len(output) == 0:
+                    pass
                 else:
-                    array.append(un.ufloat(value,0))
+                    value = output[0]
+                    if np.size(value)>1:  #Has error
+                        array.append(un.ufloat(value[0],value[1])) 
+                    else:
+                        array.append(un.ufloat(value,0))
             if self.average == True:
                 ave = sum(array)/len(array)
                 self.properties.append([ave.n ,ave.s])
