@@ -485,7 +485,7 @@ logger = cf.log(__file__, os.getcwd(),plot_dir)
 # =============================================================================
 
 # High sampling frequency
-high = SimulationGK("high", 500, 200, 1, "log.lammps", "fluxes_high.dat") 
+high = SimulationGK("high", 200, 150, 1, "log.lammps", "fluxes_high.dat") 
 # Low sampling frequency but averaging
 low = SimulationGK("low", 2000, 150, 1, "log.lammps", "fluxes_low.dat") 
 # Low sampling frequency no averaging
