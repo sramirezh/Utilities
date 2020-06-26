@@ -219,13 +219,12 @@ def remove_pkl(root):
         os.remove(file)
 
 
-def plot_coeff_vs_tau(transport, sim, correlation_dist):
+def plot_coeff_vs_tau(transport, sim, correlation_dist, ax):
     """
     Plots the evolution of the transport coefficient
     TODO this can be added to the correlation class
     
     """
-    fig, ax = plt.subplots()
     
     times = transport.times
     tau_array = np.linspace([1], times[-1], 20)
@@ -262,7 +261,7 @@ def plot_coeff_vs_tau(transport, sim, correlation_dist):
     name = "Gamma_%s_%s"%(transport.flux1.name, transport.flux2.name)
     np.savetxt("%s/%s_%s.dat"%(sim.plot_dir, name, sim.name), data, header = header)
     
-    return fig, ax
+    return ax
 
 
 def main(pattern, sim_type):
@@ -443,17 +442,27 @@ def main(pattern, sim_type):
     # =============================================================================
     # # Plot M_qs vs tau for all
     # =============================================================================
-    fig, ax = plot_coeff_vs_tau(m_sq, sim, correlation_dist)
-    ax.set_ylabel(r'$|Gamma^{QS}$')
-    ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+    fig, ax = plt.subplots()
+    plot_coeff_vs_tau(m_sq, sim, correlation_dist, ax)
+    ax.set_ylabel(r'$\Gamma^{SQ}$')
+#    ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
     fig.tight_layout()
-    plt.savefig("%s/Mqs_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+    plt.savefig("%s/Msq_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
     
-    fig, ax = plot_coeff_vs_tau(m_qs, sim, correlation_dist1)
-    ax.set_ylabel(r'$|Gamma^{SQ}$')
-    ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+    plot_coeff_vs_tau(m_qs, sim, correlation_dist1, ax)
+    ax.lines[0].set_label(r'$\Gamma^{sq}$')
+    ax.lines[-2].set_label(r'$\Gamma^{qs}$')
+    ax.set_ylabel(r'$\Gamma$')
+    ax.legend(loc = 'upper right')
+    ax.set_xlim(0, None)
+    plt.savefig("%s/coefficients_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+    
+    fig, ax = plt.subplots()
+    plot_coeff_vs_tau(m_qs, sim, correlation_dist1, ax)
+    ax.set_ylabel(r'$\Gamma^{qs}$')
+#    ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
     fig.tight_layout()
-    fig.savefig("%s/Msq_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
+    fig.savefig("%s/Mqs_vs_tau_error_%s_%s.pdf"%(plot_dir, sim.name, folder_pattern))
 
 
 
