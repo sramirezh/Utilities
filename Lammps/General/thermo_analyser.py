@@ -7,7 +7,7 @@ import os
 import sys
 import linecache
 import argparse
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) # This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
 """
@@ -15,20 +15,20 @@ Initialisation and controling inputs
 """
 
 
-def read_chunk(file_name,i_line,f_line):
+def read_chunk(file_name, i_line, f_line):
     """
     Args:
     i_lines is the line where the name of the columns are, that is why the loop
     starts at i_lines+1, 
     f_line is the number of the line after the end of the 
-    data, so the loop reads until one line before
-    """
-    data=[]
+    data
     
-    for i in range(i_line+1,f_line):
-        data.append(linecache.getline(file_name, i).strip('\n').split())
-    linecache.clearcache()
-    data = np.array(data, dtype = float)
+    Using loadtxt is better than pd.read_csv because it will tell you if the data
+    is corrupt and in which line
+    """
+    number_lines = f_line - (i_line+1)
+    data = np.loadtxt(file_name, skiprows = i_line, max_rows = number_lines ,dtype = float)
+    
     return data
 
 
@@ -135,13 +135,12 @@ def data_extract(file_name):
             data = read_chunk(file_name, initial_line[i], final_line[i])
             #The last step of the nth chunk is equal to the first step in 
             # the next one, so we need to delete it
-            total=np.delete(total, -1, axis=0) 
-            total=np.vstack([total, data])
-
+            total = np.delete(total, -1, axis=0) 
+            total = np.vstack([total, data])
 
     return total, header_string
 
-def discard_data(data,nmin):
+def discard_data(data, nmin):
     """
     Function to discard in number or percentage
     Args:
