@@ -15,21 +15,44 @@ Initialisation and controling inputs
 """
 
 
-def read_chunk(file_name, i_line, f_line):
+## This is the best version but does not work in nimbus
+#def read_chunk(file_name, i_line, f_line):
+#    """
+#    Args:
+#    i_lines is the line where the name of the columns are, that is why the loop
+#    starts at i_lines+1, 
+#    f_line is the number of the line after the end of the 
+#    data
+#    
+#    Using loadtxt is better than pd.read_csv because it will tell you if the data
+#    is corrupt and in which line
+#    """
+#    number_lines = f_line - (i_line+1)
+#    data = np.loadtxt(file_name, skiprows = i_line, max_rows = number_lines ,dtype = float)
+#    
+#    return data
+
+
+
+
+def read_chunk(file_name,i_line,f_line):
     """
+    TODO, there is a better version of this fucntion (above, using loadtxt), 
+    but it does not work on Nimbus
     Args:
     i_lines is the line where the name of the columns are, that is why the loop
     starts at i_lines+1, 
     f_line is the number of the line after the end of the 
-    data
-    
-    Using loadtxt is better than pd.read_csv because it will tell you if the data
-    is corrupt and in which line
+    data, so the loop reads until one line before
     """
-    number_lines = f_line - (i_line+1)
-    data = np.loadtxt(file_name, skiprows = i_line, max_rows = number_lines ,dtype = float)
+    data=[]
     
+    for i in range(i_line+1,f_line):
+        data.append(linecache.getline(file_name, i).strip('\n').split())
+    linecache.clearcache()
+    data = np.array(data, dtype = float)
     return data
+
 
 
 #def read_chunk(file_name, i_line, f_line):
