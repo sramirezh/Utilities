@@ -23,3 +23,5 @@
 # ...even if they are in subdirectories
 !*/
 
+Lammps/General/Thermo_Analyser.py
+

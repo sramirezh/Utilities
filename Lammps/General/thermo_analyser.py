@@ -159,20 +159,7 @@ def data_extract(file_name):
             #The last step of the nth chunk is equal to the first step in 
             # the next one, so we need to delete it
             total = np.delete(total, -1, axis=0) 
-            
-            #In case there are several redefinitions of thermo_variables in
-            # Lammps, it will only keep the last set of variables
-            # TODO generalise this
-            if np.shape(total) != np.shape(data):
-                
-                total = data
-                # A new header is required
-                header = linecache.getline(file_name, initial_line[i]).strip('\n').split()
-                linecache.clearcache()
-                header_string = " ".join(header)
-                
-            else:
-                total = np.vstack([total, data])
+            total = np.vstack([total, data])
 
     return total, header_string
 
