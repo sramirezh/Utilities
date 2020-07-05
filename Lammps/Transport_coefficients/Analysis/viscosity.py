@@ -135,7 +135,7 @@ class SimulationViscosity(lu.SimulationType):
 
 # High sampling frequency
 N2 = SimulationViscosity("N2", 1000000,1000000, "log.lammps", "pressures.dat") 
-Octane = SimulationViscosity("Octane", 1000000, 1000000, "log.lammps", "pressures.dat") 
+Octane = SimulationViscosity("Octane", 200000, 200000, "log.lammps", "pressures.dat") 
 
 cwd = os.getcwd()
 plot_dir = "plots/0.viscosity"
@@ -176,7 +176,7 @@ cf.set_plot_appearance()
 #For c11
 fig,ax = plt.subplots()
 
-fig,ax = etha11.plot_individual(fig, ax, norm = False, dim = 3, every = 1000)
+fig,ax = etha11.plot_individual(fig, ax, norm = False, dim = 3, every = 10)
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
@@ -191,48 +191,33 @@ ax.set_ylabel(r'$\langle %s(\tau) %s(0)\rangle$'%(etha11.flux1.name,etha11.flux2
 fig.tight_layout()
 fig.savefig("%s/correlation11.pdf"%sim.plot_dir)
 
-
-integral = etha11.transport_coeff(0, etha11.times[-1]) # In atmospheres**2*fs
-
-eta = integral * sim.prefactor # in Pa s
-
-# It is a unumpy array
-total_eta = sum(eta)/len(eta)
-logger.info("The 3 components of the viscosity are %s" %eta)
-logger.info("The average viscosity is %2.4e +/- %2.4e [Pa s]"%(total_eta.n, total_eta.s))
-
-integral_lammps = cf.integrate(lammps_df["TimeDelta"].values*sim.time_step,lammps_df["v_pxy*v_pxy"].values,0,20000)
-
-eta_lammps = integral_lammps * sim.prefactor
-logger.info("On the fly estimation is %s" %eta_lammps)
-
-
 # =============================================================================
 # # Plot eta vs tau
 # =============================================================================
 
 fig,ax = plt.subplots()
 
-tau_array = np.linspace(etha11.times[1], etha11.times[-1], 20)
+tau_array = np.linspace(etha11.times[0], etha11.times[-1], 20)
 # Need to add the integration time
 tau_array = np.sort(np.append(tau_array, sim.tau_integration)) 
 
-eta_array = []
-eta_error = []
+eta_interval = []
 
-
+# Computes the integral per intervals such that there is no need to recompute 
+# Parts of the integral
+#TODO be sure that the integration is continuos beween the intervals
+initial_t = 0
 for t in tau_array:
-    # Taking only the nominal value
-    eta = sim.prefactor * etha11.transport_coeff_comp(0, t, -1)
-    error = 0
-    if isinstance(eta, un.UFloat):
-        error = eta.s
-        eta = eta.n
-    eta_error.append(error)
-    eta_array.append(eta)
+    eta_interval.append(sim.prefactor * etha11.transport_coeff_comp(initial_t, t, -1))
+    initial_t = t
+    
 
-eta_error = np.array(eta_error)
-eta_array = np.array(eta_array)
+# Neef to rewrite the first term, very quick fix
+eta_interval[0] = ufloat(0,0)
+
+eta = np.cumsum(eta_interval)
+eta_error = np.array([el.s for el in eta])
+eta_array = np.array([el.n for el in eta])
     
 ax.plot(tau_array,eta_array)
 ax.fill_between(tau_array, eta_array - eta_error, eta_array + eta_error, alpha=0.4)
@@ -244,8 +229,25 @@ ymin,ymax = ax.get_ylim()
 ax.set_xlim(0, etha11.times[-1])
 ax.set_ylim(0, ymax)
 ax.set_ylabel(r'$\eta^*$')
-plt.legend( loc = 'lower right')
 plt.tight_layout()
 plt.savefig("%s/eta_vs_tau.pdf"%sim.plot_dir)
+#
+#
+#
+#
+#
+#integral = etha11.transport_coeff(0, etha11.times[-1]) # In atmospheres**2*fs
+#
+#eta = integral * sim.prefactor # in Pa s
+#
+## It is a unumpy array
+#total_eta = sum(eta)/len(eta)
+#logger.info("The 3 components of the viscosity are %s" %eta)
+#logger.info("The average viscosity is %2.4e +/- %2.4e [Pa s]"%(total_eta.n, total_eta.s))
+#
+#integral_lammps = cf.integrate(lammps_df["TimeDelta"].values*sim.time_step,lammps_df["v_pxy*v_pxy"].values,0,20000)
+#
+#eta_lammps = integral_lammps * sim.prefactor
+#logger.info("On the fly estimation is %s" %eta_lammps)
 
 
