@@ -185,6 +185,7 @@ class SimulationType(object):
             if key != 'name':
                 logger.info("Using %s as %s"%(key, dictionary[key]))
         logger.info("\n")
+        
     
     @property
     def copy(self):

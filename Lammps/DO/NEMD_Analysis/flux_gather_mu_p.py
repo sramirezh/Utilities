@@ -144,7 +144,7 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
 #     Create or read the bundle
 # =============================================================================
     if not glob.glob("%s"%sim_type):
-        logger.info("\nAnalysing the mu grad simulations\n")
+        logger.info("\nAnalysing the %s simulations\n"%root_pattern)
         bundles_mu = sr.initialise_sim_bundles(root_pattern,sim_type,directory_pattern,dictionary, plot = False)
         final_mu = sr.simulation_bundle(bundles_mu, "bundle" , 3,cwd,dictionary = dictionary, ave = False)
         final_mu.save("%s"%sim_type)
@@ -261,9 +261,11 @@ if not os.path.exists(plot_dir):
 logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
 ms_path = '4.Applying_force_[0-9]*'
-mp_path = '5.Applying_force_p_[0-9]*'
+mp_path = '6.Applying_force_p_dist_[0-9]*'
 ms_dir = '[0-9]*'
 mp_dir = '[0-9]*'
+
+logger.info("Analysing %s and %s"%(ms_path, mp_path))
 # =============================================================================
 # Assumptions and external parameters
 # =============================================================================
@@ -321,7 +323,7 @@ plot_properties(final_p, 'grad_p','J_s_exc_HY', ax2)
 ax2.set_ylabel(r'$J_s-c^*_sQ$')
 ax2.set_xlabel(r'$-\nabla P$')
 #ax.legend(loc = 'upper right')
-ax2.set_ylim(0, None)
+#ax2.set_ylim(0, None)
 ax2.set_xlim(0, None)
 fig2.tight_layout()
 fig2.savefig('%s/Js_exc_HY_vs_grad_P.pdf'%(plot_dir), Transparent = True)

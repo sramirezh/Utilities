@@ -24,10 +24,14 @@ import Lammps.DO.EMD.density_analysis as da
 
 # =============================================================================
 # Main
-# =============================================================================
+cwd = os.getcwd()
+plot_dir = "plots/0.studying_profiles"
 
 
-logger = cf.log(__file__, os.getcwd())    
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)      
 
 fluid = da.DensityDistribution("properties_short.dat", "rBulk") 
 solute = da.DensityDistribution("Sproperties_short.dat", "rBulk") 
@@ -55,9 +59,14 @@ ax1.set_ylim(0, None)
 ax1.set_xlabel(r'$z[\sigma] $')
 ax1.set_ylabel(r'$v_x(z)$')
 
+# Getting the index closest to the limit
+xmin = 0
+xmax = 30
+ax1 = cf.plot_zoom(ax1, [xmin, xmax])
+
 fig1.tight_layout()
 ax1.legend(["Solute", "Solvent", "Fluid" ])
-fig1.savefig('vprofile.pdf')
+fig1.savefig('%s/vprofile.pdf'%plot_dir)
 
 ymin = fluid.data_frame['vx'].min()
 
@@ -67,7 +76,7 @@ xmin = 0
 xmax = 2
 ax1 = cf.plot_zoom(ax1, [xmin, xmax])
 fig1.tight_layout()
-fig1.savefig('vprofile_zoom.pdf')
+fig1.savefig('%s/vprofile_zoom.pdf'%plot_dir)
 
 
 
@@ -75,7 +84,7 @@ xmin = 0
 xmax = 5
 ax1 = cf.plot_zoom(ax1, [xmin, xmax])
 fig1.tight_layout()
-fig1.savefig('vprofile_zoom2.pdf')
+fig1.savefig('%s/vprofile_zoom2.pdf'%plot_dir)
 
 ## Adding the insert
 #
@@ -110,8 +119,12 @@ ax2.set_ylabel(r'$c(z)$')
 
 fig2.tight_layout()
 ax2.legend(["Solute", "Solvent", "Fluid" ], loc = 'upper right')
+# Getting the index closest to the limit
+xmin = 0
+xmax = 30
+ax2 = cf.plot_zoom(ax2, [xmin, xmax])
 fig2.tight_layout()
-fig2.savefig('rhoprofile.pdf')
+fig2.savefig('%s/rhoprofile.pdf'%plot_dir)
 
 ymin = fluid.data_frame['vx'].min()
 
@@ -121,7 +134,7 @@ xmin = 0
 xmax = 2
 ax2 = cf.plot_zoom(ax2, [xmin, xmax])
 fig2.tight_layout()
-fig2.savefig('rhoprofile_zoom.pdf')
+fig2.savefig('%s/rhoprofile_zoom.pdf'%plot_dir)
 
 
 xmin = 0
@@ -129,7 +142,7 @@ xmax = 5
 
 ax2 = cf.plot_zoom(ax2, [xmin, xmax])
 fig2.tight_layout()
-fig2.savefig('rhoprofile_zoom2.pdf')
+fig2.savefig('%s/rhoprofile_zoom2.pdf'%plot_dir)
 
 
 
