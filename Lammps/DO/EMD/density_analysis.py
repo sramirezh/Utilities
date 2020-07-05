@@ -136,11 +136,17 @@ class DensityDistribution(PropertyDistribution):
     def _set_bulk(self):
         
         """
-        TODO give the option of the bulk to be given by an interval, so the bulk_name
-        is actually a name in the geometry file or an interval 
+        Gets the height and limits of the bulk either by reading an in.geom file
+        where self.bulk_name gives the name of the region or self.bulk_name gives
+        already a list with the lower and uper limits
         
         """
-        self.h_b, self.limits_b = lu.read_region_height(self.bulk_name, geom_file = self.log_file)
+        if isinstance(self.bulk_name, str): 
+            self.h_b, self.limits_b = lu.read_region_height(self.bulk_name, geom_file = self.log_file)
+        
+        if isinstance(self.bulk_name, list):
+            self.limits_b = self.bulk_name
+            self.h_b = self.limits_b[1] - self.limits_b[0]
     
     def get_bulk_property(self, name):
         """
