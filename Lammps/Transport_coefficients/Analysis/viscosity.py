@@ -122,7 +122,7 @@ class SimulationViscosity(lu.SimulationType):
 
 # High sampling frequency
 N2 = SimulationViscosity("N2", 1000000,1000000, "log.lammps", "pressures.dat") 
-Octane = SimulationViscosity("Octane", 200000, 100000, "log.lammps", "pressures.dat") 
+Octane = SimulationViscosity("Octane", 300000, 150000, "log.lammps", "pressures.dat") 
 
 cwd = os.getcwd()
 plot_dir = "plots/0.viscosity"
@@ -234,12 +234,17 @@ plt.tight_layout()
 plt.savefig("%s/eta_vs_tau.pdf"%sim.plot_dir)
 
 
-#logger.info("The 3 components of the viscosity are %s" %eta)
-logger.info("The average viscosity is %2.4e +/- %2.4e [Pa s]"%(eta_tau[index].n, eta_tau[index].s))
+
+# Getting the 3 components for the integration cut-off
+eta_tau = sim.prefactor * eta.transport_coeff(0,sim.tau_integration)
+
+eta_tau_average = sum(eta_tau)/len(eta_tau)
+logger.info("The 3 components of the viscosity are %s" %eta_tau)
+logger.info("The average viscosity is %2.4e +/- %2.4e [Pa s]"%(eta_tau_average.n, eta_tau_average.s))
 
 integral_lammps = cf.integrate(lammps_df["TimeDelta"].values*sim.time_step,lammps_df["v_pxy*v_pxy"].values,0,20000)
 
 eta_lammps = integral_lammps * sim.prefactor
-logger.info("On the fly estimation is %s" %eta_lammps)
+logger.info("On the fly estimation is %s [the tau cut-off is %s fs]" %(eta_lammps,lammps_df["TimeDelta"].values[-1]*sim.time_step))
 
 
