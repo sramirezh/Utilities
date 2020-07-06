@@ -201,7 +201,7 @@ class correlation(object):
         self.norm[-1] = total[0]
         self.cor_norm[-1] = total / total[0]
         
-    def plot_individual(self, fig, ax, dim=0, alpha=0.4, every=1, norm=True):
+    def plot_individual(self, ax, dim=0, alpha=0.4, every=1, norm=True):
         """
         Args:
             ax axes object
@@ -218,23 +218,28 @@ class correlation(object):
         else:
             cor = self.cor[dim]
             
-        # If the correlation has error estimation    
+        # checking the first entry to see if it is a ufloat   
         if isinstance(cor[0], un.UFloat):
     
             y = np.array([i.n for i in cor])
             y_error = np.array([i.s for i in cor])
-            ax.plot(self.times[::every], y[::every], label=self.dic_label[dim])
-            ax.fill_between(self.times, y - y_error, y + y_error, alpha=0.4)
+            
+            # Getting time, y, error, with the frequency
+            times = self.times[::every]
+            y = y[::every]
+            y_error = y_error[::every]
+            ax.plot(times, y, label=self.dic_label[dim])
+            ax.fill_between(times, y - y_error, y + y_error, alpha=0.4)
         
         else:
             ax.plot(self.times[::every], cor[::every], 
                     label=self.dic_label[dim])
             
-        return fig, ax
+        return ax
     
-    def plot_all(self, fig, ax, alpha=0.4, norm=True):
+    def plot_all(self, ax, alpha=0.4, norm=True):
         for dim in range(self.dimension + 1):
-            fig, ax = self.plot_individual(fig, ax, dim, norm=norm)
+            fig, ax = self.plot_individual( ax, dim, norm=norm)
         
         ax.axhline(y=0, xmin=0, xmax=1, ls=':', c='black')
         ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1.name, 
