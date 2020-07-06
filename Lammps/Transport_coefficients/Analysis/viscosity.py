@@ -222,14 +222,16 @@ index = np.where(tau_array==sim.tau_integration)[0][0]
     
 ax.plot(tau_array,eta_array)
 ax.fill_between(tau_array, eta_array - eta_error, eta_array + eta_error, alpha=0.4)
-ax.set_xlabel(r'$t^*$')
+ax.set_xlabel(r'$t[fs]$')
 ax.axhline(y = eta_array[index] , xmin=0, xmax=1,ls='--',c='black', label = r'$\eta^* = %2.4f$' %eta_array[index])
 ax.axvline(x = sim.tau_integration,ls='-.',c='black')
 xmin,xmax = ax.get_xlim()
 ymin,ymax = ax.get_ylim()
 ax.set_xlim(0, eta.times[-1])
 ax.set_ylim(0, ymax)
-ax.set_ylabel(r'$\eta^*$')
+ax.set_ylabel(r'$\eta[Pa\cdot s]$')
+ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+ax.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
 plt.tight_layout()
 plt.savefig("%s/eta_vs_tau.pdf"%sim.plot_dir)
 
