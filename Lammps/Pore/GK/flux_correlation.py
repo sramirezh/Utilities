@@ -239,13 +239,13 @@ class correlation(object):
     
     def plot_all(self, ax, alpha=0.4, norm=True):
         for dim in range(self.dimension + 1):
-            fig, ax = self.plot_individual( ax, dim, norm=norm)
+           ax = self.plot_individual( ax, dim, norm=norm)
         
         ax.axhline(y=0, xmin=0, xmax=1, ls=':', c='black')
         ax.set_ylabel(r'$\langle %s(t)%s(0) \rangle$'%(self.flux1.name, 
                                                        self.flux2.name))
         ax.set_xlabel('time')
-        return fig, ax
+        return ax
     
     def save(self, file_name):
         """
