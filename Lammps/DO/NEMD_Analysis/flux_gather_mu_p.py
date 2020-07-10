@@ -138,7 +138,9 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
                     information from the simulation bundle
         
     """
-
+    
+    global n_fluid
+    
     dictionary = {'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
 # =============================================================================
 #     Create or read the bundle
@@ -146,10 +148,10 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
     if not glob.glob("%s"%sim_type):
         logger.info("\nAnalysing the %s simulations\n"%root_pattern)
         bundles_mu = sr.initialise_sim_bundles(root_pattern,sim_type,directory_pattern,dictionary, plot = False)
-        final_mu = sr.simulation_bundle(bundles_mu, "bundle" , 3,cwd,dictionary = dictionary, ave = False)
-        final_mu.save("%s"%sim_type)
+        final = sr.simulation_bundle(bundles_mu, "bundle" , 3,cwd,dictionary = dictionary, ave = False)
+        final.save("%s"%sim_type)
     else:
-        final_mu = cf.load_instance("%s"%sim_type) 
+        final = cf.load_instance("%s"%sim_type) 
         
 # =============================================================================
 #     Obtaining some geometry parameters
@@ -160,21 +162,19 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
     
     # Getting the dimensions of the simulation box and the regions
     box_volume, box_limits = lu.read_box_limits('%s/log.lammps'%folder)
-    
     bulk_heigth  = lu.read_region_height('rBulk','%s/in.geom'%folder)
-    
     #This is a region defined as the bulk+interface
     sys_heigth  = lu.read_region_height('rSystem','%s/in.geom'%folder) 
     
     vol_bulk = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*bulk_heigth[0]
-    vol_sys = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*sys_heigth[0]
+    vol_sys = (box_limits[1][0]-box_limits[0][0])*(box_limits[1][1]-box_limits[0][1])*(sys_heigth[0])
 
     # =============================================================================
     # Calculations of the transport coefficients from DP problem
     # =============================================================================
-    final_mu.average = False
+    final.average = False
     count = 0
-    for bund in final_mu.simulations:
+    for bund in final.simulations:
         
         #This is just to compute the excess of solute flux
         
@@ -186,11 +186,12 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
             n_s_bulk = sim.get_property('cBSolu',True)[1][0][0]
             n_f_bulk = sim.get_property('cBSolv',True)[1][0][0]
             n_fluid_bulk = n_f_bulk + n_s_bulk
-            rho_bulk = n_fluid_bulk/vol_bulk
+            rho_bulk = n_fluid_bulk / vol_bulk
             cs_bulk = n_s_bulk/vol_bulk
+            cf_bulk = n_f_bulk/vol_bulk
             
             vx_s_bulk = ufloat(sim.get_property('vxB_Solu')[1][0][0],sim.get_property('vxB_Solu')[1][0][1])
-            J_s_bulk = cs_bulk*vx_s_bulk
+            J_s_bulk = cs_bulk * vx_s_bulk
             Q_bulk = ufloat(sim.get_property('vxB_Sol',exact=True)[1][0][0],sim.get_property('vxB_Sol',exact=True)[1][0][1])
             
             exc_s_bulk = J_s_bulk- cs_bulk * Q_bulk
@@ -208,10 +209,14 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
             
             rho = n_fluid/vol_sys
             cs = n_s/vol_sys
+            cf = n_f/vol_sys
             
             vx_s = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
-            J_s = cs*vx_s
+            vx_f = ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
+            J_s = cs * vx_s
+            J_f = cf * vx_f
             Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
+            
             
             exc_s = J_s- cs*Q
             
@@ -223,19 +228,31 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
 # Quantities in the entire Volume weighted by the bulk
 # =============================================================================
 
-            exc_s_hyb = J_s- cs_bulk*Q
+            exc_s_hyb = J_s - cs_bulk*Q
             sim.add_property('J_s_exc_hyb',exc_s_hyb)
 
 
 # =============================================================================
 # Quantities difference of velocities
 # =============================================================================
-
-            exc_s_vel = cs_bulk*(vx_s-Q)
-            exc_s_HY = J_s-(n_s_bulk/(n_s_bulk+n_f_bulk)*rho)*Q
             
-            sim.add_property('J_s_exc_vel',exc_s_vel)
+            # Terms to be substracted from the solute fluxes
+            hy_term = (n_s_bulk/(n_s_bulk+n_f_bulk)*rho)*Q
+            df_term = cs_bulk * Q_bulk
+            omega_term = cs * Q
+            
+            exc_s_HY = J_s-(n_s_bulk/(n_s_bulk+n_f_bulk)*rho)*Q
+            exc_s_DF = J_s - cs_bulk * Q_bulk
+            
+            exc_srh = J_s-(cs_bulk/cf_bulk)*J_f
+            
+            sim.add_property('omega_term', omega_term)
+            sim.add_property('hy_term', hy_term)
+            sim.add_property('df_term', df_term)
             sim.add_property('J_s_exc_HY',exc_s_HY)
+            sim.add_property('J_s_exc_DF',exc_s_DF)
+            sim.add_property('J_s_exc_srh',exc_srh)
+            
             
             
         # To add all the properties that we just added in the sub bundle
@@ -245,10 +262,10 @@ def build_bundle(root_pattern, directory_pattern, rho_bulk, cs_bulk, sim_type):
             count+=1
         
 
-    final_mu.update_properties()
+    final.update_properties()
     
     
-    return final_mu
+    return final
 
 # =============================================================================
 #     Main
@@ -261,7 +278,8 @@ if not os.path.exists(plot_dir):
 logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
 ms_path = '4.Applying_force_[0-9]*'
-mp_path = '6.Applying_force_p_dist_[0-9]*'
+#mp_path = '6.Applying_force_p_dist_[0-9]*'
+mp_path = '5.Applying_force_p_[0-9]*'
 ms_dir = '[0-9]*'
 mp_dir = '[0-9]*'
 
@@ -292,9 +310,17 @@ final_p = build_bundle(mp_path, mp_dir, rho_bulk, cs_bulk,"grad_p")
 # =============================================================================
 # Getting the grad s primed
 # =============================================================================
+
+# TODO improve this estimation
+
+n_s = final_mus.simulations[0].get_property('cSolu',True)[1][0][0]
+n_f = final_mus.simulations[0].get_property('cSolv',True)[1][0][0]
+
 for bund in final_mus.simulations:
         
-        bund.add_property('grad_mu_primed',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('grad_mu_s',exact=True)[1][0]))
+#        bund.add_property('grad_mu_primed',(n_s+n_f)/(n_f)*float(bund.get_property('grad_mu_s',exact=True)[1][0]))
+        bund.add_property('grad_mu_primed',float(bund.get_property('grad_mu_s',exact=True)[1][0]))
+    
         bund.update_properties() # To update the bundle
 
 final_mus.update_properties()
@@ -317,16 +343,68 @@ ax1.set_xlabel(r"$-\nabla \mu'_{s}$")
 fig1.tight_layout()
 fig1.savefig('%s/q_vs_grad_mu.pdf'%(plot_dir), Transparent = True)
                 
-# Js vs grad P
+# JsHY vs grad P
 fig2, ax2 = plt.subplots()
+plot_properties(final_p, 'grad_p','J_s', ax2)
+plot_properties(final_p, 'grad_p','hy_term', ax2)
 plot_properties(final_p, 'grad_p','J_s_exc_HY', ax2)
-ax2.set_ylabel(r'$J_s-c^*_sQ$')
+#ax2.set_ylabel(r"$J_s^{\Omega}- \phi_s^Bc_s^{\Omega}Q^{\Omega}$")
 ax2.set_xlabel(r'$-\nabla P$')
 #ax.legend(loc = 'upper right')
 #ax2.set_ylim(0, None)
 ax2.set_xlim(0, None)
+ax2.legend([r"$J_s^{\Omega}$", r"$\phi_s^Bc_s^{\Omega}Q^{\Omega}$", r"$J_s^{\Omega}- \phi_s^Bc_s^{\Omega}Q^{\Omega}$"], loc = 'upper left')
 fig2.tight_layout()
 fig2.savefig('%s/Js_exc_HY_vs_grad_P.pdf'%(plot_dir), Transparent = True)
+
+
+
+# JsDF vs grad P
+fig2, ax2 = plt.subplots()
+plot_properties(final_p, 'grad_p','J_s', ax2)
+plot_properties(final_p, 'grad_p','df_term', ax2)
+plot_properties(final_p, 'grad_p','J_s_exc_DF', ax2)
+#ax2.set_ylabel(r"$J_s^{\Omega}- c_s^BQ^B$")
+ax2.set_xlabel(r'$-\nabla P$')
+#ax.legend(loc = 'upper right')
+#ax2.set_ylim(0, None)
+ax2.set_xlim(0, None)
+ax2.legend([r"$J_s^{\Omega}$", r"$c_s^BQ^B$", r"$J_s^{\Omega}- c_s^BQ^B$"], loc = 'upper left')
+fig2.tight_layout()
+fig2.savefig('%s/Js_exc_HY_vs_grad_P.pdf'%(plot_dir), Transparent = True)
+
+
+# Js_omega vs grad P
+fig2, ax2 = plt.subplots()
+plot_properties(final_p, 'grad_p','J_s', ax2)
+plot_properties(final_p, 'grad_p','omega_term', ax2)
+plot_properties(final_p, 'grad_p','J_s_exc', ax2)
+#ax2.set_ylabel(r"$J_s^{\Omega}- c_s^BQ^B$")
+ax2.set_xlabel(r'$-\nabla P$')
+#ax.legend(loc = 'upper right')
+#ax2.set_ylim(0, None)
+ax2.set_xlim(0, None)
+ax2.legend([r"$J_s^{\Omega}$", r"$c_s^{\Omega}Q^{\Omega}$", r"$J_s^{\Omega}-c_s^{\Omega}Q^{\Omega}$"], loc = 'upper left')
+fig2.tight_layout()
+fig2.savefig('%s/Js_exc_omega_vs_grad_P.pdf'%(plot_dir), Transparent = True)
+
+
+
+
+# Js_srh vs grad P
+fig2, ax2 = plt.subplots()
+#plot_properties(final_p, 'grad_p','J_s', ax2)
+#plot_properties(final_p, 'grad_p','omega_term', ax2)
+plot_properties(final_p, 'grad_p','J_s_exc_srh', ax2)
+#ax2.set_ylabel(r"$J_s^{\Omega}- c_s^BQ^B$")
+ax2.set_xlabel(r'$-\nabla P$')
+#ax.legend(loc = 'upper right')
+#ax2.set_ylim(0, None)
+ax2.set_xlim(0, None)
+#ax2.legend([r"$J_s^{\Omega}$", r"$c_s^{\Omega}Q^{\Omega}$", r"$J_s^{\Omega}-c_s^{\Omega}Q^{\Omega}$"], loc = 'upper left')
+fig2.tight_layout()
+fig2.savefig('%s/Js_exc_srh_vs_grad_P.pdf'%(plot_dir), Transparent = True)
+
 
 # Checking the different exess fluxes
 
@@ -334,16 +412,50 @@ fig3, ax3 = plt.subplots()
 plot_properties(final_p, 'grad_p', 'J_s_exc_bulk', ax3)
 plot_properties(final_p, 'grad_p', 'J_s_exc', ax3)
 plot_properties(final_p, 'grad_p', 'J_s_exc_hyb', ax3)
-plot_properties(final_p, 'grad_p', 'J_s_exc_vel', ax3)
 plot_properties(final_p, 'grad_p', 'J_s_exc_HY', ax3)
+plot_properties(final_p, 'grad_p', 'J_s_exc_DF', ax3)
+plot_properties(final_p, 'grad_p', 'J_s_exc_srh', ax3)
 ax3.set_ylabel(r'$J_s$')
 ax3.set_xlabel(r'$-\nabla P$')
-ax3.legend([r"$J'^B_s$", r"$J_s'$", r"$J_s'^{hyb}$", 
-            r"$J_s'^{vel}$", r"$J_s'^{HY}$"], loc = 'upper left', ncol = 2)
+ax3.legend([r"$J^B_s-c_s^BQ^B$", r"$J_s^{\Omega}- c_s^{\Omega}*Q^{\Omega}$", 
+            r"$J_s^{\Omega}- c_s^BQ^{\Omega}$", r"$J_s^{\Omega}- \phi_s^Bc_s^{\Omega}Q^{\Omega}$",
+            r"$J_s^{\Omega}- c_s^BQ^B$"], loc = 'upper left', ncol = 2)
 #ax.set_ylim(0, None)
 #ax.set_xlim(0, 8)
 fig3.tight_layout()
-fig3.savefig('%s/Js_exc_comparison.pdf'%(plot_dir), Transparent = True)
+
+
+
+# =============================================================================
+# Plotting the transport coefficients vs the gradient
+# =============================================================================
+fig3, ax3 = plt.subplots()
+
+csq = final_p.data_frame['J_s_exc_srh']/final_p.data_frame['grad_p']
+csq_mean = [el.n for el in csq]
+csq_error = [el.s for el in csq]
+grad_p_mean = [el.n for el in final_p.data_frame['grad_p'] ]
+
+ax3.errorbar(grad_p_mean, csq_mean, yerr=csq_error, fmt='o')
+ax3.set_ylabel(r'$L_{SQ}$')
+ax3.set_xlabel(r'$-\nabla P$')
+fig3.savefig('%s/csq.pdf'%(plot_dir), Transparent = True)
+
+
+fig3, ax3 = plt.subplots()
+
+cqs = final_mus.data_frame['Q']/final_mus.data_frame['grad_mu_primed']
+cqs_mean = [el.n for el in cqs]
+cqs_error = [el.s for el in cqs]
+grad_mu_mean = [el.n for el in final_mus.data_frame['grad_mu_primed'] ]
+ax3.set_ylabel(r'$L_{QS}$')
+ax3.set_xlabel(r'$-\nabla \mu_s$')
+ax3.errorbar(grad_mu_mean, cqs_mean, yerr=cqs_error, fmt='o')
+
+fig3.savefig('%s/cqs.pdf'%(plot_dir), Transparent = True)
+
+
+
 
  
     
