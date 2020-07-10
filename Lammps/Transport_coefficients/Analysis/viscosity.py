@@ -305,16 +305,12 @@ logger.info("On the fly estimation is %s [the tau cut-off is %s fs]" %(eta_lammp
 # Smoothening data
 # =============================================================================
 
-
-
-
 correlation = [e.n for e in eta.cor[-1]]
 times = eta.times
 
 # First try
 initial = 1000 
 window = 100 
-
 
 times_smooth = times[initial::window] # center of the intervals
 time_intervals =np.arange(initial-int(window/2),times[-1],100, dtype = int) 
@@ -325,8 +321,6 @@ time_intervals =np.arange(initial-int(window/2),times[-1],100, dtype = int)
 smoothed_data = np.zeros(len(times_smooth))
 for i in range(len(times_smooth)):
     smoothed_data[i] = np.average(correlation[time_intervals[i]:time_intervals[i+1]])
-    
-
 
 # Second technique
 averaging_cycles = 100
@@ -365,21 +359,51 @@ plt.savefig("%s/correlation_smooth.pdf"%sim.plot_dir)
 
 
 # =============================================================================
-# Plots winner smoothed data
+# Computations with smoothed data
 # =============================================================================
 
+# Defining the points where the fitting is going to be 
+initial_fitting = 5000
+example_cut = 19000 # Cut for the testing on my laptop
+real_cut = 100000 # cut for the whole dataset
+cut = example_cut
+
+# Numerical integration until this point
+
+# point where the analytical integration starts
+index_r_initial = np.where(tau_array>initial_fitting)[0][0]
+r_initial_fitting = tau_array[index_r_initial]
+
+
+# Get a fitting of the exponential tail
+transformed = np.log(y_savgol[initial_fitting:cut])
+polynomial = np.polyfit(times[initial_fitting:cut],transformed,1)
+
+times_eval = np.arange(r_initial_fitting,cut)
+fit_exp = np.exp(np.polyval(polynomial,times_eval))
+
+
+#estimating the value of the analytical part of the integral
+
+eta_tail = sim.prefactor * (np.exp(polynomial[1])/polynomial[0]*(np.exp(polynomial[0]*times_eval[-1])-np.exp(polynomial[0]*times_eval[0])))
+eta_hybrid = eta_tail+eta_array[index_r_initial]
+
+logger.info("The analytical tail is %s"%eta_tail)
+logger.info("The estimation of the viscosity including the analytical tail is %s"%eta_hybrid)
+# =============================================================================
+# Plotting the smoothed tail
+# =============================================================================
 
 # First getting the indexes where the time is in the interest interval
-indexes_tau = np.where((times>=initial) & (times<=100000)) # Cutting there to not have the log negative
-#indexes_savgol
+indexes_tau = np.where((times>=initial) & (times <= cut)) # Cutting there to not have the log negative
 
 fig,ax = plt.subplots()
 
 ax.plot(times[indexes_tau], y_savgol[indexes_tau], label='savgol int = %s window =%s poly =%s'%(savgol_order,savgol_window,poly))
-
+ax.plot(times_eval, fit_exp)
 
 ax.set_yscale('log')
-ax.set_xlim(initial, 100000)
+ax.set_xlim(initial, cut)
 ax.set_xlabel(r'$\tau[fs]$')
 ax.set_ylabel(r'$\langle \sigma(\tau) \sigma(0)\rangle$')
 #ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
