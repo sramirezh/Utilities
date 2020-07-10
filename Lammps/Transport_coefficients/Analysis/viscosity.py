@@ -245,7 +245,7 @@ logger.info("It took %2.4f sec sec to create the correlation plots"%(time.time()
 
 fig,ax = plt.subplots()
 
-tau_array = np.linspace(eta.times[0], eta.times[-1], 20)
+tau_array = np.linspace(eta.times[0], eta.times[-1], 100)
 # Need to add the integration time
 tau_array = np.sort(np.append(tau_array, sim.tau_integration)) 
 
@@ -366,7 +366,7 @@ plt.savefig("%s/correlation_smooth.pdf"%sim.plot_dir)
 initial_fitting = 5000
 example_cut = 19000 # Cut for the testing on my laptop
 real_cut = 100000 # cut for the whole dataset
-cut = example_cut
+cut = real_cut
 
 # Numerical integration until this point
 
@@ -385,10 +385,10 @@ fit_exp = np.exp(np.polyval(polynomial,times_eval))
 
 #estimating the value of the analytical part of the integral
 
-eta_tail = sim.prefactor * (np.exp(polynomial[1])/polynomial[0]*(np.exp(polynomial[0]*times_eval[-1])-np.exp(polynomial[0]*times_eval[0])))
+eta_tail = sim.prefactor * (np.exp(polynomial[1])/polynomial[0]*(np.exp(polynomial[0]*sim.tau_integration)-np.exp(polynomial[0]*times_eval[0])))
 eta_hybrid = eta_tail+eta_array[index_r_initial]
 
-logger.info("The analytical tail is %s"%eta_tail)
+logger.info("The analytical tail is %s, stopping the integration at %s"%(eta_tail,sim.tau_integration))
 logger.info("The estimation of the viscosity including the analytical tail is %s"%eta_hybrid)
 # =============================================================================
 # Plotting the smoothed tail
