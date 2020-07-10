@@ -113,7 +113,57 @@ class SimulationViscosity(lu.SimulationType):
     
         self.prefactor = scale * factor
         
+from scipy.signal import savgol_filter
 
+def ave_differences(array, averaging_cycles):
+    """
+    Smoothens a function by taking the average between each point and the nearest neightbors
+    Args:
+        array to smothen
+        averaging_cycles: Number of averaging iteractions.
+        
+    Returns the averaged array
+    """
+    corr_ave = np.copy(array)
+    
+    for j in range(averaging_cycles):
+        averaging = []
+        for i,point in enumerate(corr_ave):
+            
+            # For the extremes
+            if i == 0: 
+                average = (2*point+corr_ave[i+1])/3
+            elif i == len(corr_ave)-1:
+                average = (2*point+corr_ave[i-1])/3
+            # For the middle points
+            else:
+                average = (2*point+corr_ave[i+1]+corr_ave[i-1])/4
+            
+            averaging.append(average)
+            
+        corr_ave = averaging 
+    
+    return corr_ave
+
+
+
+def savgol_n(data, order, window, poly):
+    """
+    Performs Apply a Savitzky-Golay filter to an array several times
+    Args:
+        data: data to smooth
+        order: Number of successive smoothening steps
+        window: number of points to average
+        poly: order of the polynomial to perform a least squares fitting.
+        
+    retunrs:
+        the smoothen array
+    """
+    smooth =np.copy(data)
+    for i in range(order):
+        smooth = savgol_filter(smooth, window, poly)
+    
+    return smooth
 # =============================================================================
 # Main
 # =============================================================================
@@ -167,7 +217,7 @@ cf.set_plot_appearance()
 #For c11
 fig,ax = plt.subplots()
 
-ax = eta.plot_individual(ax, norm = False, dim = 3)
+eta.plot_all(ax, norm = False)
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
@@ -175,12 +225,13 @@ ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
 ax.set_xscale('log')
 ax.set_xlabel(r'$\tau[fs]$')
 ax.set_ylabel(r'$\langle %s(\tau) %s(0)\rangle$'%(eta.flux1.name,eta.flux2.name))
+ax.legend( loc = 'upper right', fontsize = 12)
 fig.tight_layout()
 plt.savefig("%s/correlation.pdf"%sim.plot_dir)
-
+ax.get_legend().remove()
 ax.plot(lammps_df["TimeDelta"].values[::10] * sim.time_step, 
         lammps_df["v_pxy*v_pxy"].values[::10],label =r"$P_{xy}^{Lammps}$")
-fig.legend( loc = 'upper right', fontsize = 12, ncol = 2)
+ax.legend( loc = 'upper right', fontsize = 12, ncol = 2)
 fig.tight_layout()
 plt.savefig("%s/correlation_lammps.pdf"%sim.plot_dir)
 
@@ -250,3 +301,90 @@ eta_lammps = integral_lammps * sim.prefactor
 logger.info("On the fly estimation is %s [the tau cut-off is %s fs]" %(eta_lammps,lammps_df["TimeDelta"].values[-1]*sim.time_step))
 
 
+# =============================================================================
+# Smoothening data
+# =============================================================================
+
+
+
+
+correlation = [e.n for e in eta.cor[-1]]
+times = eta.times
+
+# First try
+initial = 1000 
+window = 100 
+
+
+times_smooth = times[initial::window] # center of the intervals
+time_intervals =np.arange(initial-int(window/2),times[-1],100, dtype = int) 
+
+#y_filter = savgol_filter(correlation,51, 3) 
+
+# Smoothing by averaging over the window 
+smoothed_data = np.zeros(len(times_smooth))
+for i in range(len(times_smooth)):
+    smoothed_data[i] = np.average(correlation[time_intervals[i]:time_intervals[i+1]])
+    
+
+
+# Second technique
+averaging_cycles = 100
+corr_ave = ave_differences(correlation[initial:], averaging_cycles)
+
+#savgol_filter
+savgol_order = 100
+savgol_window = 101
+poly = 1
+y_savgol = savgol_n(correlation, savgol_order, 101, poly)
+
+# =============================================================================
+# Plots smoothed data
+# =============================================================================
+
+fig,ax = plt.subplots()
+
+ax.plot(times_smooth, smoothed_data, label='windows w = %s'%window )
+#ax.plot(times[initial:], corr_ave, label='smooth %s'%averaging_cycles )
+ax.plot(times[initial:], y_savgol[initial:], label='savgol int = %s window =%s poly =%s'%(savgol_order,savgol_window,poly))
+#ax.plot(times[initial:], y_conv, label='convolve w = %s'%window )
+
+xmin = 1000
+xmax = times[-1]
+cf.plot_zoom(ax, [xmin, xmax])
+#ax.set_yscale('log')
+
+ax.set_xlabel(r'$\tau[fs]$')
+ax.set_ylabel(r'$\langle \sigma(\tau) \sigma(0)\rangle$')
+ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+ax.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
+ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+ax.legend( loc = 'lower right', fontsize = 12)
+plt.tight_layout()
+plt.savefig("%s/correlation_smooth.pdf"%sim.plot_dir)
+
+
+# =============================================================================
+# Plots winner smoothed data
+# =============================================================================
+
+
+# First getting the indexes where the time is in the interest interval
+indexes_tau = np.where((times>=initial) & (times<=100000)) # Cutting there to not have the log negative
+#indexes_savgol
+
+fig,ax = plt.subplots()
+
+ax.plot(times[indexes_tau], y_savgol[indexes_tau], label='savgol int = %s window =%s poly =%s'%(savgol_order,savgol_window,poly))
+
+
+ax.set_yscale('log')
+ax.set_xlim(initial, 100000)
+ax.set_xlabel(r'$\tau[fs]$')
+ax.set_ylabel(r'$\langle \sigma(\tau) \sigma(0)\rangle$')
+#ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+#ax.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
+ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+#ax.legend( loc = 'lower right', fontsize = 12)
+plt.tight_layout()
+plt.savefig("%s/correlation_smooth_savgol.pdf"%sim.plot_dir)
