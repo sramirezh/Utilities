@@ -6,7 +6,7 @@ Script to get the theoretical estimation of the diffusio-osmotic velocity
 Needs to be run inside Benchmark/3.Measurements
 @author: simon
 """
-
+import numpy as np
 import sys
 import os
 import matplotlib.pyplot as plt
@@ -245,4 +245,21 @@ fig.tight_layout()
 fig.savefig('%s/test_integrand.pdf'%(plot_dir))
 
 
+# =============================================================================
+# # Plot for Thesis diagrams
+# =============================================================================
+cf.set_plot_appearance(presentation_type = True)
+fig, ax = plt.subplots()
+ax.plot(solute.data_frame['density/mass'],solute.positions)
+#ax.plot(solutes.positions, fluid.data_frame['ladm'], label = 'ladm')
+#w, h = fig.get_size_inches()
+fig.set_size_inches(3.5,4.5)
 
+#ax.set_ylabel(r'$z$')
+ax.set_ylim(solute.lower_limit, 20)
+ax.set_xlim(0.01, None)
+
+ax.set_yticks(np.arange(5, 21, 5))
+ax.set_xlabel(r'$c(z)$')
+fig.tight_layout()
+fig.savefig('%s/diagram_density.pdf'%(plot_dir), transparent = True)
