@@ -307,6 +307,11 @@ def set_plot_appearance(presentation_type = False):
         plt.rcParams["mathtext.fontset"] = "cm"
         if find_executable('latex'):
             plt.rcParams['text.usetex'] = True
+
+            # Including packages
+            params = {'text.latex.preamble' : [r'\usepackage{amsmath}']}
+            plt.rcParams.update(params)
+
         #plt.rcParams['mathtext.rm'] = 'serif'
         #plt.rcParams['mathtext.it'] = 'serif:italic'
         #plt.rcParams['mathtext.fontset'] = 'stix'
