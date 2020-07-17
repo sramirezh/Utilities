@@ -197,7 +197,7 @@ np.savetxt("Force_iterate.dat", f_mu)
 # =============================================================================
 # Creating the force distribution for the Pressure gradient
 # =============================================================================
-force_p = force_dist_p(fluid)
+force_p =  force_dist_p(fluid)
 
 # Finding the nearest point after the begining of the bulk
 imax = min(np.where(force_p[:,0]>=10)[0])
@@ -224,7 +224,7 @@ cf.set_plot_appearance()
 # Force due to the chemical potential
 fig1, ax1=plt.subplots()
 plot_force_dist(force_mu, sim, fluid, ax1)
-ax1.set_ylabel(r"$F^{\mu}$")
+ax1.set_ylabel(r"$F^{\mu}_{\text{ave}}$")
 ax1.set_xlabel(r'$z[\sigma]$')
 ax1.set_xlim(0, 30)
 ax1.axvline(x = z_pos[-1], ymin=0, ymax=1,ls=':',c='black')
@@ -234,12 +234,17 @@ fig1.savefig("%s/Force_mu_dist.pdf"%plot_dir)
 
 # Force due to the pressure gradient
 fig1 ,ax1 = plt.subplots()
+
+# Because I applied the wrong sign of the gradient
+force_p[:,1] = -force_p[:,1]
+
 plot_force_dist(force_p, sim, fluid, ax1)
-ax1.set_ylabel(r"$F^{p}$")
+ax1.set_ylabel(r"$F^{P}$")
 ax1.set_xlabel(r'$z[\sigma]$')
-ax1.set_ylim(-10, 1)
+ax1.set_yscale('symlog')
+#ax1.set_ylim(-1, 10)
 ax1.set_xlim(0, 30)
-ax1.axhline(y=-1/fluid.rho_bulk, xmin=0, xmax=1,ls='-.',c='black')
+ax1.axhline(y=1/fluid.rho_bulk, xmin=0, xmax=1,ls='-.',c='black')
 ax1.axvline(x = z_pos_p[-2], ymin=0, ymax=1,ls=':',c='black')
 fig1.tight_layout()
 fig1.savefig("%s/Force_p_dist.pdf"%plot_dir)
