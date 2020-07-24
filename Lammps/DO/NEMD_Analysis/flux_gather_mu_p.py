@@ -23,6 +23,7 @@ import Lammps.core_functions as cf
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
+from scipy.stats import sem
 import Lammps.Pore.qsub.simulation_results as sr
 from uncertainties import ufloat,unumpy
 import glob
@@ -277,9 +278,9 @@ if not os.path.exists(plot_dir):
     
 logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
-ms_path = '4.Applying_force_[0-9]*'
-#mp_path = '6.Applying_force_p_dist_[0-9]*'
-mp_path = '5.Applying_force_p_[0-9]*'
+ms_path = '8.Applying_force_[0-9]*'
+mp_path = '6.Applying_force_p_dist_[0-9]*'
+#mp_path = '5.Applying_force_p_[0-9]*'
 ms_dir = '[0-9]*'
 mp_dir = '[0-9]*'
 
@@ -334,9 +335,9 @@ plt.close("all")
 
 # Q vs grad mu primed
 fig1, ax1 = plt.subplots()
-plot_properties(final_mus, 'grad_mu_primed','Q',ax1) 
+plot_properties(final_mus, 'grad_mu_s','Q',ax1) 
 ax1.set_ylabel(r'$Q$')
-ax1.set_xlabel(r"$-\nabla \mu'_{s}$")
+ax1.set_xlabel(r"$-\nabla \mu_{s}$")
 #ax.legend(loc = 'upper right')
 #ax.set_ylim(0, None)
 #ax.set_xlim(0, 8)
@@ -439,25 +440,35 @@ grad_p_mean = [el.n for el in final_p.data_frame['grad_p'] ]
 ax3.errorbar(grad_p_mean, csq_mean, yerr=csq_error, fmt='o')
 ax3.set_ylabel(r'$L_{SQ}$')
 ax3.set_xlabel(r'$-\nabla P$')
+fig3.tight_layout()
 fig3.savefig('%s/csq.pdf'%(plot_dir), Transparent = True)
+
+
+csq_ave = sum(csq)/len(csq)
+csq_ave_independent = np.average(csq_mean)
+csq_err_independent = sem(csq_mean)
+print("the average csq is %s"%csq_ave)
+print("The average(independent measurements) csq is %s +/- %s"%(csq_ave_independent,csq_err_independent ))
 
 
 fig3, ax3 = plt.subplots()
 
-cqs = final_mus.data_frame['Q']/final_mus.data_frame['grad_mu_primed']
+cqs = final_mus.data_frame['Q']/final_mus.data_frame['grad_mu_s']
 cqs_mean = [el.n for el in cqs]
 cqs_error = [el.s for el in cqs]
-grad_mu_mean = [el.n for el in final_mus.data_frame['grad_mu_primed'] ]
+grad_mu_mean = [el.n for el in final_mus.data_frame['grad_mu_s'] ]
 ax3.set_ylabel(r'$L_{QS}$')
 ax3.set_xlabel(r'$-\nabla \mu_s$')
 ax3.errorbar(grad_mu_mean, cqs_mean, yerr=cqs_error, fmt='o')
-
+fig3.tight_layout()
 fig3.savefig('%s/cqs.pdf'%(plot_dir), Transparent = True)
 
 
-
-
- 
+cqs_ave = sum(cqs)/len(cqs)
+cqs_ave_independent = np.average(cqs_mean)
+cqs_err_independent = sem(cqs_mean)
+print("the average cqs is %s"%cqs_ave)
+print("The average(independent measurements) cqs is %s +/- %s"%(cqs_ave_independent,cqs_err_independent ))
     
 
 
