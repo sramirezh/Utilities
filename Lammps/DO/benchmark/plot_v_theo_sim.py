@@ -9,8 +9,6 @@ The EMD analysis is base on analytic_results.py
 @author: simon
 """
 
-
-import numpy as np
 import os
 import sys
 import matplotlib.pyplot as plt
@@ -116,12 +114,42 @@ for grad in grad_mu_s:
     velocity_s_dist.append(v_s)
     velocity_t_dist.append(v_total)
     
+    
+    
+    
+    
+# =============================================================================
+# Plotting 
+# =============================================================================
+cf.set_plot_appearance()
+plt.close("all")
+# =============================================================================
+# Plotting Density distribution
+# =============================================================================
+fig1, ax1 = plt.subplots()
+
+ax1.plot(solution.positions, solution.data_frame["density/mass"], label = "Equilibrium")
+ax1.plot(fluid_f1.positions, fluid_f1.data_frame["density/mass"], label = r'$\nabla \mu_s = -0.125$')
+ax1.plot(fluid_f2.positions, fluid_f2.data_frame["density/mass"], label = r'$\nabla \mu_s = -0.063$')
+ax1.plot(fluid_f3.positions, fluid_f3.data_frame["density/mass"], label = r'$\nabla \mu_s = -0.025$')
+
+ax1.set_xlim(0, 30)
+ymin, ymax = ax1.get_ylim()
+ax1.set_ylim(0, 1.25* ymax)
+ax1.set_xlabel(r'$z[\sigma] $')
+ax1.set_ylabel(r'$c(z)$')
+ax1.legend(loc = 'upper right')
+
+fig1.tight_layout()
+fig1.savefig('%s/densities.pdf'%plot_dir)
+
+
 # =============================================================================
 # Plotting the velocities
 # =============================================================================
 cf.set_plot_appearance()
 
-plt.close("all")
+
 fig1, ax1 = plt.subplots()
 
 
