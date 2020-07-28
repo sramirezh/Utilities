@@ -279,8 +279,8 @@ if not os.path.exists(plot_dir):
 logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
 ms_path = '8.Applying_force_[0-9]*'
-mp_path = '6.Applying_force_p_dist_[0-9]*'
-#mp_path = '5.Applying_force_p_[0-9]*'
+#mp_path = '6.Applying_force_p_dist_[0-9]*'
+mp_path = '5.Applying_force_p_[0-9]*'
 ms_dir = '[0-9]*'
 mp_dir = '[0-9]*'
 
@@ -447,8 +447,8 @@ fig3.savefig('%s/csq.pdf'%(plot_dir), Transparent = True)
 csq_ave = sum(csq)/len(csq)
 csq_ave_independent = np.average(csq_mean)
 csq_err_independent = sem(csq_mean)
-print("the average csq is %s"%csq_ave)
-print("The average(independent measurements) csq is %s +/- %s"%(csq_ave_independent,csq_err_independent ))
+logger.info("the average csq is %s"%csq_ave)
+logger.info("The average(independent measurements) csq is %s +/- %s"%(csq_ave_independent,csq_err_independent ))
 
 
 fig3, ax3 = plt.subplots()
@@ -467,9 +467,17 @@ fig3.savefig('%s/cqs.pdf'%(plot_dir), Transparent = True)
 cqs_ave = sum(cqs)/len(cqs)
 cqs_ave_independent = np.average(cqs_mean)
 cqs_err_independent = sem(cqs_mean)
-print("the average cqs is %s"%cqs_ave)
-print("The average(independent measurements) cqs is %s +/- %s"%(cqs_ave_independent,cqs_err_independent ))
+logger.info("the average cqs is %s"%cqs_ave)
+logger.info("The average(independent measurements) cqs is %s +/- %s"%(cqs_ave_independent,cqs_err_independent ))
     
 
+# =============================================================================
+# Comparing with Hiroaki's results
+# =============================================================================
+prefactor = n_f / (n_s + n_f)
+cqs_hy = prefactor * ufloat(cqs_ave_independent, cqs_err_independent )
+
+
+logger.info("The cqs' for the HY system is %s +/- %s"%(cqs_hy.n, cqs_hy.s ))
 
 
