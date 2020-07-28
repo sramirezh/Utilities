@@ -15,34 +15,91 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.DO.EMD.density_analysis as da
+import Lammps.lammps_utilities as lu
+
+
+class SimulationInsert(lu.SimulationType):
+    """
+    Class to analyse the velocity profiles and create an insert"""
+
+    def __init__(self, name, small_bin, normal_bin, multiplier, legend):
+        """
+        Args:
+            name: Identifier of the simulation
+            small_bin Direction for the simulation with small binning
+            normal_bin Direction for the simulation with normal binning
+            multiplier: velocity multiplier, as the gradient in some simulations
+                        has a minus sign
+            legend: localisation
+        Other atributes:
+            sampling_interval
+        """
+        self.name = name
+        self.small_bin = small_bin
+        self.normal_bin = normal_bin
+        self.multiplier = multiplier
+        self.legend = legend
+
+# =============================================================================
+# Main
+# =============================================================================
+cwd = os.getcwd()
+plot_dir = "plots/0.v_profile_insert"
+
+
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)    
+
+
+# =============================================================================
+# Simulation type definitions
+# =============================================================================
+
+
+# pressure driven simulations with p_dist
+pdist = SimulationInsert("pdist", "6.1.Applying_force_p_dist_0.00063_bin_0.1/1",
+                   "6.Applying_force_p_dist_0.00063/1", -1,'upper left' ) 
+
+# Gravitation-like force
+pgrav = SimulationInsert("pgrav", "5.1.Applying_force_p_0.00063_bin_0.1/1",
+                   "5.Applying_force_p_0.00063/1", 1, 'upper left') 
+# Difusio-osmosis
+do = SimulationInsert("do", "4.1.Applying_force_0.125_bin_0.1/1",
+                   "4.Applying_force_0.125/1", 1,'upper right') 
+
 
 
 # =============================================================================
 # Main
 # =============================================================================
-logger = cf.log(__file__, os.getcwd())    
+# Define the type of simulation
+sim = pdist.copy
+sim.print_params(logger)
 
-
-#folder for the small bin simulations
-dir_small_bin = "5.Applying_force_p_0.001_bin_0.1/1"
-dir_normal_bin = "5.Applying_force_p_0.001"
-
-
-#dir_small_bin = "4.Applying_force_0.125_bin_0.1/1"
-#dir_normal_bin = "4.Applying_force_0.125/1"
-
-logger.info("The data for the main data is from %s" %dir_normal_bin)
-logger.info("The data for the insert data is from %s" %dir_small_bin)
+logger.info("The data for the main data is from %s" %sim.normal_bin)
+logger.info("The data for the insert data is from %s" %sim.small_bin)
 
 # Loading the data for the bin 0.1 \sigma
-fluid_n = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_normal_bin) 
-solute_n = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = dir_normal_bin) 
-solvent_n = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = dir_normal_bin) 
+fluid_n = da.DensityDistribution("properties_short.dat", "rBulk", directory = sim.normal_bin) 
+solute_n = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = sim.normal_bin) 
+solvent_n = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = sim.normal_bin) 
 
 # Loading the data for the bin 0.25 \sigma
-fluid_s = da.DensityDistribution("properties_short.dat", "rBulk", directory = dir_small_bin) 
-solute_s = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = dir_small_bin) 
-solvent_s = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = dir_small_bin) 
+fluid_s = da.DensityDistribution("properties_short.dat", "rBulk", directory = sim.small_bin) 
+solute_s = da.DensityDistribution("Sproperties_short.dat", "rBulk", directory = sim.small_bin) 
+solvent_s = da.DensityDistribution("Fproperties_short.dat", "rBulk", directory = sim.small_bin) 
+
+
+# Applying the multiplier
+solute_n.data_frame['vx'] = sim.multiplier * solute_n.data_frame['vx']
+solvent_n.data_frame['vx'] = sim.multiplier * solvent_n.data_frame['vx']
+fluid_n.data_frame['vx'] = sim.multiplier * fluid_n.data_frame['vx']
+solute_s.data_frame['vx'] = sim.multiplier * solute_s.data_frame['vx']
+solvent_s.data_frame['vx'] = sim.multiplier * solvent_s.data_frame['vx']
+fluid_s.data_frame['vx'] = sim.multiplier * fluid_s.data_frame['vx']
+
 
 # =============================================================================
 # Plotting the velocities
@@ -51,7 +108,6 @@ cf.set_plot_appearance()
 
 plt.close("all")
 fig1, ax1 = plt.subplots()
-
 
 solute_n.plot_property_dist("vx", ax = ax1)
 solvent_n.plot_property_dist("vx", ax = ax1)
@@ -65,7 +121,7 @@ ax1.set_xlim(0, fluid_n.positions[-1])
 ax1.set_ylim(0, None)
 ax1.set_xlabel(r'$z[\sigma] $')
 ax1.set_ylabel(r'$v_x(z)$')
-ax1.legend(["Solute", "Solvent", "Fluid"], loc = 'upper left')
+ax1.legend(["Solute", "Solvent", "Fluid"], loc = sim.legend)
 
 ## Adding the insert
 
@@ -86,6 +142,6 @@ ax2.tick_params(axis='both', which='major', labelsize = 12)
 
 
 fig1.tight_layout()
-fig1.savefig('vprofile_insert.pdf')
+fig1.savefig('%s/vprofile_insert_%s.pdf'%(plot_dir,sim.name))
 
 
