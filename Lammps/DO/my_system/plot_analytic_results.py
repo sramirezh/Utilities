@@ -54,7 +54,7 @@ a = cf.extract_digits(folders)
 index_files = a[1]
 folders = [folders[i] for i in index_files]
 
-folders = folders[3:]
+folders = folders[4:]
 
 # =============================================================================
 # Preparing the distribution plots
@@ -300,6 +300,19 @@ ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 fig.tight_layout()
 fig.savefig('%s/gamma.pdf'%(plot_dir))
 
+
+# Gamma vs concentration ratio in the bulk
+fig, ax = plt.subplots()
+ax.scatter(df['solute.rhobulk']/df['solvent.rhobulk'],df['solute.gamma'],label = 'Solutes')
+ax.scatter(df['solute.rhobulk']/df['solvent.rhobulk'],df['solvent.gamma'],label = 'Solvents')
+ax.set_ylabel(r'$\Gamma $')
+ax.set_xlabel(r'$c_s^B/c_f^B$')
+ax.set_xscale('log')
+ax.legend(loc = 'upper right')
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+fig.tight_layout()
+fig.savefig('%s/gamma_vs_cscf.pdf'%(plot_dir))
+
 # L* vs concentration in the bulk
 fig, ax = plt.subplots()
 ax.scatter(df['solute.rhobulk'],df['solute.l'],label = 'Solutes')
@@ -322,6 +335,19 @@ ax.legend(loc = 'upper right')
 ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 fig.tight_layout()
 fig.savefig('%s/k.pdf'%(plot_dir))
+
+
+# K vs concentration ratio in the bulk
+fig, ax = plt.subplots()
+ax.scatter(df['solute.rhobulk']/df['solvent.rhobulk'],df['solute.k'],label = 'Solutes')
+ax.scatter(df['solute.rhobulk']/df['solvent.rhobulk'],df['solvent.k'],label = 'Solvents')
+ax.set_xlabel(r'$c_s^B/c_f^B$')
+ax.set_ylabel(r'$K$')
+ax.set_xscale('log')
+ax.legend(loc = 'upper right')
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+fig.tight_layout()
+fig.savefig('%s/k_vs_cscf.pdf'%(plot_dir))
 
 # K L* vs concentration in the bulk
 fig, ax = plt.subplots()
