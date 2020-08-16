@@ -10,11 +10,10 @@ to find the diffusion coefficient for both cases and validating the approach.
 
 import numpy as np
 import pandas as pd
-import argparse
 import os
 import sys
 import glob
-from . import poly_analysis as pa
+import poly_analysis as pa
 import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
@@ -77,8 +76,8 @@ delta_t= 0.005
 #times_l,msd_l = lammps_MSD(delta_t)
 
 input_files = glob.glob("conf/dump*")
-input_files.sort(key=lambda f: int(list(filter(str.isdigit, f))))
-times=cf.extract_digits(input_files)*delta_t
+input_files.sort(key=lambda f: list(filter(str.isdigit, f)))
+times = cf.extract_digits(input_files)[0] * delta_t
 num_conf=len(times)
 Box,L=pa.Box_limits(input_files[0])
 
