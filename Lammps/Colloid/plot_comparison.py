@@ -32,22 +32,28 @@ if not os.path.exists(plot_dir):
     
     
 logger = cf.log(__file__, os.getcwd(),plot_dir)    
-
+logger.info("All the files load here were created by hand, while gathering all the data in  the excel Colloid results")
 # Loading all the compiled data
 dcv = np.loadtxt("DCVMC.dat",skiprows = 1 )
 fdmd_free = np.loadtxt("FDMD_free.dat", skiprows = 1)
 fdmd_fixed = np.loadtxt("FDMD_fixed.dat", skiprows = 1)
 theory = np.loadtxt("Theory.dat", skiprows = 1)
 theory_r = np.loadtxt("Theory_rh.dat", skiprows = 1)
-
+theory_r_ns = np.loadtxt("Theory_rh_non_slip.dat", skiprows = 1)
+rh = np.loadtxt("rh.dat", skiprows = 1)
+diffusion = np.loadtxt("D.dat", skiprows = 1)
 cf.set_plot_appearance()
+
+
+
+# Ploting the comparison between BD-NEMD, FD-NEMD and Theory
 fig, ax = plt.subplots()
 
-ax.errorbar(dcv[:,0], -dcv[:,1], yerr= dcv[:,2], label="Explicit", ls = '-', fmt='o')
-ax.errorbar(fdmd_free[:,0],-fdmd_free[:,1],yerr= fdmd_free[:,2],label="Implicit", fmt='o', ls = '-')
+ax.errorbar(dcv[:,0], -dcv[:,1], yerr= dcv[:,2], label="BD-NEMD", ls = '--', fmt='o')
+ax.errorbar(fdmd_free[:,0],-fdmd_free[:,1],yerr= fdmd_free[:,2],label="FD-NEMD", fmt='o', ls = '--')
 #ax.errorbar(fdmd_fixed[:,0],fdmd_fixed[:,1],yerr= fdmd_fixed[:,2],label="EFMD fixed", fmt='o')
 #ax.scatter(theory[:,0], theory[:,1], label="Theory v0")
-ax.plot(theory[:,0], theory[:,2], label="Theory", marker = "s")
+ax.plot(theory[:,0], theory[:,2], label="Theory", marker = "s", ls = '--')
 #ax.plot(theory_r[:,0], theory_r[:,2], label="Theory $r=R_h$")
 ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 
@@ -58,10 +64,99 @@ ax.set_ylim(ymin, ymax*1.3)
 ax.legend(loc='upper right',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
        frameon=True, fancybox=False, edgecolor='k',ncol = 1, fontsize = 10)
 fig.tight_layout()
-plt.savefig("%s/Result_comparison.pdf"%plot_dir)
+plt.savefig("%s/Result_comparison_1.pdf"%plot_dir)
+logger.info("plotted %s/Result_comparison_1.pdf"%plot_dir)
+
+# Ploting the comparison between FD-NEMD fixed and mobile a
+
+
+fig, ax = plt.subplots()
+
+
+ax.errorbar(fdmd_free[:,0],-fdmd_free[:,1],yerr= fdmd_free[:,2],label="Mobile", fmt='o', ls = '--')
+ax.errorbar(fdmd_fixed[:,0],fdmd_fixed[:,1],yerr= fdmd_fixed[:,2],label="Fixed", fmt='o',ls = '--')
+#ax.scatter(theory[:,0], theory[:,1], label="Theory v0")
+#ax.plot(theory[:,0], theory[:,2], label="Theory", marker = "s")
+#ax.plot(theory_r[:,0], theory_r[:,2], label="Theory $r=R_h$")
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+
+ax.set_xlabel(r'$\varepsilon_{cs} $')
+ax.set_ylabel(r'$v_c^x$')
+ymin,ymax=plt.ylim()
+ax.set_ylim(ymin, ymax*1.3)
+ax.legend(loc='upper right',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+       frameon=True, fancybox=False, edgecolor='k',ncol = 1, fontsize = 10)
+fig.tight_layout()
+plt.savefig("%s/Result_comparison_2.pdf"%plot_dir)
+logger.info("plotted %s/Result_comparison_2.pdf"%plot_dir)
+
+# Ploting the comparison between Theoretical approximations
+
+
+fig, ax = plt.subplots()
+
+
+ax.errorbar(fdmd_free[:,0],-fdmd_free[:,1],yerr= fdmd_free[:,2],label="EF-NEMD", fmt='o', ls = '--')
+#ax.plot(theory[1:,0], theory[1:,1], label=r"Theory $v_0$", marker = "s", ls = '--')
+ax.plot(theory[:,0], theory[:,2], label=r"$\text{Theory} \quad r_c=\sigma_{cs}$", marker = "s", ls = '--')
+ax.plot(theory_r[:,0], theory_r[:,2], label=r"$\text{Theory} \quad r_c=R_h^{\text{slip}}$", marker = "s", ls = '--')
+ax.plot(theory_r_ns[:,0], theory_r_ns[:,2], label=r"$\text{Theory} \quad r_c=R_h^{\text{non-slip}}$", marker = "s", ls = '--')
+ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+
+ax.set_xlabel(r'$\varepsilon_{cs} $')
+ax.set_ylabel(r'$v_c^x$')
+ymin,ymax=plt.ylim()
+ax.set_ylim(ymin, ymax*1.3)
+ax.legend(loc='upper right',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+       frameon=True, fancybox=False, edgecolor='k',ncol = 1, fontsize = 10)
+fig.tight_layout()
+plt.savefig("%s/Result_comparison_3.pdf"%plot_dir)
+logger.info("plotted %s/Result_comparison_3.pdf"%plot_dir)
 
 
 
+# Ploting the radius
+
+
+fig, ax = plt.subplots()
+
+#ax.plot(theory[1:,0], theory[1:,1], label=r"Theory $v_0$", marker = "s", ls = '--')
+ax.plot(rh[:,0], rh[:,2], label=r"$R_h^{\text{slip}}$", marker = "s", ls = '--')
+ax.plot(rh[:,0], rh[:,1], label=r"$R_h^{\text{non-slip}}$", marker = "s", ls = '--')
+ax.axhline(y=3.23, xmin=0, xmax=1,ls='--',c='black', label = r"$r =\sigma_{cs}$" )
+
+ax.set_xlabel(r'$\varepsilon_{cs} $')
+ax.set_ylabel(r'$r$')
+ymin,ymax=plt.ylim()
+ax.set_ylim(ymin, ymax*1.3)
+ax.legend(loc='upper right',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+       frameon=True, fancybox=False, edgecolor='k',ncol = 1, fontsize = 10)
+fig.tight_layout()
+plt.savefig("%s/R_H.pdf"%plot_dir)
+logger.info("plotted %s/R_H.pdf"%plot_dir)
+
+
+# Ploting the Diffusion coefficient
+
+fig, ax = plt.subplots()
+
+#ax.plot(theory[1:,0], theory[1:,1], label=r"Theory $v_0$", marker = "s", ls = '--')
+ax.plot(diffusion[:,0], diffusion[:,1], marker = "s", ls = '--')
+
+ax.set_xlabel(r'$\varepsilon_{cs} $')
+ax.set_ylabel(r'$D$')
+ymin,ymax=plt.ylim()
+ax.set_ylim(ymin, ymax*1.3)
+#ax.legend(loc='upper right',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+#       frameon=True, fancybox=False, edgecolor='k',ncol = 1, fontsize = 10)
+fig.tight_layout()
+plt.savefig("%s/D.pdf"%plot_dir)
+logger.info("plotted %s/D.pdf"%plot_dir)
+
+
+# =============================================================================
+# Plot of the v or Pe vs interaction 
+# =============================================================================
 # The following is to plot the evolution
 
 dcv = np.loadtxt("DCVMC2.dat",skiprows = 1 )
@@ -77,7 +172,7 @@ for end in range(len(dcv[:,0])):
     
     
     ax.set_xlabel(r'$\varepsilon_{cs} $')
-    ax.set_ylabel(r'$v_c^x$')
+    ax.set_ylabel(r'$v^x$')
     
     ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
     ax.set_ylim(-0.01, 0.025)
