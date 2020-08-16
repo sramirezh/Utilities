@@ -27,6 +27,18 @@ def concentration_distribution(distance,c_gradient, vol_bin, n0 = 50):
     
     return np.array(concentration)
 
+
+# =============================================================================
+# Main
+# =============================================================================
+plot_dir = "plots/1.Sharifi"
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)    
+
+
 grad_c = np.array([0.0062, 0.0077, 0.0093, 0.0108])
 
 n0 = 50
@@ -48,27 +60,28 @@ cf.set_plot_appearance()
 xpos = [i*delta_x for i in range(nbins+1)]
 
 
-#fig,ax = plt.subplots()
-#
-#for grad in grad_c:
-#    delta_N = grad * vol_bin*delta_x
-#    ns = np.array([n0+i*delta_N for i in range(nbins+1)])
-#    ax.step(xpos,ns,label = r'$\nabla c_s = %s $'%grad, where = 'post')
-#    
-#    #Exact distribution
-#    ns_exact = [n0+x*grad*vol_bin for x in xpos]
-#    color=ax.lines[-1].get_color()
-#    
-#    ax.plot(xpos,ns_exact, color = color,linestyle='dashed' )
-#
-#ax.set_xlim(0, lx)   
-#ymin,ymax=plt.ylim()
-#ax.set_ylim(0, 1.2*ymax)  
-#ax.set_xlabel(r"$x$")
-#ax.set_ylabel(r"$N_s(x)$")
-#ax.legend()
-#plt.tight_layout()
-#plt.savefig("Grad_c.pdf")
+fig,ax = plt.subplots()
+
+for grad in grad_c:
+    delta_N = grad * vol_bin*delta_x
+    ns = np.array([n0+i*delta_N for i in range(nbins+1)])
+    ax.step(xpos,ns,label = r'$\nabla c_s = %s $'%grad, where = 'post')
+    
+    #Exact distribution
+    ns_exact = [n0+x*grad*vol_bin for x in xpos]
+    color=ax.lines[-1].get_color()
+    
+    ax.plot(xpos,ns_exact, color = color,linestyle='dashed' )
+
+ax.set_xlim(0, lx)   
+ymin,ymax=plt.ylim()
+ax.set_ylim(0, 1.2*ymax)  
+ax.set_xlabel(r"$x$")
+ax.set_ylabel(r"$N_s(x)$")
+ax.legend()
+plt.tight_layout()
+plt.savefig("%s/Grad_c.pdf"%plot_dir)
+logger.info("%s/Grad_c.pdf"%plot_dir)
 
 fig,ax = plt.subplots()
 fig2,ax2 = plt.subplots()
@@ -116,8 +129,8 @@ ax.set_ylabel(r"$c_s(x)$")
 ax.axvspan(lx/2-r_colloid,lx/2+r_colloid, alpha=0.5, color='red')
 ax.legend()
 plt.tight_layout()
-plt.savefig("conc.pdf")
-
+plt.savefig("%s/conc.pdf"%plot_dir)
+logger.info("plotted %s/conc.pdf"%plot_dir)
 
 #Chemical potential gradient
 ax2.set_xlim(22,32)
@@ -127,7 +140,8 @@ ax2.set_ylabel(r"$\nabla_{\mu}(x)$")
 ax2.axvspan(lx/2-r_colloid,lx/2+r_colloid, alpha=0.5, color='red')
 ax2.legend()
 plt.tight_layout()
-plt.savefig("grad_mu_dist.pdf")
+plt.savefig("%s/grad_mu_dist.pdf"%plot_dir)
+logger.info("Plotted %s/grad_mu_dist.pdf"%plot_dir)
 
 
 # Sharifi Results
