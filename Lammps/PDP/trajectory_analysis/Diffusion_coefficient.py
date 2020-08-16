@@ -17,6 +17,7 @@ import poly_analysis as pa
 import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
+import Lammps.General.thermo_analyser as ta
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
@@ -24,9 +25,19 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 from joblib import Parallel, delayed
 import multiprocessing
 
-def lammps_MSD(delta_t):
+def lammps_MSD(delta_t, logger):
+    """
+    Computes the diffusion coefficient from Lammps mean-squared displacement(MSD)
+    
+    Args: 
+        delta_t the interval between measurements
+    logger: an instance of the logger file to write the output
+    
+    Returns:
+        times and msd 
+    """
 
-
+    ta.thermo_analyser("log.lammps")
     data=pd.read_csv("Parameters.dat",sep=" ",dtype=np.float64).values[:,:-1]
 
     times=data[:,0]-data[0,0]
@@ -43,7 +54,7 @@ def lammps_MSD(delta_t):
 
     D=out[0]/(2*3)
 
-    print("The diffusion coefficient from Lammps MSD is %s"%D)
+    logger.info("The diffusion coefficient from Lammps MSD is %s"%D)
     return times,msd
 
 def compute_one_time(pos_init,fil):
@@ -69,11 +80,13 @@ def compute_one_time(pos_init,fil):
 Main
 *******************************************************************************
 """
+        
+logger = cf.log(__file__, os.getcwd())    
 
 
 delta_t= 0.005
 
-#times_l,msd_l = lammps_MSD(delta_t)
+times_l, msd_l = lammps_MSD(delta_t, logger)
 
 input_files = glob.glob("conf/dump*")
 input_files.sort(key=lambda f: list(filter(str.isdigit, f)))
@@ -103,4 +116,4 @@ out=np.polyfit(times,results[:,3],1)
 
 D=out[0]/(2*3)
 
-print("The diffusion coefficient from My calculations is %s"%D)
+logger.info("The diffusion coefficient from My calculations is %s"%D)
