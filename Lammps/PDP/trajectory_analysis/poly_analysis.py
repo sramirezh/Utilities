@@ -30,17 +30,11 @@ import sys
 import gzip
 from scipy.spatial.distance import pdist,squareform
 import glob
-
+import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
-try:
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-#    from matplotlib.backends.backend_pdf import PdfPages
-except ImportError as err:
-    print(err)
+
 
 
 """
@@ -63,13 +57,13 @@ def Box_limits(input_file):
     """
     if input_file.split('.')[-1] == 'gz':
         out2,err2=cf.bash_command("""zgrep -n -m1 "BOUNDS" %s"""%input_file)
-        LineNumber=int(out2.split(":")[0])
+        LineNumber=int(out2.decode("utf-8").split(":")[0])
         f=gzip.open(input_file, 'rb')
 
 
         limits=[]
         for i in range(LineNumber+3):
-            line=f.readline()
+            line=f.readline().decode("utf-8")
             if i>=LineNumber:
                 limits.append(line.strip('\n').split())
         limits=np.array(limits,dtype='double')
