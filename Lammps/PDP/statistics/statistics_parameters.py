@@ -23,20 +23,12 @@ from scipy import optimize
 import glob
 import warnings
 import seaborn as sns
-
+import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import compute_statistics as cstat
-try:
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-#    from matplotlib.backends.backend_pdf import PdfPages
-except ImportError as err:
-    print(err)
-
 
 try:
     from uncertainties import ufloat,unumpy
