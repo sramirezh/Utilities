@@ -62,7 +62,7 @@ def build_data():
     #Finding the number of properties
     indexes=cf.parameter_finder(lines,"dDP")
     nproperties=indexes[1]-indexes[0]-2
-    print("\nFound %d properties in Statistic_summary.dat\n" %nproperties)
+    logger.info("\nFound %d properties in Statistic_summary.dat\n" %nproperties)
 
     i=0
     count=0
@@ -70,11 +70,11 @@ def build_data():
     while i<len(lines):
         if re.search("E_*",lines[i] ): #Finding the LJ parameters
             interactions.append(LJInteraction(cf.extract_digits(lines[i])[-2::]))
-            print("\nReading data from  %s"%lines[i])
+            logger.info("\nReading data from  %s"%lines[i])
             i=i+1
             count+=1
         else:
-            print(lines[i])
+            logger.info(lines[i])
             if re.search("\AdDP*",lines[i] ):
                 interactions[-1].addforce(lines[i])
                 i+=1
@@ -99,8 +99,8 @@ def parameter_finder(List, String):
             indexes.append(cont)
         cont+=1
     length=len(indexes)
-    if length>1: print("There were several ocurrences")
-    if length==0: print("No ocurrences found")
+    if length>1: logger.info("There were several ocurrences")
+    if length==0: logger.info("No ocurrences found")
     return indexes
 
 
@@ -120,15 +120,8 @@ def plot_force_individuals(interactions):
     """
     Plots the parameters from statistic_summary for each force, for each interaction
     """
-
-
-    #General plot parameters
-    axis_font=24
-    tick_font=20
-    legend_font=18
-    xoffset=0.1
     yoffset=0.1
-    error_cap=4
+
 
 
     colors=['r','b','k','g', sns.xkcd_rgb['tangerine'], sns.xkcd_rgb['dark red']]
@@ -138,7 +131,7 @@ def plot_force_individuals(interactions):
     #This Dict is going to be compared with the variable file_name
     dic_yaxis={'conc_bulk':r'$c_s^B [\sigma^{-3}]$','vx_poly':r'$v_p^x[\sigma/\tau]$','r_gyration':r'$R_g [\sigma]$','rRg2':r'$R_{g}^2 [\sigma^2]$'}
     dic_fit={'vx_poly':1}
-    print("\nGenerating Plots...")
+    logger.info("\nGenerating Plots...")
     directory="plots/individual"
 
     if not os.path.exists(directory):
@@ -156,7 +149,7 @@ def plot_force_individuals(interactions):
         if "Time" in prop_name: continue #To avoid plotting the timestep
         file_name=re.sub('^_|^v_|^c_',"",prop_name).strip('_')
         name=re.sub('_',' ',file_name)
-        print("\nplotting the %s" %name)
+        logger.info("\nplotting the %s" %name)
 
 
         interactions.sort() #sorts using the method __lt__
@@ -183,8 +176,7 @@ def plot_force_individuals(interactions):
                 color=palette[i]
 
 
-            plt.errorbar(force_list,yvalue,yerr=yerror,xerr=None,fmt='o',label=r'$\varepsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma),
-                         color=color,capsize=error_cap)
+            plt.errorbar(force_list, yvalue, yerr=yerror,fmt='o',label=r'$\varepsilon_{ms}$=%s $\sigma_{ms}$=%s '%(ljpair.epsilon,ljpair.sigma))
 
             """
             Linear fit
@@ -216,7 +208,7 @@ def plot_force_individuals(interactions):
                     ax.plot(np.unique(x),fitfunc2(pfinal,np.unique(x)),color=color,linestyle='--')
                 cov=out[1] #Covariance
 
-                print("for Epsilon=%s and Sigma =%s The slope is %f error is %f" %(ljpair.epsilon,ljpair.sigma,pfinal[0],np.sqrt(cov[0][0])))
+                logger.info("for Epsilon=%s and Sigma =%s The slope is %f error is %f" %(ljpair.epsilon,ljpair.sigma,pfinal[0],np.sqrt(cov[0][0])))
 
             except:
                 pass
@@ -228,7 +220,7 @@ def plot_force_individuals(interactions):
         ncols=int(np.ceil(len(interactions)/4))
 #        plt.legend(fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
 #           frameon=True, fancybox=False, edgecolor='k')
-        plt.legend(fontsize=legend_font/ncols,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+        plt.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
            frameon=True, fancybox=False, edgecolor='k',ncol=ncols)
 
 
@@ -236,12 +228,12 @@ def plot_force_individuals(interactions):
         """Axis"""
         try:
             ylabel=dic_yaxis[file_name]
-            ax.set_ylabel(ylabel,fontsize=axis_font)
+            ax.set_ylabel(ylabel)
         except:
             ylabel=file_name
 
-        ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\varepsilon/\sigma]$',fontsize=axis_font)
-        ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+        ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\varepsilon/\sigma]$')
+        ax.tick_params(direction='in',top=True, right=True)
         ylabel=file_name
 
         ymin,ymax=plt.ylim()
@@ -274,12 +266,8 @@ def plot_force_individuals(interactions):
         plt.tight_layout()
         plt.savefig("plots/individual/%s.pdf"%file_name,transparent=True)
         plt.close()
-    print("\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory)
+    logger.info("\nGenerated plots for the individual properties vs forces, find them in '%s' " %directory)
 
-
-def is_valid_file(parser,arg):
-    if not os.path.exists(arg):
-        parser.error("The file %s does not exist!, see source options" % arg)
 
 
 def compute_statistics_param(dpolymin):
@@ -302,8 +290,8 @@ def compute_statistics_param(dpolymin):
         Total number of steps to analyse
 
     """
-    tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -print -quit""")#Assuming all the input files have the same parameters.
-    print(tfile)
+    tfile,err=cf.bash_command("""find . -name "*.lmp" -path "*/dDP*" -logger.info -quit""")#Assuming all the input files have the same parameters.
+    logger.info(tfile)
     out,err=cf.bash_command("""grep -m 1 "myDump equal" %s"""%tfile)
     d=int(cf.extract_digits(out)[0])
 
@@ -332,29 +320,25 @@ def plot_parameter_vs_epsilon(y_label,name_key,file_name):
         file name is the name of the including the extension.
 
     """
-
-    axis_font=24
-    tick_font=20
-    xoffset=0.16
+#    xoffset=0.16
     yoffset=0.1
-    error_cap=4
     ave_data_index=cf.parameter_finder(column_names,name_key)[0]-1
     epsilon_vect=[]
     for i in range(len(interactions)):
         epsilon_vect.append(interactions[i].epsilon)
 
     fig,ax=plt.subplots()
-    ax.errorbar(epsilon_vect,ave_data[:,ave_data_index],yerr=ave_data[:,ave_data_index+1],fmt='o',capsize=error_cap,color='b')
+    ax.errorbar(epsilon_vect,ave_data[:,ave_data_index],yerr=ave_data[:,ave_data_index+1],fmt='o',color='b')
 
 #    x=np.array(epsilon_vect)
 #    y=np.array(ave_data[:,0])
 
 
     """Axis"""
-    ax.set_xlabel(r'$\varepsilon_{ms} $',fontsize=axis_font)
+    ax.set_xlabel(r'$\varepsilon_{ms} $')
     ax.grid(False)
-    ax.set_ylabel(y_label,fontsize=axis_font)
-    ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+    ax.set_ylabel(y_label)
+    ax.tick_params(direction='in',top=True, right=True)
 
     ymin,ymax=plt.ylim()
     deltay=ymax-ymin
@@ -480,7 +464,7 @@ Argument Parser
 
     
 logger = cf.log(__file__, os.getcwd())    
-
+cf.set_plot_appearance()
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
@@ -497,22 +481,22 @@ if __name__ == "__main__":
     source=args.source
 
 if source == "read":
-    is_valid_file(parser,"Statistic_summary.dat")
+    cf.is_valid_file(parser,"Statistic_summary.dat")
 
 
 if source=="run":
-    print("\nRunning the statistics analysis, using the following parameters")
+    logger.info("\nRunning the statistics analysis, using the following parameters")
     dppoly_params=compute_statistics_param(args.dpolymin)
-    print("Initial dp_poly step=%d"%dppoly_params[0])
-    print("Interval dp_poly=%d"%dppoly_params[1])
-    print("Final dp_poly step=%d"%dppoly_params[2])
-    print("vdata discarded steps =%d"%args.vdatamin)
-    print(" ")
+    logger.info("Initial dp_poly step=%d"%dppoly_params[0])
+    logger.info("Interval dp_poly=%d"%dppoly_params[1])
+    logger.info("Final dp_poly step=%d"%dppoly_params[2])
+    logger.info("vdata discarded steps =%d"%args.vdatamin)
+    logger.info(" ")
     cstat.compute_statistics(directories,args.vdatamin)
 
 
 elif source=="gather":
-    print("\nGathering the statistics analysis results")
+    logger.info("\nGathering the statistics analysis results")
     cstat.gather_statistics(directories)
 
 
@@ -521,7 +505,7 @@ elif source=="gather":
 Main program
 *******************************************************************************
 """
-print("\nAnalizing the results")
+logger.info("\nAnalizing the results")
 interactions=build_data()
 plot_force_individuals(interactions)
 
@@ -598,4 +582,4 @@ plot_parameter_vs_epsilon(r'$R_g [\sigma]$','rg','R_g_vs_epsilon.pdf')
 #Rhyd vs epsilon ms
 plot_parameter_vs_epsilon(r'$R_{hyd} [\sigma]$','rhyd','R_hyd_vs_epsilon.pdf')
 
-print("\nGenerated average results Results.dat and plots in '%s'"%directory)
+logger.info("\nGenerated average results Results.dat and plots in '%s'"%directory)
