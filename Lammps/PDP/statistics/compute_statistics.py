@@ -11,7 +11,6 @@ import sys
 from joblib import Parallel, delayed
 import multiprocessing
 import time
-
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf

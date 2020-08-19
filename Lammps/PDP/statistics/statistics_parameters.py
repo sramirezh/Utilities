@@ -21,19 +21,13 @@ import re
 import argparse
 from scipy import optimize
 import glob
-import warnings
 import seaborn as sns
 import matplotlib.pyplot as plt
-warnings.filterwarnings("ignore")
+from uncertainties import ufloat,unumpy
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import compute_statistics as cstat
-
-try:
-    from uncertainties import ufloat,unumpy
-except ImportError as err2:
-    print(err2)
 
 
 """
@@ -483,6 +477,10 @@ class LJInteraction(object):
 Argument Parser
 ###############################################################################
 """
+
+    
+logger = cf.log(__file__, os.getcwd())    
+
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
