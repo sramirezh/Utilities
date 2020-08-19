@@ -161,6 +161,11 @@ logger.info("plotted %s/D.pdf"%plot_dir)
 
 dcv = np.loadtxt("DCVMC2.dat",skiprows = 1 )
 
+D_s = 0.13036074653166377 # Diffusion coefficient for the solutes in the bulk
+L = 20.51976 # Distance between the source and the Sink
+
+pref = L/D_s
+
 for end in range(len(dcv[:,0])):
 
     cf.set_plot_appearance()
@@ -183,7 +188,7 @@ for end in range(len(dcv[:,0])):
     plt.savefig("%s/DCVM_result_%s.pdf"%(plot_dir,end), transparent = True)
     
     
-    # Peclet number
+    # Peclet number Pe = L*v/D_c D_c for colloid
     fig1, ax1 = plt.subplots()
     
     
@@ -200,6 +205,28 @@ for end in range(len(dcv[:,0])):
     ax1.set_xticks(np.arange(0, 6, 1.0))
     fig1.tight_layout()
     plt.savefig("%s/Peclet_%s.pdf"%(plot_dir,end), transparent = True)
+    
+    
+    # Peclet number Pe = L*v/D_s
+    
+    fig3, ax3 = plt.subplots()
+    
+    
+    
+    ax3.errorbar(dcv[:end+1,0], -pref*dcv[:end+1,1], yerr= pref*dcv[:end+1,2], fmt='o', c = 'k')
+    
+    
+    ax3.set_xlabel(r'$\varepsilon_{cs} $')
+    ax3.set_ylabel(r'$Pe$')
+    
+    ax3.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
+#    ax.set_ylim(-0.01, 0.025)
+    ax3.set_xlim(0, 5.5)
+    ax3.set_xticks(np.arange(0, 6, 1.0))
+
+    fig3.tight_layout()
+    plt.savefig("%s/Peclet2_%s.pdf"%(plot_dir,end), transparent = True)
+    
     
 # The final plot The velocities including the negative value
     
