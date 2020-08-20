@@ -5,6 +5,8 @@ Created on Thu Oct  4 12:36:57 2018
 This plots the results from different sizes.
 This is done in 
 /home/sr802/Dropbox/PhD/Cambridge/Academic/2.Redaction/3.Diffusiophoresis/3.Report/Figs/2.size_effect
+
+Just run it like run ~/dev/Utilities/Lammps/PDP/Plots/size_analysis.py *.dat
 @author: sr802
 """
 
@@ -12,21 +14,15 @@ import sys
 import os
 import argparse
 import numpy as np
-from .general_plotter import pre_processing, general_plotter
+import matplotlib.pyplot as plt
+from general_plotter import pre_processing, general_plotter
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
 
-try:
-    import matplotlib
-    matplotlib.use('agg')
-    import matplotlib.pyplot as plt
 
-    import warnings
-    warnings.filterwarnings("ignore")
-except ImportError as err:
-    print(err)
+logger = cf.log(__file__, os.getcwd())  
 
 parser = argparse.ArgumentParser(description='This script plots the method files',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
@@ -43,54 +39,36 @@ file_name=args.plot_name
 This is the general structure of anything in a file
 """
 
-data,names=pre_processing(files,path_name)
+data,names = pre_processing(files,path_name)
 
 
 """
 Preprocessing data
 """
-index=cf.parameter_finder(names,"free")
+# Very bad way of getting the names but I will not spend time
+for i,file in enumerate(files):
+    names[i] = file.split('_')[-1].split('.')[-2].capitalize()
 
-for i,name in enumerate(names):
-    names[i]=name.split('_')[-2].capitalize()
+# Sorting Data with using the names
+names, data = zip(*sorted(zip(names,data)))
 
 """
 Plot and modifications
 """
 
-ax,fig=general_plotter(data,yerror=2)
-
-#General plot parameters
-axis_font=24
-tick_font=20
-legend_font=18
-xoffset=0.1
-yoffset=0.1
-error_cap=4
-colors=['r','b','k']
-
-
-
-#"""
-#Changing properties of the lines
-#"""
-#for i,line in enumerate(ax.lines):
-#    line.set_color(colors[i]) #The line colors
-#    ax.collections[i].set_color(colors[i]) #The error bars
-
-
+ax,fig = general_plotter(data, yerror = 2)
 
 
 """Legend"""
-plt.legend(names,fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+plt.legend(names,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
    frameon=True, fancybox=False, edgecolor='k')
 
 """Axis"""
 
-ax.set_xlabel(r'$L[\sigma]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+ax.set_xlabel(r'$L[\sigma]$')
+ax.tick_params(direction='in',top=True, right=True)
 
-ax.set_ylabel(r'$|V_p^x|[\sigma/\tau]$',fontsize=axis_font)
+ax.set_ylabel(r'$|v_{\text{dp}}^x|[\sigma/\tau]$')
 
 ymin,ymax=plt.ylim()
 deltay=ymax-ymin
@@ -113,12 +91,6 @@ if ymin*ymax<0:
 
 """General"""
 
-plt.grid(False)
-try:
-    plt.rcParams["mathtext.fontset"] = "cm"
-    plt.rcParams["text.usetex"] = True
-except:
-    pass
 plt.tight_layout()
 plt.savefig(file_name)
 plt.close()
