@@ -10,8 +10,6 @@ import sys
 import os
 import argparse
 import numpy as np
-
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import matplotlib.pyplot as plt

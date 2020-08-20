@@ -3,6 +3,8 @@
 """
 Created on Thu Oct  4 12:36:57 2018
 This plots the results from different methods, moving
+
+Just run it like run ~/dev/Utilities/Lammps/PDP/Plots/size_analysis.py *.dat
 @author: sr802
 """
 
@@ -10,20 +12,13 @@ import sys
 import os
 import argparse
 import numpy as np
-from .general_plotter import pre_processing, general_plotter
-
+from general_plotter import pre_processing, general_plotter
+import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
+logger = cf.log(__file__, os.getcwd())  
 
-try:
-    import matplotlib
-    matplotlib.use('agg')
-    import matplotlib.pyplot as plt
-
-
-except ImportError as err:
-    print(err)
 
 parser = argparse.ArgumentParser(description='This script plots the method files',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
@@ -41,7 +36,7 @@ file_name=args.plot_name
 This is the general structure of anything in a file
 """
 
-data,names=pre_processing(files,path_name)
+data,names = pre_processing(files, path_name)
 
 
 """
@@ -49,26 +44,15 @@ Preprocessing data
 """
 index=cf.parameter_finder(names,"free")
 data[1][:,1]*=-1 #As the free polymer moves in the opposite direction of the flow
-
-for i,name in enumerate(names):
-    names[i]=name.split('_')[-2].capitalize()
+# Very bad way of getting the names but I will not spend time
+for i,file in enumerate(files):
+    names[i] = file.split('_')[-1].split('.')[-2].capitalize()
 
 """
 Plot and modifications
 """
 
-ax,fig=general_plotter(data,yerror=2)
-
-#General plot parameters
-axis_font=24
-tick_font=20
-legend_font=18
-xoffset=0.1
-yoffset=0.1
-error_cap=4
-colors=['r','b','k']
-
-
+ax,fig = general_plotter(data, yerror=2)
 
 #"""
 #Changing properties of the lines
@@ -81,19 +65,19 @@ colors=['r','b','k']
 
 
 """Legend"""
-plt.legend(names,fontsize=legend_font,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
+plt.legend(names,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
    frameon=True, fancybox=False, edgecolor='k')
 
 """Axis"""
 
-ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\epsilon/\sigma]$',fontsize=axis_font)
-ax.tick_params(labelsize=tick_font,direction='in',top=True, right=True)
+ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\epsilon/\sigma]$')
+ax.tick_params(direction='in',top=True, right=True)
 
-ax.set_ylabel(r'$|V_p^x|[\sigma/\tau]$',fontsize=axis_font)
+ax.set_ylabel(r'$|v_{\text{dp}}^x|[\sigma/\tau]$')
 
 ymin,ymax=plt.ylim()
 deltay=ymax-ymin
-ax.set_ylim(0,ymax+deltay*0.45)
+ax.set_ylim(0,0.0125)
 
 xmin,xmax=plt.xlim()
 deltax=xmax-xmin
@@ -112,12 +96,6 @@ if ymin*ymax<0:
 
 """General"""
 
-plt.grid(False)
-try:
-    plt.rcParams["mathtext.fontset"] = "cm"
-    plt.rcParams["text.usetex"] = True
-except:
-    pass
 plt.tight_layout()
 plt.savefig(file_name)
 plt.close()
