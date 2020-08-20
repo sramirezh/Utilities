@@ -9,7 +9,7 @@ also analyses the distances between the nearest neighbors to the polymer monomer
 Computes the g(r) for the selected particles in a box that is not completelly filled. If you want to compute it for the entire simulation, use the lammps based g(r)
 
 
-
+TODO: Istead of using the splitter, I could improve it with MDAnalysis.
 @author: sr802
 """
 
@@ -22,30 +22,18 @@ import sys
 from scipy.spatial.distance import pdist,squareform
 import re
 import glob
-import warnings
 import itertools
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
-
-
-
-
-warnings.filterwarnings("ignore")
-
 
 import Lammps.core_functions as cf
 import Lammps.PDP.Plots.LJ_plotter as ljplot
 
-try:
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-#    from matplotlib.backends.backend_pdf import PdfPages
-except ImportError as err:
-    print(err)
-
 
 utilities_path=str(os.path.join(os.path.dirname(__file__), '../../../') )
+logger = cf.log(__file__, os.getcwd())  
+
 
 """
 *******************************************************************************
@@ -78,7 +66,7 @@ def read_box_limits(log_name):
 
 def xyz_splitter(file_name):
 
-    cf.bash_command("""%s/Lammps/Trajectory_Analysis/Trajectory_Splitter.sh -i %s""" %(utilities_path,file_name))
+    cf.bash_command("""%s/Lammps/General/Trajectory_Splitter.sh -i %s""" %(utilities_path,file_name))
 
     return
 
@@ -473,10 +461,10 @@ def main():
     args = parser.parse_args()
 
 
-    if args.split==True:
+    if args.split == True:
         xyz_splitter(args.file_name)
     else:
-        print("The Trajectory file was not splitted")
+        logger.info("The Trajectory file was not splitted")
 
 
     trajectory_name='new_trajectory.xyz'
@@ -497,7 +485,7 @@ def main():
     rmax=10
 
     for file_name in files:
-        print(file_name)
+        logger.info(file_name)
         data=pd.read_csv(file_name,sep=" ",dtype=np.float64,skiprows=2,header=None).values
 
         volume,limits=read_box_limits(args.log)
@@ -541,7 +529,7 @@ def main():
 
     energy_particle=energy_from_gr(0,1.16,rho_id,g_r)
 
-    print("The energy per solute particle is: %f" %energy_particle)
+    logger.info("The energy per solute particle is: %f" %energy_particle)
 
 
     nearest_solvent=list(itertools.chain(*nearest_solvent))
