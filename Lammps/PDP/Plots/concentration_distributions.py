@@ -18,8 +18,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This fall
 import Lammps.core_functions as cf
 
 
+# Hydrodynamic radius using kirkwood expression using poly_analysis.py on the 
+# Equilibration system(See for instance the radius.dat inside 
+# 6.High_concentration/6.F_sequential/E_8.0_S_1.0/Conc_dist)
 
-Rh=[2.758531,2.755166] #LJ,GLJ
+Rh=[2.758531,2.755166] #LJ,GLJ 
 cf.set_plot_appearance()
 
 
