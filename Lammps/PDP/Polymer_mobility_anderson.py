@@ -2,12 +2,25 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr 11 15:14:47 2019
+READ my description of the entire workflow in my logbook
+
+"ALGORITHM to compute mobilities"
+
 Estimates the velocity only using the concentration profile.
 
 
 The file prof_u.dat contains # Chunk Coord1 Ncount density/number
 
-the file Parameters, has N R_H^K R_H^{md}
+the file Parameters, has #N Ly Rh_k Rh_md it is created by hand
+
+for example it looks
+#N Ly Rh_k Rh_md
+20 14.9687 3.012020 3.746989196
+25 17.0726 3.328004 4.280125544
+
+As in the file in my laptop /Users/simon/Developing/Vel_colloid/E_1.5_S_1.0
+
+
 Define Viscosity
 @author: sr802
 """
@@ -245,45 +258,53 @@ def plot_plateau(a,data,plat_indexes,indexes_box,rh_origin):
 # =============================================================================
 # MAIN
 # =============================================================================
+    
+logger = cf.log(__file__, os.getcwd())    
 
-print("Remember to define the viscosity")
+
+logger.info("Remember to define the viscosity")
 
 cf.set_plot_appearance()
 
 """Polymer"""
-grad_mu=0.1
-T=1
-beta=1/T
-eta=1.55639001606637 
+grad_mu = 0.1
+T = 1
+beta = 1/T
+eta = 1.55639001606637 
 
 #Automatically load the parameters
 parameters=cf.read_data_file('../data.dat').values
-N=int(cf.extract_digits(os.getcwd().split('/')[-1])[0]) #Number of monomers obtained from the path
-
-print("Running for N=%d" %N)
+#N=int(cf.extract_digits(os.getcwd().split('/')[-1])[0]) #Number of monomers obtained from the path
+N = parameters[0][0] # When is a one liner
+logger.info("Running for N=%d" %N)
 
 
 index_1=np.where(parameters==N)[0][0] #gets the line with the parameters of this Number of monomers
 box_size=parameters[index_1,1]
 
-print('\nUsing the Rh estimation from Kirkwood')
+logger.info('\nUsing the Rh estimation from Kirkwood')
 
 a_k=parameters[index_1,2]
 
 results=velocity_polymer(a_k,T,eta, box_size,grad_mu,rh_origin='K')
 mobility=results[-1]/grad_mu
-print('K,L,H,U_0,U_1,U,mobility')
-print(results,mobility)
+logger.info('K,L,H,U_0,U_1,U')
+logger.info(results)
+logger.info("The mobility is")
+logger.info(mobility)
 
-print('\nUsing the Rh estimation from the mobility')
+
+logger.info('\nUsing the Rh estimation from the mobility')
 
 D=parameters[index_1,3]
 a_md=T/(6*np.pi*eta*D)
 
 results=velocity_polymer(a_md,T,eta, box_size,grad_mu,'md')
 mobility=results[-1]/grad_mu
-print('K,L,H,U_0,U_1,U,mobility')
-print(results,mobility)
+logger.info('K,L,H,U_0,U_1,U')
+logger.info(results)
+logger.info("The mobility is")
+logger.info(mobility)
 
 
 
