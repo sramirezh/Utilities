@@ -29,6 +29,14 @@ files=args.file_name
 columns=args.columns
 path_name=args.path_name
 
+
+# Creating the logger
+logger = cf.log(__file__, os.getcwd())   
+
+logger.info("Using the following arguments for the paser")
+logger.info(args)
+
+
 """
 This is the general structure of anything in a file
 """
@@ -62,6 +70,8 @@ for dat in data:
 """
 Plotting
 """
+
+
 names = ["SRLJ","LJ"]
 plt.close('all')
 cf.set_plot_appearance()
