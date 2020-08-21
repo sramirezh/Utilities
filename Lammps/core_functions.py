@@ -177,7 +177,7 @@ def read_data_file(input_file):
     Args:
         input_file file name
 
-    Returns: A panda data frame, the column names can be obtained by data.columns.values and the numeric parameters with  data.values
+    Returns: A panda data frame, the column names can be obtained by data.columns.values and the numeric parameters with  data.values    
     """
     header_lines = 0
     last_pound_pos =- 1
@@ -196,9 +196,15 @@ def read_data_file(input_file):
             data=pd.read_csv(data_file, sep=" ", header=None).dropna(axis=1, how='all')
 
         else:
-            if len(data_1) != len(data_2): #If there is a line containing the number of particles,
+            # Single line file
+            if len(data_2)==0:
                 data_file.readline()
-            data_file.readline()
+                
+            else:
+                
+                if len(data_1) != len(data_2): #If there is a line containing the number of particles,
+                    data_file.readline()
+                data_file.readline()
 
             try:
                 data = pd.read_csv(data_file, sep=" ", header=None).dropna(axis=1, how='all')
