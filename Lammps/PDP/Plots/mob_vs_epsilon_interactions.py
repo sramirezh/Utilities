@@ -12,20 +12,12 @@ import argparse
 import numpy as np
 from general_plotter import general_plotter,pre_processing
 import pandas as pd
+import matplotlib.pyplot as plt
 import Lammps.PDP.trajectory_analysis.first_n_analysis as fna
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
-try:
-    import matplotlib
-    matplotlib.use('agg')
-    import matplotlib.pyplot as plt
-except ImportError as err:
-    print(err)
-
-import warnings
-warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(description='This script plots several files',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('file_name', metavar='InputFile',help='Input filename',nargs='+',type=lambda x: cf.is_valid_file(parser, x))
@@ -70,7 +62,7 @@ for dat in data:
 """
 Plotting
 """
-names=["SRLJ","LJ"]
+names = ["SRLJ","LJ"]
 plt.close('all')
 cf.set_plot_appearance()
 ax,fig=general_plotter(data_to_plot,yerror=2)
@@ -80,6 +72,7 @@ ax,fig=general_plotter(data_to_plot,yerror=2)
 ax.set_xlabel(r'$\varepsilon_{ms} $')
 ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
 plt.legend(names,loc='upper_left')
+ax.axhline(y=0.07155442595335286, xmin=0, xmax=1,ls='--',c='black')
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.set_xlim(0,ax.get_xlim()[1])
 plt.xticks(np.arange(0,14,2))
