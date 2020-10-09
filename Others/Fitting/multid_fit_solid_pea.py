@@ -15,6 +15,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from cycler import cycler
 import os
 import shutil
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
+import Lammps.core_functions as cf
+
+
 
 
 def set_plot_appearance():
@@ -640,9 +645,9 @@ rho_ref=1.2
 beta_ref=1/1.1
 deg_x=6
 deg_y=6
-file_p='SP'
-file_e='SE'
-file_a='SA'
+file_p='pressure/pressure_solid_rc2.0.txt'
+file_e='energy/energy_solid_rc2.0.txt'
+file_a='free_energy/free_energy_solid_rc2.0.txt'
 p_ref=-1.083
 e_ref=0
 a_ref=1.083
@@ -816,17 +821,17 @@ fig3.savefig("3Dplot_a.pdf")
 # #    Single Fitting
 # =============================================================================
 
-print("\nPerforming the single fitting\n")
-popt1,pcov1,variables1=fit_sum_poly(x_p,y_p,z_p,zerr_p,poly_p)
-single_results_p=test_prediction(popt1,variables1,z_p,poly_p,p_ref)
-
-
-popt2,pcov2,variables2=fit_poly(x_e,y_e,z_e,zerr_e,poly_e)
-single_results_e=test_prediction(popt2,variables2,z_e,poly_e,e_ref)
-
-
-popt3,pcov3,variables3=fit_poly(x_a,y_a,z_a,zerr_a,poly_a)
-single_results_a=test_prediction(popt3,variables3,z_a,poly_a,a_ref)
+#print("\nPerforming the single fitting\n")
+#popt1,pcov1,variables1=fit_sum_poly(x_p,y_p,z_p,zerr_p,poly_p)
+#single_results_p=test_prediction(popt1,variables1,z_p,poly_p,p_ref)
+#
+#
+#popt2,pcov2,variables2=fit_poly(x_e,y_e,z_e,zerr_e,poly_e)
+#single_results_e=test_prediction(popt2,variables2,z_e,poly_e,e_ref)
+#
+#
+#popt3,pcov3,variables3=fit_poly(x_a,y_a,z_a,zerr_a,poly_a)
+#single_results_a=test_prediction(popt3,variables3,z_a,poly_a,a_ref)
 
 #plot_slices()
 
