@@ -1,81 +1,22 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
-Created on Thu May  9 11:10:12 2019
-
+Created on 10 October 20202
+Including all the functios and classes to fit and predict using fitted polynomials
 @author: simon
 """
+import os
+import sys
 import numpy as np
 import argparse
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from cycler import cycler
-import os
 import shutil
 import pandas as pd
+Utilities_path=os.path.join(os.path.dirname(__file__), '../../')
+sys.path.append(Utilities_path) #This falls into Utilities path
+import Lammps.core_functions as cf
 
-
-def set_plot_appearance():
-
-    """
-    Defines the appearence of the plot
-
-    use rcParams.keys() to see the available parameters
-    """
-    axis_font=24
-    tick_font=20
-    legend_font=18
-
-
-    #plt.rcParams['lines.linewidth'] = 1.5
-    #plt.rcParams['lines.markeredgewidth'] = 1.0
-    #plt.rcParams['lines.markersize'] = 2.5
-
-    # Colors
-    plt.rcParams['axes.prop_cycle'] = cycler(color='rbkgcmy')
-
-
-    # Fonts and symbols
-    #plt.rcParams['font.family'] = 'serif'
-    #plt.rcParams['font.serif'] = 'Times New Roman'
-    #plt.rcParams['font.weight'] = 'normal'
-    plt.rcParams["mathtext.fontset"] = "cm"
-    plt.rcParams['text.usetex'] = True
-    #plt.rcParams['mathtext.rm'] = 'serif'
-    #plt.rcParams['mathtext.it'] = 'serif:italic'
-    #plt.rcParams['mathtext.fontset'] = 'stix'
-
-
-    # Axes
-    plt.rcParams['axes.edgecolor'] = (0.0, 0.0, 0.0)
-    #plt.rcParams['axes.linewidth'] = 0.8
-    plt.rcParams['axes.spines.right'] = True
-    plt.rcParams['axes.spines.top'] = True
-    plt.rcParams['axes.labelsize'] = axis_font
-    plt.rcParams['axes.grid'] = False
-
-    # Ticks
-    plt.rcParams['xtick.direction'] = "in"
-    plt.rcParams['ytick.direction'] = "in"
-    plt.rcParams['ytick.labelsize'] = tick_font
-    plt.rcParams['xtick.labelsize'] = tick_font
-
-    # Legend
-
-    plt.rcParams['legend.fontsize'] = legend_font
-    plt.rcParams['legend.loc'] ='upper left'
-    plt.rcParams['legend.labelspacing'] = 0.5
-    plt.rcParams['legend.borderpad'] =0.4
-    plt.rcParams['legend.frameon'] = True
-    plt.rcParams['legend.fancybox'] = False
-    plt.rcParams['legend.edgecolor'] = 'k'
-    # Fonts and symbols
-
-
-    # Errorbar plots
-    plt.rcParams['errorbar.capsize'] = 4
-    
 # =============================================================================
 # Class polynomial
 # =============================================================================
@@ -172,10 +113,6 @@ class polynomial(object):
                 x_exp = coeff(self.func_exp[0],n)
                 y_exp = coeff(self.func_exp[1],m)
                 print('%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp))
-                
-#    def print_initial_msg(self):
-#        print "The exponents in x are:%s" %self.exponents[0]
-#        print "The exponents in y are:%s\n" %self.exponents[1]
 
 
 def poly_coeff(func, point):
@@ -364,7 +301,6 @@ def test_prediction(popt,variables,z,poly):
     results = np.transpose(np.vstack((z, z_predict, error)))
     
     return results
-    
 
 # =============================================================================
 # Things not belonging to the class (This can be adapted to the problem)
