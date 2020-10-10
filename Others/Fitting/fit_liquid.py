@@ -392,12 +392,12 @@ def read_data(fname,prop_ref):
     
 
 
-rho_ref = 0.32
-beta_ref = 1/1.04
+rho_ref = 0 #0.32
+beta_ref = 0  #0 1/1.04
 deg_x = [2,8] 
 deg_y = [0,6]
-file_p='pressure/pressure_liquid_rc2.0.txt'
-file_e='energy/energy_liquid_rc2.0.txt'
+file_p='pressure_liquid_rc2.0.txt' # Temp rho press Sigmapress
+file_e='energy_liquid_rc2.0.txt'
 p_ref = 0
 e_ref = 0
 
