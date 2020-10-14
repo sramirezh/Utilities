@@ -21,6 +21,16 @@ import Lammps.core_functions as cf
 # Class polynomial
 # =============================================================================
 
+# TODO this coulb be the general class that has the sum of polynomials 
+class fitClass:
+
+    def __init__(self):
+        pass
+
+    def fitfun(self, x, ):
+        return np.exp(a*(x - self.b))
+
+
 
 class polynomial(object):
     """
@@ -164,7 +174,7 @@ def delete_values(vector,delete_val):
     
     return vector
 
-def arbitrary_poly(data, *params):
+def arbitrary_poly(data, a_nm):
     """
     evaluates the polynomial
     p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
@@ -172,7 +182,7 @@ def arbitrary_poly(data, *params):
     at at the point x, y 
     
     Args:
-        params: all the fitting coefficients a_nm
+        coefficients: all the fitting coefficients a_nm
         data: contains the the two independent variables x and y and an instance of the polynomial class containing all the information of it
 
     """
@@ -182,7 +192,7 @@ def arbitrary_poly(data, *params):
     y = points[1]
     poly = data[1]
     ndim,mdim = poly.dim
-    params = np.reshape(params,(ndim,mdim))
+    a_nm = np.reshape(a_nm,(ndim,mdim))
     f_eval = 0
     
 #    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
@@ -198,7 +208,7 @@ def arbitrary_poly(data, *params):
             else: 
                 f3_n = poly_coeff(poly.func_exp[0],n)
                 f4_m = poly_coeff(poly.func_exp[1],m)
-                f_eval += params[i, j] * f1_n * f2_m * x ** (f3_n) * y ** (f4_m)
+                f_eval += a_nm[i, j] * f1_n * f2_m * x ** (f3_n) * y ** (f4_m)
     return f_eval
 
 
@@ -225,33 +235,48 @@ def fit_poly(x,y,z,zerr,poly):
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
 
-def two_poly(data, *params):
+def two_poly(input_data, *params):
     
     """
+    input_data: an object containing the independent variables in the first 
+                entrance and the polynomial objects in the second entry
+                
     TODO: Need a way to pass the polymers as 
     Function that is called by fit two poly to get the values z1, z2 of the 
     fitting evaluated at the given poitts
+    params: are the fitting coefficients a_nm that are going to be varied by the
+    curve_fit
+    data contains[[data1+data2],[poly1+poly2]] + means appended
     
-    data contains[data1+data2,poly1+poly2] + means appended
+    params: contains the fitting coefficients that are going to be varied by the
+           curve_fit 
     
-    """
+    """ 
+    # Unpacking the data and params
+    data, polynomials = input_data
     n, m = np.shape(data)
     length = int(m/2)
-    data_1 = data[:,:length]  #Correct because x_e is global
-    polynomials = params[0]
-    poly_1 = poly_p
-    data_2 = data[:,length:]
-    poly_2 = poly_e
     
-    params = 
-    z1 = arbitrary_poly([data_1,poly_1],params)
-    z2 = arbitrary_poly([data_2,poly_2],params)
+    data_1 = data[:,:length]
+    data_2 = data[:,length:]
+    
+    poly_1 = polynomials[0]
+    poly_2 = polynomials[1]
+
+    
+    z1 = arbitrary_poly([data_1,poly_1], params)
+    z2 = arbitrary_poly([data_2,poly_2], params)
     
     return np.append(z1,z2)
 
 
-def fit_two_poly(data_1,data_2):
+def fit_two_poly(data_1, data_2):
+    
+    
     """
+    Trtying the approach in 
+    https://stackoverflow.com/questions/49813481/how-to-pass-parameter-to-fit-function-when-using-scipy-optimize-curve-fit
+    
     data_i contains the [[x,y,z,zerr],poly]
     """
     
@@ -265,12 +290,14 @@ def fit_two_poly(data_1,data_2):
 
     zerr=np.append(data_1[0][3],data_2[0][3])
     
-    poly=[data_1[1],data_2[1]]
+    poly = [data_1[1],data_2[1]]
     variables=np.stack((x,y))
     
     ndim,mdim=poly[0].dim
     
-    popt, pcov = curve_fit(two_poly,variables[:,:],z,sigma=zerr,p0=[0]*ndim*mdim)
+    X =[variables, poly]
+    
+    popt, pcov = curve_fit(two_poly, X , z, sigma = zerr, p0=[0] * ndim * mdim )
     popt_matrix=np.reshape(popt,(ndim,mdim))
     
     
