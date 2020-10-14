@@ -17,18 +17,25 @@ sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
 
 
+
+# =============================================================================
+# Input parameters
+# =============================================================================
 coefficient_file = 'fit_coefficients_liquid_rc2.0.txt'
 values_file = 'viscosity_liquid_rc2.0.txt'
 
 
+# =============================================================================
+# Reading files
+# =============================================================================
 # Reading the coefficients and exponents
 m_values, n_values, coefficients = ff.read_coeff_file(coefficient_file)
 
 # Reading the energy
 header, data = ff.read_file(values_file)
 
+# Definining the polynomial
 poly_eta = ff.polynomial(n_values, m_values,[1],[1],[1,0],[1,0])
-
 
 
 # Check the header varible but in general the variables are like this
@@ -42,8 +49,10 @@ variables = copy.deepcopy(data[:,0:2])
 # Getting beta
 variables[:,1] = 1/variables[:,1]
 
-er_results_eta = ff.test_prediction(coefficients, np.transpose(variables), data[:,2], poly_eta, 0)
 
+
+# Evaluating the polynomial at the given ponts
+er_results_eta = ff.test_prediction(coefficients, np.transpose(variables), data[:,2], poly_eta, 0)
 z_predicted = er_results_eta[:,1]
 
 
