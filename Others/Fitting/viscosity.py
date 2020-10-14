@@ -29,27 +29,30 @@ header, data = ff.read_file(values_file)
 
 poly_eta = ff.polynomial(n_values, m_values,[1],[1],[1,0],[1,0])
 
+
+
+# Check the header varible but in general the variables are like this
 x_e = data[:,0] # Density
 y_e = data[:,1] # Temperature
 z_e = data[:,2] # Viscosity
 
-## Getting the volume of the system
-#
-#n_part = 1000
-##vol = n_part/y_e[0]
 
 variables = copy.deepcopy(data[:,0:2])
 
 # Getting beta
 variables[:,1] = 1/variables[:,1]
 
-er_results_eta = ff.test_prediction(coefficients, np.transpose(variables), data[:,2], poly_eta)
+er_results_eta = ff.test_prediction(coefficients, np.transpose(variables), data[:,2], poly_eta, 0)
 
 z_predicted = er_results_eta[:,1]
 
-cf.set_plot_appearance()
 
-#plt.close('all')
+
+# =============================================================================
+# Plotting the points and predicted
+# =============================================================================
+cf.set_plot_appearance()
+plt.close('all')
 fig1 = plt.figure()
 ax1 = fig1.add_subplot(111, projection='3d')
 ax1.scatter( y_e, x_e, z_e, zdir='z',marker='.',label="Simulation",color='r')
