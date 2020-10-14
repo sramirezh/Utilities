@@ -48,7 +48,7 @@ e_ref = 0
 # =============================================================================
 #    print "Basic information about the polynomial for the Pressure"
 poly_p = ff.polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0])
-#    poly_p.print_initial_msg()
+
 
 
 # =============================================================================
@@ -56,7 +56,7 @@ poly_p = ff.polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0])
 # =============================================================================
 #    print "Basic information about the polynomial for the Energy"
 poly_e  = ff.polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
-#    poly_e.print_initial_msg()
+
 
 
 print("rho_ref = %s"%rho_ref)
@@ -65,24 +65,24 @@ print("beta_ref = %s"%beta_ref)
 # =============================================================================
 #     #Reading the data for the pressure
 # =============================================================================
-x_p,y_p,z_p,zerr_p = ff.read_data(file_p, p_ref)
-x_p = x_p-rho_ref
-y_p = y_p-beta_ref
+x_p, y_p, z_p, zerr_p = ff.read_data(file_p, p_ref)
+x_p = x_p - rho_ref
+y_p = y_p - beta_ref
 
 
 
 # =============================================================================
 #     #Reading the data for the energy
 # =============================================================================
-x_e,y_e,z_e,zerr_e = ff.read_data(file_e,e_ref)
-x_e = x_e-rho_ref
-y_e = y_e-beta_ref
+x_e, y_e, z_e, zerr_e = ff.read_data(file_e, e_ref)
+x_e = x_e - rho_ref
+y_e = y_e - beta_ref
 
 
 
 
 #Simultaneous Fitting
-popt, pcov,variables = ff.fit_two_poly([[x_p,y_p,z_p,zerr_p],poly_p],[[x_e,y_e,z_e,zerr_e],poly_e])
+popt, pcov, variables = ff.fit_two_poly([[x_p, y_p, z_p, zerr_p], poly_p],[[x_e,y_e,z_e,zerr_e],poly_e])
 
 
 plt.close('all')
@@ -137,10 +137,6 @@ ff.outputs(popt,pcov,er_results_e, deg_x, deg_y,'e')
 fig2 = plt.figure()
 ax2 = fig2.add_subplot(111, projection='3d')
 ax2.scatter(x_e, y_e, z_e, zdir='z',marker='.',label="Simulation",color='r')
-
-#results = ff.test_prediction(popt,variables_e,z_e, poly_e, e_ref)
-
-
 ax2.scatter(x_e, y_e, er_results_e[:,1], zdir='z',label="Fitting",color='black')
 #    
 #Creating the surface
