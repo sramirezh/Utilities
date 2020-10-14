@@ -23,12 +23,41 @@ import Lammps.core_functions as cf
 
 # TODO this coulb be the general class that has the sum of polynomials 
 class fitClass:
+    
+    """
+    Solution using
+    
+    https://stackoverflow.com/questions/49813481/how-to-pass-parameter-to-fit-function-when-using-scipy-optimize-curve-fit/49813634#49813634
+    """
 
-    def __init__(self):
-        pass
+    def __init__(self, poly):
+        """
+        poly: Instance from the polynomial class
+        """
+        self.poly = poly # could be an array of polymers
 
-    def fitfun(self, x, ):
-        return np.exp(a*(x - self.b))
+    def fit_func(self, x, *fit_coeff):
+        
+        n, m = np.shape(x)
+        length = int(m/2)
+    
+        data_1 = x[:,:length]
+        data_2 = x[:,length:]
+    
+        
+        polynomials = self.poly
+        
+        poly_1 = polynomials[0]
+        poly_2 = polynomials[1]
+
+    
+        z1 = arbitrary_poly([data_1,poly_1], fit_coeff)
+        z2 = arbitrary_poly([data_2,poly_2], fit_coeff)
+        
+        
+        total = np.append(z1,z2)
+        
+        return total
 
 
 
@@ -295,9 +324,12 @@ def fit_two_poly(data_1, data_2):
     
     ndim,mdim=poly[0].dim
     
-    X =[variables, poly]
     
-    popt, pcov = curve_fit(two_poly, X , z, sigma = zerr, p0=[0] * ndim * mdim )
+    
+    # TODO this could be moved outside to make it more general
+    fit = fitClass(poly)
+    
+    popt, pcov = curve_fit(fit.fit_func, variables[:,:] , z, sigma = zerr, p0=[0] * ndim * mdim )
     popt_matrix=np.reshape(popt,(ndim,mdim))
     
     
