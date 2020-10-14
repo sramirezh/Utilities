@@ -18,8 +18,22 @@ sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
 
 # =============================================================================
-# Class polynomial
+# Class definition
 # =============================================================================
+
+
+def chunks(data, l):
+    """
+    Yield successive n-sized chunks from lst
+    Args:
+        data numpy array 
+        n length of the chunks
+    
+    """
+    n, m = np.shape(data)
+    return [data[:, i:i + l] for i in range(0, m, l)]
+        
+
 
 # TODO this coulb be the general class that has the sum of polynomials 
 class fitClass:
@@ -35,27 +49,34 @@ class fitClass:
         poly: Instance from the polynomial class
         """
         self.poly = poly # could be an array of polymers
+        self.get_dim()
+        
+    
+    def get_dim(self):
+        """
+        Extracts the number of independent functions to fit with the same
+        parameters
+        Assumes that if its not a list, there is just one polynomial
+        """
+        self.dim = 0 
+        if not isinstance(self.poly, polynomial):
+            self.dim = len(self.poly)
+    
+            
 
     def fit_func(self, x, *fit_coeff):
         
         n, m = np.shape(x)
-        length = int(m/2)
+        length = int(m / self.dim)
     
-        data_1 = x[:,:length]
-        data_2 = x[:,length:]
+        # Unwrapping the data for each quantity
+        data = chunks(x, length)
     
-        
         polynomials = self.poly
         
-        poly_1 = polynomials[0]
-        poly_2 = polynomials[1]
-
-    
-        z1 = arbitrary_poly([data_1,poly_1], fit_coeff)
-        z2 = arbitrary_poly([data_2,poly_2], fit_coeff)
-        
-        
-        total = np.append(z1,z2)
+        total = []
+        for i in range(self.dim):
+            total.extend(arbitrary_poly([data[i],polynomials[i]], fit_coeff))
         
         return total
 
@@ -103,10 +124,10 @@ class polynomial(object):
     def get_limits(self):
         limits=[]
         for exp in self.exponents:
-            if len(exp)==1:
-                exp=[0,exp[0]]
+            if len(exp) == 1:
+                exp = [0,exp[0]]
             limits.append(exp)
-        self.limits=limits
+        self.limits = limits
         
         
     
