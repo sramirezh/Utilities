@@ -26,9 +26,9 @@ class polynomial(object):
     """
     Class to identify a polynomial 
     
-    p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
+    p(x,y) = \sum_{i,j}^{n,m} [ f1n(i) f2m(j) c_{i,j} x^{f_3n(i)} y^{f_4m(i)}
     
-    with f(n),f(m) additional funcitons that are independen of the fitting coefficient
+    with fi additional functions that are independen of the fitting coefficient
     """
     
     def __init__(self, n,m,fn,fm,f_expx,f_expy,exc_n=[],exc_m=[]):
@@ -225,17 +225,27 @@ def fit_poly(x,y,z,zerr,poly):
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
 
-def two_poly(data,*params):
+def two_poly(data, *params):
     
     """
+    TODO: Need a way to pass the polymers as 
+    Function that is called by fit two poly to get the values z1, z2 of the 
+    fitting evaluated at the given poitts
+    
     data contains[data1+data2,poly1+poly2] + means appended
+    
     """
-    data_1=data[:,:len(x_p)]  #Correct because x_e is global
-    poly_1=poly_p
-    data_2=data[:,len(x_p):]
-    poly_2=poly_e
-    z1=arbitrary_poly([data_1,poly_1],params)
-    z2=arbitrary_poly([data_2,poly_2],params)
+    n, m = np.shape(data)
+    length = int(m/2)
+    data_1 = data[:,:length]  #Correct because x_e is global
+    polynomials = params[0]
+    poly_1 = poly_p
+    data_2 = data[:,length:]
+    poly_2 = poly_e
+    
+    params = 
+    z1 = arbitrary_poly([data_1,poly_1],params)
+    z2 = arbitrary_poly([data_2,poly_2],params)
     
     return np.append(z1,z2)
 
@@ -245,7 +255,7 @@ def fit_two_poly(data_1,data_2):
     data_i contains the [[x,y,z,zerr],poly]
     """
     
-    #Organising the dat in a suitable way
+    #Organising the data in a suitable way
     x=np.append(data_1[0][0],data_2[0][0])
    
     
@@ -254,6 +264,7 @@ def fit_two_poly(data_1,data_2):
     
 
     zerr=np.append(data_1[0][3],data_2[0][3])
+    
     poly=[data_1[1],data_2[1]]
     variables=np.stack((x,y))
     
@@ -480,10 +491,10 @@ def read_data(fname,prop_ref):
         prop_ref: Property at the reference point
         
     Returns:
-        variables
+        rho, beta, pro-prop_ref, sigma_prop
     """
-    data=np.loadtxt(fname)
     
+    header, data = read_file(fname)
     rho=data[:,1]
     temperature=data[:,0]
     prop=data[:,2]-prop_ref
@@ -501,7 +512,7 @@ def read_data(fname,prop_ref):
     # prop=prop[indexes]
     
     
-    return rho,beta,prop,sigma_prop
+    return rho, beta, prop, sigma_prop
 
 
 def read_file(file_name):
@@ -538,10 +549,10 @@ def read_coeff_file(input_file):
     return m_values, n_values, coefficients
     
 
-    def plot_slices():
+def plot_slices():
     
     
-    set_plot_appearance()
+    cf.set_plot_appearance()
     dir_name="slices_beta_p"
     shutil.rmtree(dir_name,ignore_errors=True) 
     
