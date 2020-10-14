@@ -265,7 +265,28 @@ def fit_two_poly(data_1,data_2):
     
     return popt_matrix,pcov,variables
 
+
+def fit_sum_poly(x,y,z,zerr,poly):
+    """
+    fits a polynomial using least square fitting
+    the coefficients are pijx^i*y^j
+    Args:
+        x array containing the first variable 
+        y array containing the second variable
+        z array with the dependent variable
+        zerr sigma on the dependent variable
+        d degree of the polynomial
     
+    Returns:
+        popt: Optimal fitting coefficients.
+        pcov: Covariant matrix of the fitting.
+    """
+
+    ndim,mdim=poly[0].dim
+    variables=np.stack((x,y),axis=0)
+    popt, pcov = curve_fit(poly_sum, variables[:,:], z, sigma=zerr,p0=[0]*ndim*mdim)
+    popt_matrix=np.reshape(popt,(ndim,mdim))
+    return popt_matrix,pcov,variables
 
 def outputs(popt_matrix,pcov,e_results,n,m,name):
     
@@ -278,29 +299,132 @@ def outputs(popt_matrix,pcov,e_results,n,m,name):
     np.savetxt('error_%s.dat'%name,e_results, header=header,fmt='%12.8f')
 
 
-def test_prediction(popt,variables,z,poly):
+def test_prediction(popt,variables,z,poly,ref_prop):
     """
     
     Args:
         popt is the fitting coefficient matrix
-        variables: should contain the variables x = temperature and y =density in an array 2xNumber of points
-                It should be TRANSPOSED
+        ref_prop is the reference property value
     
     Returns:
-        Results with [z, z_predict, error]
-    """
-    m,n_points = np.shape(variables)
-    z_predict = []
-    for i in range(n_points):
         
-        z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
-    z_predict = np.array(z_predict)
-
-    error = np.abs((z - z_predict) / z) * 100
+        Results with [z+z_ref, z_predict+z_ref, error]
+    """
+    m,n_point=np.shape(variables)
+    z_predict=[]
+    popt=np.reshape(popt,(np.size(popt)))
     
-    results = np.transpose(np.vstack((z, z_predict, error)))
+    for i in range(n_point):
+        if np.size(poly)==1:
+            z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
+        else:
+            z_predict.append(poly_sum(variables[:,i],popt))
+        
+#        print z_predict,z[i]
+    z_predict=np.array(z_predict)
+
+    error=np.abs((z-z_predict)/(z+ref_prop))*100
+    
+    results=np.transpose(np.vstack((z+ref_prop,z_predict+ref_prop,error,variables[0,:],variables[1,:])))
     
     return results
+
+
+def arbitrary_poly_check(data, *params):
+    """
+    Creates a polymer
+    p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
+    
+    Args:
+        params: all the fitting parameters
+        data: contains the the two independent variables x and y and an instance of the polynomial class containing all the information of it
+
+    """
+    
+    points=data[0]
+    x=points[0]
+    y=points[1]
+    poly=data[1]
+    ndim,mdim=poly.dim
+    params=np.reshape(params,(ndim,mdim))
+    function=0
+    
+#    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
+    
+    for i,n in enumerate(poly.exponents[0]):
+        for j,m in enumerate(poly.exponents[1]):
+            
+            #Getting the n,m dependent coefficients and exponents
+            coeff_n=coeff(poly.func_coeff[0],n)
+            coeff_m=coeff(poly.func_coeff[1],m)
+            if coeff_m==0 or coeff_n==0:
+                function+=0
+            else: 
+                x_exp=coeff(poly.func_exp[0],n)
+                y_exp=coeff(poly.func_exp[1],m)
+                print(params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp))
+                function+=params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp)
+    return function
+
+
+def poly_sum(data,*params):
+    """
+    Adds two arbitrary polynomials, 
+    BECAREFUL added poly_p by hand
+    """
+    points=data
+    poly=poly_p
+    
+    res1=arbitrary_poly([points,poly[0]],params)
+    res2=rho_ref*arbitrary_poly([points,poly[1]],params)
+    return res1+res2
+
+
+
+def fit_three_poly(data_1,data_2,data_3):
+    """
+    data_i contains the [[x,y,z,zerr],poly]
+    """
+    
+    #Organising the dat in a suitable way
+    x=np.concatenate((data_1[0][0],data_2[0][0],data_3[0][0]))
+    y=np.concatenate((data_1[0][1],data_2[0][1],data_3[0][1]))
+    z=np.concatenate((data_1[0][2],data_2[0][2],data_3[0][2]))
+    zerr=np.concatenate((data_1[0][3],data_2[0][3],data_3[0][3]))
+    
+    poly=[data_1[1],data_2[1],data_3[1]]
+    
+    variables=np.stack((x,y))
+    
+    ndim,mdim=poly[1].dim
+    
+    popt, pcov = curve_fit(three_poly,variables[:,:],z,sigma=zerr,p0=[0]*ndim*mdim)
+    popt_matrix=np.reshape(popt,(ndim,mdim))
+    
+    
+    return popt_matrix,pcov,variables
+
+
+def three_poly(data,*params):
+    
+    """
+    data contains[data1+data2,poly1+poly2] + means appended
+    """
+
+    data_1=data[:,:len(x_p)]  #Correct because x_e is global
+    poly_1=poly_p
+    data_2=data[:,len(x_p):len(x_p)+len(x_e)]
+    poly_2=poly_e
+    data_3=data[:,len(x_p)+len(x_e):]
+    poly_3=poly_a
+    
+
+    z1=poly_sum(data_1,params)
+    z2=arbitrary_poly([data_2,poly_2],params)
+    z3=arbitrary_poly([data_3,poly_3],params)
+    
+    
+    return np.concatenate((z1,z2,z3))
 
 # =============================================================================
 # Things not belonging to the class (This can be adapted to the problem)
@@ -365,8 +489,20 @@ def read_data(fname,prop_ref):
     prop=data[:,2]-prop_ref
     sigma_prop=data[:,3]
     beta=(1/temperature)
+
+
+    # #    #Restricting to a range of temperatures
+    
+    # indexes=np.where(temperature<1.4)[0]
+    
+    # beta=beta[indexes]
+    # rho=rho[indexes]
+    # sigma_prop=sigma_prop[indexes]
+    # prop=prop[indexes]
+    
     
     return rho,beta,prop,sigma_prop
+
 
 def read_file(file_name):
     """
@@ -403,7 +539,7 @@ def read_coeff_file(input_file):
     
 
     def plot_slices():
-        
+    
     
     set_plot_appearance()
     dir_name="slices_beta_p"
