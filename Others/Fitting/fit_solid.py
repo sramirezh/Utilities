@@ -16,6 +16,7 @@ from cycler import cycler
 import os
 import shutil
 import sys
+import fitting_functions as ff
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
@@ -50,9 +51,9 @@ a_ref=1.083
 #     Here is where I define the polynomial for the pressure
 # =============================================================================
 #    print "Basic information about the polynomial for the Pressure"
-poly_p=[]
-poly_p.append(polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0]))
-poly_p.append(polynomial(deg_x,deg_y,[1,0],[1],[1,-1],[1,0])) 
+poly_p = []
+poly_p.append(ff.polynomial(deg_x,deg_y,[1,-1],[1],[1,0],[1,0]))
+poly_p.append(ff.polynomial(deg_x,deg_y,[1,0],[1],[1,-1],[1,0])) 
 #    poly_p.print_initial_msg()
 
 
@@ -60,14 +61,14 @@ poly_p.append(polynomial(deg_x,deg_y,[1,0],[1],[1,-1],[1,0]))
 #     Here is where I define the polynomial for the energy
 # =============================================================================
 #    print "Basic information about the polynomial for the Energy"
-poly_e=polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
+poly_e=ff.polynomial(deg_x,deg_y,[1],[1,0],[1,0],[1,-1])
 #    poly_e.print_initial_msg()
 
 # =============================================================================
 #     Here is where I define the polynomial for the Free energy
 # =============================================================================
 #print "Basic information about the polynomial for the Energy"
-poly_a=polynomial(deg_x,deg_y,[1],[1],[1,0],[1,0])
+poly_a = ff.polynomial(deg_x,deg_y,[1],[1],[1,0],[1,0])
 
 
 
@@ -77,7 +78,7 @@ print("beta_ref = %s"%beta_ref)
 # =============================================================================
 #     #Reading the data for the pressure
 # =============================================================================
-x_p,y_p,z_p,zerr_p=read_data(file_p,p_ref)
+x_p,y_p,z_p,zerr_p = ff.read_data(file_p,p_ref)
 x_p=x_p-rho_ref
 y_p=y_p-beta_ref
 
@@ -86,7 +87,7 @@ y_p=y_p-beta_ref
 # =============================================================================
 #     #Reading the data for the energy
 # =============================================================================
-x_e,y_e,z_e,zerr_e=read_data(file_e,e_ref)
+x_e,y_e,z_e,zerr_e = ff.read_data(file_e,e_ref)
 x_e=x_e-rho_ref
 y_e=y_e-beta_ref
 
@@ -94,13 +95,13 @@ y_e=y_e-beta_ref
 # =============================================================================
 #     #Reading the data for the free energy
 # =============================================================================
-x_a,y_a,z_a,zerr_a=read_data(file_a,a_ref)
+x_a,y_a,z_a,zerr_a = ff.read_data(file_a,a_ref)
 x_a=x_a-rho_ref
 y_a=y_a-beta_ref
 
 
 #Simultaneous Fitting
-popt, pcov,variables=fit_three_poly([[x_p,y_p,z_p,zerr_p],poly_p],[[x_e,y_e,z_e,zerr_e],poly_e],[[x_a,y_a,z_a,zerr_a],poly_a])
+popt, pcov,variables=ff.fit_three_poly([[x_p,y_p,z_p,zerr_p],poly_p],[[x_e,y_e,z_e,zerr_e],poly_e],[[x_a,y_a,z_a,zerr_a],poly_a])
 
 plt.close('all')
 
@@ -110,10 +111,10 @@ plt.close('all')
 #     #Testing for Pressure
 # =============================================================================
 print ('\nTesting the pressure results\n')
-variables_p=np.stack((x_p,y_p),axis=0)
-er_results_p=test_prediction(popt,variables_p,z_p,poly_p,p_ref)
+variables_p = np.stack((x_p,y_p),axis=0)
+er_results_p = ff.test_prediction(popt,variables_p,z_p,poly_p,p_ref)
 
-outputs(popt,pcov,er_results_p, deg_x, deg_y,'p')
+ff.outputs(popt,pcov,er_results_p, deg_x, deg_y,'p')
 
 fig1 = plt.figure()
 ax = fig1.add_subplot(111, projection='3d')
@@ -130,7 +131,7 @@ x,y=np.meshgrid(np.linspace(np.min(x_p),np.max(x_p),20),np.linspace(np.min(y_p),
 
 z=np.asarray(x)
 variables_p=np.stack((x.flatten(),y.flatten()),axis=0)
-er_results=test_prediction(popt,variables_p,z.flatten(),poly_p,p_ref)
+er_results=ff.test_prediction(popt,variables_p,z.flatten(),poly_p,p_ref)
 z_mesh=np.reshape(er_results[:,1],np.shape(x))
 ax.plot_wireframe(x,y,z_mesh,color='b')
 
@@ -147,9 +148,9 @@ fig1.savefig("3Dplot_p.pdf")
 # =============================================================================
 print ('\nTesting the energy results\n')
 variables_e=np.stack((x_e,y_e),axis=0)
-er_results_e=test_prediction(popt,variables_e,z_e,poly_e,e_ref)
+er_results_e=ff.test_prediction(popt,variables_e,z_e,poly_e,e_ref)
 #    
-outputs(popt,pcov,er_results_e, deg_x, deg_y,'e')
+ff.outputs(popt,pcov,er_results_e, deg_x, deg_y,'e')
 #    
 fig2 = plt.figure()
 ax2 = fig2.add_subplot(111, projection='3d')
@@ -163,7 +164,7 @@ x,y=np.meshgrid(np.linspace(np.min(x_e),np.max(x_e),20),np.linspace(np.min(y_e),
 
 z=np.asarray(x)
 variables_e=np.stack((x.flatten(),y.flatten()),axis=0)
-er_results=test_prediction(popt,variables_e,z.flatten(),poly_e,e_ref)
+er_results=ff.test_prediction(popt,variables_e,z.flatten(),poly_e,e_ref)
 z_mesh=np.reshape(er_results[:,1],np.shape(x))
 ax2.plot_wireframe(x,y,z_mesh,color='b')
 ax2.set_xlabel(r'$\rho-\rho^*$')
@@ -181,9 +182,9 @@ fig2.savefig("3Dplot_e.pdf")
 # =============================================================================
 print ('\nTesting the free energy results\n')
 variables_a=np.stack((x_a,y_a),axis=0)
-er_results_a=test_prediction(popt,variables_a,z_a,poly_a,a_ref)
+er_results_a=ff.test_prediction(popt,variables_a,z_a,poly_a,a_ref)
 #    
-outputs(popt,pcov,er_results_a, deg_x, deg_y,'a')
+ff.outputs(popt,pcov,er_results_a, deg_x, deg_y,'a')
 #    
 fig3 = plt.figure()
 ax3 = fig3.add_subplot(111, projection='3d')
@@ -197,7 +198,7 @@ x,y=np.meshgrid(np.linspace(np.min(x_a),np.max(x_a),20),np.linspace(np.min(y_a),
 
 z=np.asarray(x)
 variables_a=np.stack((x.flatten(),y.flatten()),axis=0)
-er_results=test_prediction(popt,variables_a,z.flatten(),poly_a,a_ref)
+er_results=ff.test_prediction(popt,variables_a,z.flatten(),poly_a,a_ref)
 z_mesh=np.reshape(er_results[:,1],np.shape(x))
 ax3.plot_wireframe(x,y,z_mesh,color='b')
 ax3.set_xlabel(r'$\rho-\rho^*$')
