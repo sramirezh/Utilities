@@ -82,7 +82,7 @@ y_e = y_e - beta_ref
 
 
 #Simultaneous Fitting
-popt, pcov, variables = ff.fit_two_poly([[x_p, y_p, z_p, zerr_p], poly_p],[[x_e,y_e,z_e,zerr_e],poly_e])
+popt, pcov, variables = ff.fit_general([[x_p, y_p, z_p, zerr_p], poly_p],[[x_e,y_e,z_e,zerr_e],poly_e])
 
 
 plt.close('all')
