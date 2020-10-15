@@ -63,7 +63,7 @@ class FitClass:
         
         total = []
         for i in range(self.dim):
-            total.extend(arbitrary_poly([data[i],polynomials[i]], fit_coeff))
+            total.extend(polynomials[i].evaluate(data[i], fit_coeff))
         
         return total
 
@@ -73,49 +73,55 @@ class Polynomial(object):
     """
     Class to identify a polynomial 
     
-    p(x,y) = \sum_{i,j}^{n,m} [ f1n(i) f2m(j) c_{i,j} x^{f_3n(i)} y^{f_4m(i)}
+    p(x,y) = \sum_{i,j}_{nmin,mmin}^{nmax,mmax} [ f1n(i) f2m(j) a_{i,j} x^{f_3n(i)} y^{f_4m(i)}
     
     with fi additional functions that are independen of the fitting coefficient
+    anm is the matrix with the fitting coefficients
     """
     
-    def __init__(self, n,m,fn,fm,f_expx,f_expy,exc_n=[],exc_m=[]):
+    def __init__(self, n,m,f1n,f2m,f3n,f4m,exc_n=[],exc_m=[]):
         """
         
         Args:
-            n is the exponent in x
-            m is the exponent in y
-            exc_n are the excluded exponents in x
-            exc_m are the excluded exponents in y
-            fn array describing a poly to describe f(n) that is independent of c_{nm}
-            fm array describing a poly to describe f(m) that is independen independent of c_{nm}
-            anm is the matrix with the fitting coefficients
-            f_expx array describing the function that generates the exponent of x
-            f_expy array describing the function that generates the exponent of y
+            n: list of exponents for x or the maximum exponent of x
+            m: list of exponents for x or the maximum exponent of x
+            exc_n: are the excluded exponents in x
+            exc_m: are the excluded exponents in y
+            f1n array describing a poly to describe f1n 
+            f2m array describing a poly to describe f2m
+            f3n array describing the function that generates the exponent of x
+            f4m array describing the function that generates the exponent of y
             
             fn,fm,f_an,f_am are going to be evaluated with np.polyval, so see the syntaxis
         
         """
-        self.exponents=[get_list(n),get_list(m)]
-        self.excluded=[get_list(exc_n),get_list(exc_m)]
+        self.exponents = [get_list(n),get_list(m)]
+        self.excluded = [get_list(exc_n),get_list(exc_m)]
         self.get_limits()
         self.get_exponents()
         self.get_dimensions()
-        self.func_coeff=[fn,fm]
-        self.func_exp=[f_expx,f_expy]
+        self.func_coeff = [f1n,f2m]
+        self.func_exp = [f3n,f4m]
         self.anm = []
         
-    
-        
+
     def get_limits(self):
+        """
+        Gets the limiting values for n and m
+
+        Returns
+        -------
+        None.
+
+        """
         limits=[]
         for exp in self.exponents:
             if len(exp) == 1:
                 exp = [0,exp[0]]
             limits.append(exp)
         self.limits = limits
-        
-        
-    
+
+
     def get_exponents(self):
         """
         creates the list of exponents in the i-th dimension, exluding the given exponents
@@ -129,11 +135,33 @@ class Polynomial(object):
         return self.exponents
     
     def get_dimensions(self):
+        """
+        Gets the number of exponets in n and m, that defined the size of the
+        fitting coefficients matrix a_{i,j}
+
+        Returns
+        -------
+        None.
+
+        """
         self.get_exponents()
-        dimensions=[]
+        dimensions = []
         for exp in self.exponents:
             dimensions.append(len(exp))
-        self.dim=dimensions
+        self.dim = dimensions
+        
+    def poly_coeff(self, func, point):
+        """
+        Returns the function f1(n), f2(m), f3(n) and f4(m) that appear in my notebook
+        
+        function is the list of exponents as described in polyval
+        point is the value of n or m
+        
+        """
+    
+        f = np.polyval(func, point)
+        
+        return f
         
     
     def print_function(self):
@@ -153,17 +181,91 @@ class Polynomial(object):
             for j,m in enumerate(self.exponents[1]):
                 
                 #Getting the n,m dependent coefficients and exponents
-                coeff_n = poly_coeff(self.func_coeff[0],n)
-                coeff_m = poly_coeff(self.func_coeff[1],m)
-                x_exp = poly_coeff(self.func_exp[0],n)
-                y_exp = poly_coeff(self.func_exp[1],m)
+                coeff_n = self.poly_coeff(self.func_coeff[0],n)
+                coeff_m = self.poly_coeff(self.func_coeff[1],m)
+                x_exp = self.poly_coeff(self.func_exp[0],n)
+                y_exp = self.poly_coeff(self.func_exp[1],m)
                 print('%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp))
+                
+                
+    def evaluate(self, data, a_nm):
+        """
+        TODO need to optimise the coefficients, it could be done all at once
+        evaluates the polynomial
+        p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
+        
+        at at the point x, y 
+        
+        Args:
+            coefficients: all the fitting coefficients a_nm
+            data: contains the the two independent variables x and y 
+    
+        """
+        x = data[0]
+        y = data[1]
+        ndim,mdim = self.dim
+        a_nm = np.reshape(a_nm,(ndim,mdim))
+        f_eval = 0
+        
+    #    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
+        
+        for i,n in enumerate(self.exponents[0]):
+            for j,m in enumerate(self.exponents[1]):
+                
+                #Getting the n,m dependent coefficients and exponents
+                f1_n = self.poly_coeff(self.func_coeff[0],n)
+                f2_m = self.poly_coeff(self.func_coeff[1],m)
+                if f1_n  == 0 or f2_m  == 0:
+                    pass
+                else: 
+                    f3_n = self.poly_coeff(self.func_exp[0],n)
+                    f4_m = self.poly_coeff(self.func_exp[1],m)
+                    f_eval += a_nm[i, j] * f1_n * f2_m * x ** (f3_n) * y ** (f4_m)
+                    
+        return f_eval
 
 # =============================================================================
 # Things not belonging to the class (This can be adapted to the problem)
 # =============================================================================
 
 
+    # def arbitrary_poly(self, data, a_nm):
+    #     """
+    #     evaluates the polynomial
+    #     p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
+        
+    #     at at the point x, y 
+        
+    #     Args:
+    #         coefficients: all the fitting coefficients a_nm
+    #         data: contains the the two independent variables x and y and an instance of the polynomial class containing all the information of it
+    
+    #     """
+         
+    #     points = data[0]
+    #     x = points[0]
+    #     y = points[1]
+    #     poly = data[1]
+    #     ndim,mdim = poly.dim
+    #     a_nm = np.reshape(a_nm,(ndim,mdim))
+    #     f_eval = 0
+        
+    # #    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
+        
+    #     for i,n in enumerate(self.exponents[0]):
+    #         for j,m in enumerate(self.exponents[1]):
+                
+    #             #Getting the n,m dependent coefficients and exponents
+    #             f1_n = self.poly_coeff(self.func_coeff[0],n)
+    #             f2_m = self.poly_coeff(self.func_coeff[1],m)
+    #             if f1_n  == 0 or f2_m  == 0:
+    #                 pass
+    #             else: 
+    #                 f3_n = self.poly_coeff(poly.func_exp[0],n)
+    #                 f4_m = self.poly_coeff(poly.func_exp[1],m)
+    #                 f_eval += a_nm[i, j] * f1_n * f2_m * x ** (f3_n) * y ** (f4_m)
+                    
+    #     return f_eval
 
 def chunks(data, l):
     """
@@ -175,57 +277,6 @@ def chunks(data, l):
     """
     n, m = np.shape(data)
     return [data[:, i:i + l] for i in range(0, m, l)]
-
-def poly_coeff(func, point):
-    """
-    Returns the function f1(n), f2(m), f3(n) and f4(m) that appear in my notebook
-    
-    function is the list of exponents as described in polyval
-    point is the value of n or m
-    
-    """
-
-    f = np.polyval(func, point)
-    
-    return f
-
-
-def arbitrary_poly(data, a_nm):
-    """
-    evaluates the polynomial
-    p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
-    
-    at at the point x, y 
-    
-    Args:
-        coefficients: all the fitting coefficients a_nm
-        data: contains the the two independent variables x and y and an instance of the polynomial class containing all the information of it
-
-    """
-     
-    points = data[0]
-    x = points[0]
-    y = points[1]
-    poly = data[1]
-    ndim,mdim = poly.dim
-    a_nm = np.reshape(a_nm,(ndim,mdim))
-    f_eval = 0
-    
-#    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
-    
-    for i,n in enumerate(poly.exponents[0]):
-        for j,m in enumerate(poly.exponents[1]):
-            
-            #Getting the n,m dependent coefficients and exponents
-            f1_n = poly_coeff(poly.func_coeff[0],n)
-            f2_m = poly_coeff(poly.func_coeff[1],m)
-            if f1_n  == 0 or f2_m  == 0:
-                pass
-            else: 
-                f3_n = poly_coeff(poly.func_exp[0],n)
-                f4_m = poly_coeff(poly.func_exp[1],m)
-                f_eval += a_nm[i, j] * f1_n * f2_m * x ** (f3_n) * y ** (f4_m)
-    return f_eval
 
 
 def fit_general(*wrapped_data):
@@ -251,7 +302,7 @@ def fit_general(*wrapped_data):
     fit = FitClass(poly)
     
     popt, pcov = curve_fit(fit.fit_func, variables[:,:] , z, sigma = zerr, p0=[0] * ndim * mdim )
-    popt_matrix=np.reshape(popt,(ndim,mdim))
+    popt_matrix = np.reshape(popt,(ndim,mdim))
     
     return popt_matrix, pcov, variables
 
@@ -278,7 +329,7 @@ def fit_sum_poly(x,y,z,zerr,poly):
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
 
-def outputs(popt_matrix, pcov,e_results, n, m, name):
+def outputs(popt_matrix, pcov, e_results, n, m, name):
     
     print("\nCreated coefficients.dat containing all the fitting coefficients")
     np.savetxt('coefficients.dat', popt_matrix)
@@ -289,76 +340,30 @@ def outputs(popt_matrix, pcov,e_results, n, m, name):
     np.savetxt('error_%s.dat'%name,e_results, header=header,fmt='%12.8f')
 
 
-def test_prediction(popt,variables,z,poly,ref_prop):
+def test_prediction(z, z_predicted, ref_prop):
     """
-    
+    Computes the error in the prediction
     Args:
-        popt is the fitting coefficient matrix
+
         ref_prop is the reference property value
     
     Returns:
         
         Results with [z+z_ref, z_predict+z_ref, error]
     """
-    m,n_point=np.shape(variables)
-    z_predict=[]
-    popt=np.reshape(popt,(np.size(popt)))
-    
-    for i in range(n_point):
-        if np.size(poly)==1:
-            z_predict.append(arbitrary_poly([variables[:,i],poly],popt))
-        else:
-            z_predict.append(poly_sum(variables[:,i],popt))
-        
-#        print z_predict,z[i]
-    z_predict=np.array(z_predict)
 
-    error=np.abs((z-z_predict)/(z+ref_prop))*100
+    error = np.abs((z-z_predicted)/(z+ref_prop))*100
     
-    results=np.transpose(np.vstack((z+ref_prop,z_predict+ref_prop,error,variables[0,:],variables[1,:])))
+    results = np.transpose(np.vstack((z+ref_prop, z_predicted+ref_prop, error)))
     
     return results
 
 
-def arbitrary_poly_check(data, *params):
-    """
-    Creates a polymer
-    p(x,y)=\sum_{i,j}^{n,m} [ fn(i) fm(j) c_{i,j} x^{f_expx(i)} y^{f_expy(i)}
-    
-    Args:
-        params: all the fitting parameters
-        data: contains the the two independent variables x and y and an instance of the polynomial class containing all the information of it
-
-    """
-    
-    points=data[0]
-    x=points[0]
-    y=points[1]
-    poly=data[1]
-    ndim,mdim=poly.dim
-    params=np.reshape(params,(ndim,mdim))
-    function=0
-    
-#    print 'Inside arbitraty poly %s %s'%(np.shape(x),np.shape(y))
-    
-    for i,n in enumerate(poly.exponents[0]):
-        for j,m in enumerate(poly.exponents[1]):
-            
-            #Getting the n,m dependent coefficients and exponents
-            coeff_n = poly_coeff(poly.func_coeff[0],n)
-            coeff_m = poly_coeff(poly.func_coeff[1],m)
-            if coeff_m==0 or coeff_n==0:
-                function+=0
-            else: 
-                x_exp = poly_coeff(poly.func_exp[0],n)
-                y_exp = poly_coeff(poly.func_exp[1],m)
-                print(params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp))
-                function+=params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp)
-    return function
-
 
 def poly_sum(data,*params):
     """
+    
+    # TODO add once I am doing the solid fit
     Adds two arbitrary polynomials, 
     BECAREFUL added poly_p by hand
     """
@@ -369,6 +374,10 @@ def poly_sum(data,*params):
     res2=rho_ref*arbitrary_poly([points,poly[1]],params)
     return res1+res2
 
+
+# =============================================================================
+# Functions not related with the polynomials
+# =============================================================================
 
 
 def get_list(a):
@@ -437,14 +446,12 @@ def build_example_grid(n_points=20):
     header='# density Temperature property sigma_property'
     np.savetxt('input_example_grid.dat',data, header=header)
     
-def read_data(fname,prop_ref):
+def read_data(fname, prop_ref):
     """
     Reads the data from the input file that has [Temperature rho Property errorProperty]
     Args:
         fname: name of the file containing the data, run build example to see the structure 
         of the input_example.dat
-        rho_ref: reference density
-        beta_ref: reference beta
         prop_ref: Property at the reference point
         
     Returns:
@@ -452,11 +459,11 @@ def read_data(fname,prop_ref):
     """
     
     header, data = read_file(fname)
-    rho=data[:,1]
-    temperature=data[:,0]
-    prop=data[:,2]-prop_ref
-    sigma_prop=data[:,3]
-    beta=(1/temperature)
+    temperature = data[:,0]
+    rho = data[:,1]
+    prop = data[:,2] - prop_ref
+    sigma_prop = data[:,3]
+    beta = (1/temperature)
 
 
     # #    #Restricting to a range of temperatures
