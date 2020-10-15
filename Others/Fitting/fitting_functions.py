@@ -215,12 +215,12 @@ def delete_values(vector,delete_val):
         vector with all values from which you are going to delete
         delete_val values to delete from value
     """
-    indexes=[]
+    indexes = []
     
     for val in delete_val:
-        indexes.append(np.where(vector==val)[0])
+        indexes.append(np.where(vector == val)[0])
     
-    vector=np.delete(vector,np.array(indexes))
+    vector = np.delete(vector, np.array(indexes))
     
     return vector
 
@@ -285,65 +285,26 @@ def fit_poly(x,y,z,zerr,poly):
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
 
-def two_poly(input_data, *params):
-    
-    """
-    input_data: an object containing the independent variables in the first 
-                entrance and the polynomial objects in the second entry
-                
-    TODO: Need a way to pass the polymers as 
-    Function that is called by fit two poly to get the values z1, z2 of the 
-    fitting evaluated at the given poitts
-    params: are the fitting coefficients a_nm that are going to be varied by the
-    curve_fit
-    data contains[[data1+data2],[poly1+poly2]] + means appended
-    
-    params: contains the fitting coefficients that are going to be varied by the
-           curve_fit 
-    
-    """ 
-    # Unpacking the data and params
-    data, polynomials = input_data
-    n, m = np.shape(data)
-    length = int(m/2)
-    
-    data_1 = data[:,:length]
-    data_2 = data[:,length:]
-    
-    poly_1 = polynomials[0]
-    poly_2 = polynomials[1]
-
-    
-    z1 = arbitrary_poly([data_1,poly_1], params)
-    z2 = arbitrary_poly([data_2,poly_2], params)
-    
-    return np.append(z1,z2)
-
-
 def fit_two_poly(data_1, data_2):
     
     
     """
-    Trtying the approach in 
-    https://stackoverflow.com/questions/49813481/how-to-pass-parameter-to-fit-function-when-using-scipy-optimize-curve-fit
-    
+    Trtying the approach in     
     data_i contains the [[x,y,z,zerr],poly]
     """
     
-    #Organising the data in a suitable way
+    #Wrapping the data in a suitable way for the curve_fit
+    # It needs the x vector to contain the x1 vector, then stacked the x2, etc
     x=np.append(data_1[0][0],data_2[0][0])
-   
-    
     y=np.append(data_1[0][1],data_2[0][1])
     z=np.append(data_1[0][2],data_2[0][2])
-    
-
     zerr=np.append(data_1[0][3],data_2[0][3])
     
     poly = [data_1[1],data_2[1]]
     variables=np.stack((x,y))
     
-    ndim,mdim=poly[0].dim
+    # All the polynomials need to have the same a_nm
+    ndim, mdim = poly[0].dim
     
     
     
@@ -355,6 +316,38 @@ def fit_two_poly(data_1, data_2):
     
     
     return popt_matrix,pcov,variables
+
+
+def fit_general(*wrapped_data):
+    """
+    Trying to generalise the fitting
+    wrapped_data should contains a list of [data_i]  with data_i = [[x,y,z,zerr],poly]
+
+    where i runs over the number of polynomials n_poly
+    """
+
+    #Unwrapping the data and stacking accordingly
+    poly = [el[1] for el in wrapped_data]
+    data = np.hstack((el[0] for el in wrapped_data))
+
+    x, y, z, zerr = data
+
+    variables = data[:2,:]
+
+    print (np.size(variables))
+    
+    # All the polynomials need to have the same a_nm
+    ndim, mdim = poly[0].dim
+    
+    # TODO this could be moved outside to make it more general
+    fit = fitClass(poly)
+    
+    popt, pcov = curve_fit(fit.fit_func, variables[:,:] , z, sigma = zerr, p0=[0] * ndim * mdim )
+    popt_matrix=np.reshape(popt,(ndim,mdim))
+    
+    
+    return popt_matrix, pcov, variables
+
 
 
 def fit_sum_poly(x,y,z,zerr,poly):
