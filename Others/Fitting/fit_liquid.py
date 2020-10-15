@@ -68,7 +68,7 @@ plt.close('all')
 print ('\nTesting the energy results\n')
 
 # Computing the predictions
-variables_e = np.stack((x_e,y_e),axis=0)
+variables_e = np.stack((x_e, y_e),axis=0)
 z_e_predicted = poly_e.evaluate(variables_e, popt)
 
 # Computing the error
