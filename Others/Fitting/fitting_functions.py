@@ -21,25 +21,13 @@ import Lammps.core_functions as cf
 # Class definition
 # =============================================================================
 
-
-def chunks(data, l):
-    """
-    Yield successive n-sized chunks from lst
-    Args:
-        data numpy array 
-        n length of the chunks
-    
-    """
-    n, m = np.shape(data)
-    return [data[:, i:i + l] for i in range(0, m, l)]
-        
-
-
 # TODO this coulb be the general class that has the sum of polynomials 
-class fitClass:
+class FitClass:
     
     """
-    Solution using
+    A class to facilitate the fitting by adding parameters that can be called
+    with self.foo instead of the traditional fitting function descrived in
+    the documentation of curve_fit
     
     https://stackoverflow.com/questions/49813481/how-to-pass-parameter-to-fit-function-when-using-scipy-optimize-curve-fit/49813634#49813634
     """
@@ -59,10 +47,9 @@ class fitClass:
         Assumes that if its not a list, there is just one polynomial
         """
         self.dim = 0 
-        if not isinstance(self.poly, polynomial):
+        if not isinstance(self.poly, Polynomial):
             self.dim = len(self.poly)
     
-            
 
     def fit_func(self, x, *fit_coeff):
         
@@ -82,7 +69,7 @@ class fitClass:
 
 
 
-class polynomial(object):
+class Polynomial(object):
     """
     Class to identify a polynomial 
     
@@ -117,8 +104,6 @@ class polynomial(object):
         self.func_exp=[f_expx,f_expy]
         self.anm = []
         
-        
-
     
         
     def get_limits(self):
@@ -168,16 +153,31 @@ class polynomial(object):
             for j,m in enumerate(self.exponents[1]):
                 
                 #Getting the n,m dependent coefficients and exponents
-                coeff_n = coeff(self.func_coeff[0],n)
-                coeff_m = coeff(self.func_coeff[1],m)
-                x_exp = coeff(self.func_exp[0],n)
-                y_exp = coeff(self.func_exp[1],m)
+                coeff_n = poly_coeff(self.func_coeff[0],n)
+                coeff_m = poly_coeff(self.func_coeff[1],m)
+                x_exp = poly_coeff(self.func_exp[0],n)
+                y_exp = poly_coeff(self.func_exp[1],m)
                 print('%s  %s c_{%s %s} x^{%s} y^{%s} +'%(coeff_n,coeff_m,n,m,x_exp,y_exp))
 
+# =============================================================================
+# Things not belonging to the class (This can be adapted to the problem)
+# =============================================================================
+
+
+
+def chunks(data, l):
+    """
+    Yield successive n-sized chunks from lst
+    Args:
+        data numpy array 
+        n length of the chunks
+    
+    """
+    n, m = np.shape(data)
+    return [data[:, i:i + l] for i in range(0, m, l)]
 
 def poly_coeff(func, point):
     """
-    Replaces the function below (COEFF)
     Returns the function f1(n), f2(m), f3(n) and f4(m) that appear in my notebook
     
     function is the list of exponents as described in polyval
@@ -189,40 +189,6 @@ def poly_coeff(func, point):
     
     return f
 
-        
-def coeff(function,point):
-
-    coefficient=np.polyval(function,point)
-    
-    return coefficient
-
-
-def get_list(a):
-    """
-    Converts to a list if it is not
-    """
-    if isinstance(a,list):
-        return a
-    else:
-        return [a]
-    
-    
-def delete_values(vector,delete_val):
-    """
-    Delete values from a vector 
-    
-    args:
-        vector with all values from which you are going to delete
-        delete_val values to delete from value
-    """
-    indexes = []
-    
-    for val in delete_val:
-        indexes.append(np.where(vector == val)[0])
-    
-    vector = np.delete(vector, np.array(indexes))
-    
-    return vector
 
 def arbitrary_poly(data, a_nm):
     """
@@ -262,70 +228,14 @@ def arbitrary_poly(data, a_nm):
     return f_eval
 
 
-
-def fit_poly(x,y,z,zerr,poly):
-    """
-    fits a polynomial using least square fitting
-    the coefficients are pijx^i*y^j
-    Args:
-        x array containing the first variable 
-        y array containing the second variable
-        z array with the dependent variable
-        zerr sigma on the dependent variable
-        d degree of the polynomial
-    
-    Returns:
-        popt: Optimal fitting coefficients.
-        pcov: Covariant matrix of the fitting.
-    """
-    ndim,mdim=poly.dim
-    variables=np.stack((x,y),axis=0)
-    print(np.shape(variables))
-    popt, pcov = curve_fit(arbitrary_poly, [variables[:,:],poly], z, sigma=zerr,p0=[0]*ndim*mdim)
-    popt_matrix=np.reshape(popt,(ndim,mdim))
-    return popt_matrix,pcov,variables
-
-def fit_two_poly(data_1, data_2):
-    
-    
-    """
-    Trtying the approach in     
-    data_i contains the [[x,y,z,zerr],poly]
-    """
-    
-    #Wrapping the data in a suitable way for the curve_fit
-    # It needs the x vector to contain the x1 vector, then stacked the x2, etc
-    x=np.append(data_1[0][0],data_2[0][0])
-    y=np.append(data_1[0][1],data_2[0][1])
-    z=np.append(data_1[0][2],data_2[0][2])
-    zerr=np.append(data_1[0][3],data_2[0][3])
-    
-    poly = [data_1[1],data_2[1]]
-    variables=np.stack((x,y))
-    
-    # All the polynomials need to have the same a_nm
-    ndim, mdim = poly[0].dim
-    
-    
-    
-    # TODO this could be moved outside to make it more general
-    fit = fitClass(poly)
-    
-    popt, pcov = curve_fit(fit.fit_func, variables[:,:] , z, sigma = zerr, p0=[0] * ndim * mdim )
-    popt_matrix=np.reshape(popt,(ndim,mdim))
-    
-    
-    return popt_matrix,pcov,variables
-
-
 def fit_general(*wrapped_data):
     """
-    Trying to generalise the fitting
-    wrapped_data should contains a list of [data_i]  with data_i = [[x,y,z,zerr],poly]
-
-    where i runs over the number of polynomials n_poly
+    General fitting that can take any number of polynomials
+    
+    Args:
+        wrapped_data: should contains a list of [data_i]  with data_i = [[x,y,z,zerr],poly]
+        where i runs over the number of polynomials 
     """
-
     #Unwrapping the data and stacking accordingly
     poly = [el[1] for el in wrapped_data]
     data = np.hstack((el[0] for el in wrapped_data))
@@ -334,20 +244,16 @@ def fit_general(*wrapped_data):
 
     variables = data[:2,:]
 
-    print (np.size(variables))
-    
     # All the polynomials need to have the same a_nm
     ndim, mdim = poly[0].dim
     
     # TODO this could be moved outside to make it more general
-    fit = fitClass(poly)
+    fit = FitClass(poly)
     
     popt, pcov = curve_fit(fit.fit_func, variables[:,:] , z, sigma = zerr, p0=[0] * ndim * mdim )
     popt_matrix=np.reshape(popt,(ndim,mdim))
     
-    
     return popt_matrix, pcov, variables
-
 
 
 def fit_sum_poly(x,y,z,zerr,poly):
@@ -372,7 +278,7 @@ def fit_sum_poly(x,y,z,zerr,poly):
     popt_matrix=np.reshape(popt,(ndim,mdim))
     return popt_matrix,pcov,variables
 
-def outputs(popt_matrix,pcov,e_results,n,m,name):
+def outputs(popt_matrix, pcov,e_results, n, m, name):
     
     print("\nCreated coefficients.dat containing all the fitting coefficients")
     np.savetxt('coefficients.dat', popt_matrix)
@@ -439,13 +345,13 @@ def arbitrary_poly_check(data, *params):
         for j,m in enumerate(poly.exponents[1]):
             
             #Getting the n,m dependent coefficients and exponents
-            coeff_n=coeff(poly.func_coeff[0],n)
-            coeff_m=coeff(poly.func_coeff[1],m)
+            coeff_n = poly_coeff(poly.func_coeff[0],n)
+            coeff_m = poly_coeff(poly.func_coeff[1],m)
             if coeff_m==0 or coeff_n==0:
                 function+=0
             else: 
-                x_exp=coeff(poly.func_exp[0],n)
-                y_exp=coeff(poly.func_exp[1],m)
+                x_exp = poly_coeff(poly.func_exp[0],n)
+                y_exp = poly_coeff(poly.func_exp[1],m)
                 print(params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp))
                 function+=params[i,j]*coeff_n*coeff_m*x**(x_exp)*y**(y_exp)
     return function
@@ -465,55 +371,33 @@ def poly_sum(data,*params):
 
 
 
-def fit_three_poly(data_1,data_2,data_3):
+def get_list(a):
     """
-    data_i contains the [[x,y,z,zerr],poly]
+    Converts to a list if it is not
     """
-    
-    #Organising the dat in a suitable way
-    x=np.concatenate((data_1[0][0],data_2[0][0],data_3[0][0]))
-    y=np.concatenate((data_1[0][1],data_2[0][1],data_3[0][1]))
-    z=np.concatenate((data_1[0][2],data_2[0][2],data_3[0][2]))
-    zerr=np.concatenate((data_1[0][3],data_2[0][3],data_3[0][3]))
-    
-    poly=[data_1[1],data_2[1],data_3[1]]
-    
-    variables=np.stack((x,y))
-    
-    ndim,mdim=poly[1].dim
-    
-    popt, pcov = curve_fit(three_poly,variables[:,:],z,sigma=zerr,p0=[0]*ndim*mdim)
-    popt_matrix=np.reshape(popt,(ndim,mdim))
+    if isinstance(a,list):
+        return a
+    else:
+        return [a]
     
     
-    return popt_matrix,pcov,variables
-
-
-def three_poly(data,*params):
-    
+def delete_values(vector,delete_val):
     """
-    data contains[data1+data2,poly1+poly2] + means appended
+    Delete values from a vector 
+    
+    args:
+        vector with all values from which you are going to delete
+        delete_val values to delete from value
     """
+    indexes = []
+    
+    for val in delete_val:
+        indexes.append(np.where(vector == val)[0])
+    
+    vector = np.delete(vector, np.array(indexes))
+    
+    return vector
 
-    data_1=data[:,:len(x_p)]  #Correct because x_e is global
-    poly_1=poly_p
-    data_2=data[:,len(x_p):len(x_p)+len(x_e)]
-    poly_2=poly_e
-    data_3=data[:,len(x_p)+len(x_e):]
-    poly_3=poly_a
-    
-
-    z1=poly_sum(data_1,params)
-    z2=arbitrary_poly([data_2,poly_2],params)
-    z3=arbitrary_poly([data_3,poly_3],params)
-    
-    
-    return np.concatenate((z1,z2,z3))
-
-# =============================================================================
-# Things not belonging to the class (This can be adapted to the problem)
-# =============================================================================
-    
 
 def p_known(x,y):
     """
@@ -622,71 +506,71 @@ def read_coeff_file(input_file):
     return m_values, n_values, coefficients
     
 
-def plot_slices():
+# def plot_slices():
     
     
-    cf.set_plot_appearance()
-    dir_name="slices_beta_p"
-    shutil.rmtree(dir_name,ignore_errors=True) 
+#     cf.set_plot_appearance()
+#     dir_name="slices_beta_p"
+#     shutil.rmtree(dir_name,ignore_errors=True) 
     
-    os.mkdir(dir_name)
-    slices=np.unique(y_p)
-    print("\nPerforming the Pressure slices\n")
-    for i,sli in enumerate(slices):
+#     os.mkdir(dir_name)
+#     slices=np.unique(y_p)
+#     print("\nPerforming the Pressure slices\n")
+#     for i,sli in enumerate(slices):
         
-        fig3=plt.figure()
-        ax3=fig3.add_subplot(111)
-        error_cap=4
-        indexes=np.where(y_p==sli)
-        ax3.errorbar(x_p[indexes],z_p[indexes]+p_ref,yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
-        ax3.plot(x_p[indexes],er_results_p[indexes[0],1],label='Fit 3')
-        ax3.plot(x_p[indexes],single_results_p[indexes[0],1],label='Fit 1')
-        fig3.legend(loc='upper right')
-        fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
+#         fig3=plt.figure()
+#         ax3=fig3.add_subplot(111)
+#         error_cap=4
+#         indexes=np.where(y_p==sli)
+#         ax3.errorbar(x_p[indexes],z_p[indexes]+p_ref,yerr=zerr_p[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+#         ax3.plot(x_p[indexes],er_results_p[indexes[0],1],label='Fit 3')
+#         ax3.plot(x_p[indexes],single_results_p[indexes[0],1],label='Fit 1')
+#         fig3.legend(loc='upper right')
+#         fig3.tight_layout()
+#         fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
         
         
-    dir_name="slices_beta_e"
-    shutil.rmtree(dir_name,ignore_errors=True) 
-    os.mkdir(dir_name)
+#     dir_name="slices_beta_e"
+#     shutil.rmtree(dir_name,ignore_errors=True) 
+#     os.mkdir(dir_name)
     
     
-    slices=np.unique(y_e)
-    print("\nPerforming the Energy slices\n")
-    for i,sli in enumerate(slices):
+#     slices=np.unique(y_e)
+#     print("\nPerforming the Energy slices\n")
+#     for i,sli in enumerate(slices):
         
-        fig3=plt.figure()
-        ax3=fig3.add_subplot(111)
-        error_cap=4
-        indexes=np.where(y_e==sli)
-        ax3.errorbar(x_e[indexes],z_e[indexes]+e_ref,yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+#         fig3=plt.figure()
+#         ax3=fig3.add_subplot(111)
+#         error_cap=4
+#         indexes=np.where(y_e==sli)
+#         ax3.errorbar(x_e[indexes],z_e[indexes]+e_ref,yerr=zerr_e[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
     
-        ax3.plot(x_e[indexes],er_results_e[indexes[0],1],label='Fit 3')
-        ax3.plot(x_e[indexes],single_results_e[indexes[0],1],label='Fit 1')
-        fig3.legend(loc='upper right')
-        fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
+#         ax3.plot(x_e[indexes],er_results_e[indexes[0],1],label='Fit 3')
+#         ax3.plot(x_e[indexes],single_results_e[indexes[0],1],label='Fit 1')
+#         fig3.legend(loc='upper right')
+#         fig3.tight_layout()
+#         fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
         
         
-    dir_name="slices_beta_a"
-    shutil.rmtree(dir_name,ignore_errors=True) 
-    os.mkdir(dir_name)
+#     dir_name="slices_beta_a"
+#     shutil.rmtree(dir_name,ignore_errors=True) 
+#     os.mkdir(dir_name)
     
-    slices=np.unique(y_a)
-    print("\nPerforming the Free energy slices\n")
-    for i,sli in enumerate(slices):
+#     slices=np.unique(y_a)
+#     print("\nPerforming the Free energy slices\n")
+#     for i,sli in enumerate(slices):
         
-        fig3=plt.figure()
-        ax3=fig3.add_subplot(111)
-        error_cap=4
-        indexes=np.where(y_a==sli)
-        ax3.errorbar(x_a[indexes],z_a[indexes]+a_ref,yerr=zerr_a[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
+#         fig3=plt.figure()
+#         ax3=fig3.add_subplot(111)
+#         error_cap=4
+#         indexes=np.where(y_a==sli)
+#         ax3.errorbar(x_a[indexes],z_a[indexes]+a_ref,yerr=zerr_a[indexes],fmt='o',capsize=error_cap,label='beta=%s'%sli)
         
-        ax3.plot(x_a[indexes],er_results_a[indexes[0],1],label='Fit 3')
-        ax3.plot(x_a[indexes],single_results_a[indexes[0],1],label='Fit 1')
+#         ax3.plot(x_a[indexes],er_results_a[indexes[0],1],label='Fit 3')
+#         ax3.plot(x_a[indexes],single_results_a[indexes[0],1],label='Fit 1')
         
         
-        fig3.legend(loc='upper right')
-        fig3.tight_layout()
-        fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
+#         fig3.legend(loc='upper right')
+#         fig3.tight_layout()
+#         fig3.savefig("%s/slice_%s.pdf"%(dir_name,i))
 
