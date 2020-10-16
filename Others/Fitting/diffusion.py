@@ -31,7 +31,7 @@ m_values, n_values, coefficients = ff.read_coeff_file(coefficient_file)
 header, data = ff.read_file(values_file)
 
 # Definining the polynomial
-poly_d = ff.Polynomial(n_values, m_values,[1],[1],[1,0],[1,-1])
+poly_d = ff.Polynomial(n_values, m_values,[1],[1],[1,0],[1,0])
 
 # Check the header varible but in general the variables are like this
 x_e = data[:,0] # Density
@@ -44,7 +44,7 @@ variables = copy.deepcopy(data[:,0:2])
 variables[:,1] = 1/variables[:,1]
 
 # Evaluating the polynomial at the given ponts
-z_predicted = poly_d.evaluate(np.transpose(variables), coefficients)
+z_predicted = poly_d.evaluate(np.transpose(variables), coefficients) #rho * D
 
 # =============================================================================
 # Plotting the points and predicted
@@ -53,9 +53,10 @@ cf.set_plot_appearance()
 plt.close('all')
 fig1 = plt.figure()
 ax1 = fig1.add_subplot(111, projection='3d')
-ax1.scatter( y_e, x_e, z_e, zdir='z',marker='.',label="Simulation",color='r')
+ax1.scatter( y_e, x_e, z_e*x_e, zdir='-z',marker='.',label="Simulation",color='r')
 ax1.scatter(y_e, x_e, z_predicted, zdir='z',marker='.',label="Fitting",color='b')
 ax1.set_xlabel(r'$T$', labelpad = 5)
 ax1.set_ylabel(r'$\rho$', labelpad = 5)
-ax1.set_zlabel(r'$D$', labelpad = 5)
+ax1.set_zlabel(r'$\rho D$', labelpad = 5)
+ax1.legend()
 fig1.show()

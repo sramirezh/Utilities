@@ -60,3 +60,5 @@ ax1.set_xlabel(r'$T$', labelpad = 5)
 ax1.set_ylabel(r'$\rho$', labelpad = 5)
 ax1.set_zlabel(r'$\eta$', labelpad = 5)
 fig1.show()
+
+
