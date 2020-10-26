@@ -16,17 +16,9 @@ import Lammps.core_functions as cf
 import Lammps.Pore.qsub.simulation_results as sr
 import Lammps.lammps_utilities as lu
 import glob
-
 import flux_correlation as fc 
-
-
-
 from uncertainties import unumpy,ufloat
 import matplotlib.pyplot as plt
-
-
-cwd = os.getcwd() #current working directory
-
 
 def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     
@@ -46,12 +38,12 @@ def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     
     cwd = os.getcwd()
     os.chdir(folder)
-    data=cf.read_data_file(input_file)
+    data = cf.read_data_file(input_file)
     
     
     data1 = data.values
-    times=(data1[:,0]-data1[0,0])*delta_t
-    max_delta=int(len(times)*0.004) #Maximum delta of time to measure the correlation
+    times = (data1[:,0]-data1[0,0])*delta_t
+    max_delta = int(len(times)*0.004) #Maximum delta of time to measure the correlation
     
     
     
@@ -115,25 +107,6 @@ def load_correlations(folder):
     
     return [c11,c12,c21,c22]
   
-    
-
-
-
-'''****************************************************************************
-# =============================================================================
-# MAIN
-# =============================================================================
-****************************************************************************'''
-
-# =============================================================================
-# Input parameters (SPECIFIC TO THE PROBLEM)
-# =============================================================================
-
-delta_t = 0.005
-root = "."
-directory_pattern='[0-9]*'
-input_file='vdata.dat'
-
 
 def remove_pkl(root):
     
@@ -144,6 +117,34 @@ def remove_pkl(root):
     files = glob.glob('%s/**/*.pkl'%root,  recursive = True)
     for file in files:
         os.remove(file)
+
+
+
+'''****************************************************************************
+# =============================================================================
+# MAIN
+# =============================================================================
+****************************************************************************'''
+
+cwd = os.getcwd()
+plot_dir = "plots"
+
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)   
+
+# =============================================================================
+# Input parameters (SPECIFIC TO THE PROBLEM)
+# =============================================================================
+
+delta_t = 0.005
+root = "."
+directory_pattern = '[0-9]*'
+input_file = 'vdata.dat'
+
+
+
     
 
 # For testing ONLY
@@ -297,16 +298,16 @@ pref = 1/(3*V)
 #Todo, this could be added to each integral
 
 
-print("The c11 is %s\n" %c11.transport_coeff(T, pref, 0, xmax))
-print("The c12 is %s\n" %c12.transport_coeff(T, pref, 0, xmax))
-print("The c21 is %s\n" %c21.transport_coeff(T, pref, 0, xmax))
-print("The c22 is %s\n" %c22.transport_coeff(T, pref, 0, xmax))
+print("The c11 is %s\n" %c11.transport_coeff(0, xmax))
+print("The c12 is %s\n" %c12.transport_coeff(0, xmax))
+print("The c21 is %s\n" %c21.transport_coeff(0, xmax))
+print("The c22 is %s\n" %c22.transport_coeff(0, xmax))
 
 f=open("GK.out",'w')
-f.write("The c11 is %s\n" %c11.transport_coeff(T, pref, 0, xmax))
-f.write("The c12 is %s\n" %c12.transport_coeff(T, pref, 0, xmax))
-f.write("The c21 is %s\n" %c21.transport_coeff(T, pref, 0, xmax))
-f.write("The c22 is %s\n" %c22.transport_coeff(T, pref, 0, xmax))
+f.write("The c11 is %s\n" %c11.transport_coeff(0, xmax))
+f.write("The c12 is %s\n" %c12.transport_coeff(0, xmax))
+f.write("The c21 is %s\n" %c21.transport_coeff(0, xmax))
+f.write("The c22 is %s\n" %c22.transport_coeff(0, xmax))
 f.close
 
 
