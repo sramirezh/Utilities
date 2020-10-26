@@ -58,5 +58,7 @@ ax1.scatter(y_e, x_e, z_predicted, zdir='z',marker='.',label="Fitting",color='b'
 ax1.set_xlabel(r'$T$', labelpad = 5)
 ax1.set_ylabel(r'$\rho$', labelpad = 5)
 ax1.set_zlabel(r'$\rho D$', labelpad = 5)
-ax1.legend()
+# To reduce the empty space around the figure
+fig1.subplots_adjust(left=0, right=1, bottom=0, top=1) 
+ax1.legend(loc=(0.15,0.65),frameon=0)
 fig1.show()
