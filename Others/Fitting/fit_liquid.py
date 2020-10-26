@@ -17,6 +17,12 @@ import Lammps.core_functions as cf
 # =============================================================================
 # MAIN
 # =============================================================================
+plot_dir = "plots/simulataneous_fit"
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)    
 
 rho_ref = 0 #0.32
 beta_ref = 0  #0 1/1.04
@@ -27,8 +33,8 @@ file_e='energy/energy_liquid_rc2.0.txt'
 p_ref = 0
 e_ref = 0
 
-print("rho_ref = %s"%rho_ref)
-print("beta_ref = %s"%beta_ref)
+logger.info("rho_ref = %s"%rho_ref)
+logger.info("beta_ref = %s"%beta_ref)
 
 # =============================================================================
 #     Here is where I define the polynomials
@@ -80,15 +86,17 @@ ff.outputs(popt,pcov, er_results_e, deg_x, deg_y,'e')
 # Plotting the results
 fig1 = plt.figure()
 ax1 = fig1.add_subplot(111, projection='3d')
-ax1.scatter(x_e, y_e, z_e, zdir = 'z',marker ='.', label="Simulation", color ='r')
-ax1.scatter(x_e, y_e, z_e_predicted, zdir='z', label="Fitting", color = 'black')
-ax1.set_xlabel(r'$\rho-\rho^*$')
-ax1.set_ylabel(r'$\beta-\beta^*$')
-ax1.set_zlabel(r'$\Delta \rho \ e_{exc}$')
-
-fig1.legend()
+ax1.scatter(x_e, y_e, z_e, zdir = '-z',marker ='.', label="Simulation", color ='r')
+ax1.scatter(x_e, y_e, z_e_predicted, zdir='-z', marker='.', label="Fitting", color = 'b')
+ax1.set_xlabel(r'$\rho$', labelpad = 5)
+ax1.set_ylabel(r'$\beta$', labelpad = 5)
+ax1.set_zlabel(r'$\rho \ e_{\text {exc}}$', labelpad = 5)
+fig1.subplots_adjust(left=0, right=1, bottom=0, top=1) 
+ax1.legend(loc=(0.25,0.65),frameon=0)
 fig1.show()
-fig1.savefig("3Dplot_e.pdf")
+
+fig1.savefig("%s/3Dplot_e.pdf"%plot_dir)
+logger.info("plotted %s/3Dplot_e.pdf"%plot_dir)
 
 
 print ('\nTesting the pressure results\n')
@@ -106,15 +114,18 @@ ff.outputs(popt, pcov, er_results_p, deg_x, deg_y, 'p')
 # Plotting the results
 fig2 = plt.figure()
 ax2 = fig2.add_subplot(111, projection='3d')
-ax2.scatter(x_p, y_p, z_p, zdir='z',marker='.',label="Simulation", color='r')
-ax2.scatter(x_p, y_p, z_p_predicted, zdir='z',label="Fitting", color='black')
-ax2.set_xlabel(r'$\rho-\rho^*$')
-ax2.set_ylabel(r'$\beta-\beta^*$')
-ax2.set_zlabel(r'$\Delta \beta\ P_{exc}$')
+ax2.scatter(y_p, x_p, z_p, zdir='z',marker='.',label="Simulation", color='r')
+ax2.scatter(y_p, x_p, z_p_predicted, zdir='z', marker='.',label="Fitting", color='b')
+ax2.set_ylabel(r'$\rho$', labelpad = 5)
+ax2.set_xlabel(r'$\beta$', labelpad = 5)
+ax2.set_zlabel(r'$ \beta\ P_{\text {exc}}$', labelpad = 5)
 
-fig2.legend()
+# To reduce the empty space around the figure
+fig2.subplots_adjust(left=0, right=1, bottom=0, top=1) 
+ax2.legend(loc=(0.55,0.65),frameon=0)
 fig2.show()
-fig2.savefig("3Dplot_p.pdf")
+fig2.savefig("%s/3Dplot_p.pdf"%plot_dir)
+logger.info("plotted %s/3Dplot_p.pdf"%plot_dir)
 
 ## =============================================================================
 ## #    Single fitting
