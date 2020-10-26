@@ -19,6 +19,13 @@ import Lammps.core_functions as cf
 # =============================================================================
 # Input parameters
 # =============================================================================
+plot_dir = "plots"
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+    
+    
+logger = cf.log(__file__, os.getcwd(),plot_dir)    
+
 coefficient_file = 'fit_coefficients_liquid_rc2.0.txt'
 values_file = 'viscosity_liquid_rc2.0.txt'
 
@@ -56,9 +63,13 @@ fig1 = plt.figure()
 ax1 = fig1.add_subplot(111, projection='3d')
 ax1.scatter( y_e, x_e, z_e, zdir='z',marker='.',label="Simulation",color='r')
 ax1.scatter(y_e, x_e, z_predicted, zdir='z',marker='.',label="Fitting",color='b')
-ax1.set_xlabel(r'$T$', labelpad = 5)
+ax1.set_xlabel(r'$T$', labelpad = 10)
 ax1.set_ylabel(r'$\rho$', labelpad = 5)
 ax1.set_zlabel(r'$\eta$', labelpad = 5)
+ax1.legend(loc=(0.15,0.65),frameon=0)
+# To reduce the empty space around the figure
+fig1.subplots_adjust(left=0, right=1, bottom=0, top=1) 
 fig1.show()
-
+fig1.savefig("%s/eta.pdf"%plot_dir)
+logger.info("plotted %s/eta.pdf"%plot_dir)
 
