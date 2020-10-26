@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Plots the concentrations found in the log file
+Plots the concentration evolution found in the log file
 @author: sr802
 """
 import numpy as np
