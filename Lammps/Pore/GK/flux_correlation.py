@@ -272,10 +272,15 @@ class correlation(object):
 
     def transport_coeff(self, xmin, xmax):
         """
+        Args:
+            xmin: lower limit of the integral
+            xmax: upper limit of the integral
         Returns
         self.coeff = The transport coefficients in all directions without 
         multiplying for any
         prefactor, so, only the integration of the correlation
+
+
 
         """
         coeff = []
