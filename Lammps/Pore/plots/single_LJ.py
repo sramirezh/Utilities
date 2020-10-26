@@ -3,6 +3,7 @@
 """
 Created on Tue Apr  2 13:24:39 2019
 This scripts plots the results inside 0.GCMC_single/Fig_5.8 
+plots the mu_ex and pressure as a function of the density
 @author: sr802
 """
 import numpy as np
