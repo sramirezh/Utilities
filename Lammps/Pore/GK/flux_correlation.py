@@ -150,7 +150,7 @@ class correlation(object):
         Performs the Autocorrelation of the 1d components,using 
         statsmodels.tsa.stattools.acf
         See my ipython about autocorrelation and GK
-        TODO: Include the error
+
         """
         total = np.zeros(self.max_delta)
         for dim in range(self.dimension):
@@ -177,9 +177,11 @@ class correlation(object):
     def evaluate_ccf(self):
         """
         TODO it is very slow
+        TODO: Include the error
         Performs the correlation of the 1d components,using 
         statsmodels.tsa.stattools.ccf
         See my ipython about autocorrelation and GK
+        
         """
         total = np.zeros(self.max_delta)
         for dim in range(self.dimension):
@@ -284,10 +286,14 @@ class correlation(object):
 
         """
         coeff = []
-        for dim in range(self.dimension):
-            integral = self.transport_coeff_comp(xmin, xmax, dim)
-            coeff.append(integral)
-        self.coeff = np.array(coeff)
+        if self.dimension > 1:
+            for dim in range(self.dimension):
+                integral = self.transport_coeff_comp(xmin, xmax, dim)
+                coeff.append(integral)
+            self.coeff = np.array(coeff)
+        else:
+            self.coeff = cf.integrate(self.times, self.cor,xmin, xmax )
+
         return self.coeff
 
 
