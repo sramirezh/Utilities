@@ -123,6 +123,12 @@ class correlation(object):
         num_cores = multiprocessing.cpu_count()
         var1 = self.flux1.components[:, dim]
         var2 = self.flux2.components[:, dim]
+
+        # cor = []
+        # for i in range(self.max_delta):
+        #     cor.append(compute_correlation_dt(var1, var2, i))
+
+
         cor = Parallel(n_jobs=num_cores)(delayed(compute_correlation_dt)
                                          (var1, var2, i) for i in tqdm(range(self.max_delta)))
         norm = cor[0]
@@ -130,23 +136,26 @@ class correlation(object):
         self.cor[dim] = np.array(cor)
         self.cor_norm[dim] = np.array(cor) / norm
    
-    def evaluate(self):
-        """
-        Performs the correlations of the 1d components,calling
-        correlate_one_d, and adds them up to the total.
+    # def evaluate(self):
+    #     """
+    #     DO NOT USE, THE CORRELATE USING COV does not work! see my logbook on Pore
+    #     or my autocorrelation_and_GK jupyter
+    #     Performs the correlations of the 1d components,calling
+    #     correlate_one_d, and adds them up to the total.
         
-        """
-        total = np.zeros(self.max_delta)
-        for dim in range(self.dimension):
-            self.correlate_one_d(dim)
-            total = total + self.cor[dim]
-        total = total / 3
-        self.cor[-1] = total
-        self.norm[-1] = total[0]
-        self.cor_norm[-1] = total / total[0]
+    #     """
+    #     total = np.zeros(self.max_delta)
+    #     for dim in range(self.dimension):
+    #         self.correlate_one_d(dim)
+    #         total = total + self.cor[dim]
+    #     total = total / 3
+    #     self.cor[-1] = total
+    #     self.norm[-1] = total[0]
+    #     self.cor_norm[-1] = total / total[0]
 
     def evaluate_acf(self):
         """
+        TODO: Generate an error if the fluxes are not the same
         Performs the Autocorrelation of the 1d components,using 
         statsmodels.tsa.stattools.acf
         See my ipython about autocorrelation and GK
@@ -176,11 +185,15 @@ class correlation(object):
 
     def evaluate_ccf(self):
         """
-        TODO it is very slow
+        TODO it is very slow. It should be improved following the source of the
+        acf(statsmodels.tsa.stattools) which evaluates the acovf, tha uses
+        fft to compute the correlation.
         TODO: Include the error
         Performs the correlation of the 1d components,using 
         statsmodels.tsa.stattools.ccf
-        See my ipython about autocorrelation and GK
+
+        ----------------------------------------------
+        Notes: See my ipython about autocorrelation and GK
         
         """
         total = np.zeros(self.max_delta)
@@ -306,27 +319,89 @@ class bundle_correlation(correlation):
     def __init__(self, array, times, flux1_name, flux2_name):
         """
         Args:
-            array: contanining all the correlations
+            array: contanining all the correlations 
             times: times at which the correlations where measured. Couls be 
                     taken from one of the correlation instances as 
                     instance.times
             flux1_name: Name of the flux 1, also can be taken from the instance
             flux2_name: Name of the flux 2, also can be taken from the instance
+        
+        
+        Atributes:
+            cor: contains the correlations as an array, the components
+            are x,y,z, and total in 3D
+            norm: normalisation factor for each dimension  t=0 (var1(0) var2(0))
+            cor_norm: list to store the normalised correlations, the last is the
+            total
         """
-        self.arrays = array
-        self.averaging()
-        self.dimension = 1
-        self.times = times
-        self.norm = max(self.cor).nominal_value
-        self.cor_norm = [self.cor / self.norm]
+        self.arrays = np.array(array)
         self.flux1_name = flux1_name
         self.flux2_name = flux2_name
+        self.times = times
+        
+        self.initial_computes()
+        
+        # self.norm = max(self.cor).nominal_value
+        # self.cor_norm = [self.cor / self.norm]
+        
+        
+    def initial_computes(self):
+        """
+        Gets the shape of the correlation array and calls the averaging, 
+        Args:
+            self
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        self.n_runs, self.dimension, self.n_points = np.shape(self.arrays)
+        
+        # Initilising the lists
+        self.norm = (self.dimension ) * [0]  
+        self.cor_norm = (self.dimension ) * [0]  
+        self.averaging()
+        
+        for dim in range(self.dimension):
+            normalisation = self.cor[dim][0]
+            self.norm[dim] = normalisation
+            self.cor_norm = self.cor[dim]/normalisation
+            
+
+        
+        
+        
+
 
     def averaging(self):
+        """
+        np.shape(self.arrays) =[#runs, Dimensions(+average),points 
+        Takes the average of the array of correlations.
+        Sometimes the individual correlations have errors, therefore
+        each point has (average + std)
+        
+        TODO propagate the error when the data is from uncertainties, at the 
+        moment I am striping the uncertainties
+
+        Returns
+        -------
+        None.
+
+        """
         ddof = 1
         array = self.arrays
+        
+        # To avoid errors if there is only one run
         if len(array) == 0:
             ddof = 0
+        
+        #Striping the uncertainties from individual runs
+        if isinstance(array[0][0][0], un.UFloat):
+            array = unumpy.nominal_values(array)
+        
+        
         self.cor = unumpy.uarray(np.average(array, axis=0), sem(array,
                                     axis=0, ddof=ddof))
            
@@ -381,7 +456,22 @@ class bundle_correlation(correlation):
         return fig, ax
         
 
-       
+
+
+# def average_unumpy_tensor(array):
+#     """
+#     Performs the average of unumpy values 
+#     Parameters
+#     ----------
+#     array : np.array
+#         it is an array that has [n,m,l] dimensions
+
+#     Returns
+#     -------
+#     None.
+
+#     """
+    
 
 def compute_correlation_dt(var1, var2, delta):
     """
