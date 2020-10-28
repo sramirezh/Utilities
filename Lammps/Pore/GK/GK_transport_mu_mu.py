@@ -20,7 +20,11 @@ import flux_correlation as fc
 from uncertainties import unumpy,ufloat
 import matplotlib.pyplot as plt
 
-def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
+
+
+global solute_flux
+
+def run_correlation_analysis(folder, input_file, save = "True"):
     
     """
     ******************Very specific function*************************
@@ -42,6 +46,7 @@ def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     
     
     data1 = data.values
+    delta_t = lu.read_value_from("log.lammps", 'timestep')[1]
     times = (data1[:,0]-data1[0,0])*delta_t
     max_delta = int(len(times)*0.004) #Maximum delta of time to measure the correlation
     
@@ -56,33 +61,35 @@ def run_correlation_analysis(folder,input_file,delta_t, save = "True"):
     n_solv = lu.read_value_from("log.lammps", "atoms in group gSolv")
     n_solu = lu.read_value_from("log.lammps", "atoms in group gSolu")
     
-    J_s = n_solu * data1[:,[2,5,8]]
-    J_f = n_solv * data1[:,[1,4,7]]
+    j_s_components = ["v_vx_Solu", "v_vy_Solu", "v_vz_Solu"]
+    j_f_components = ["v_vx_Solv", "v_vy_Solv", "v_vz_Solv"]
+    
+    j_s = n_solu * data[j_s_components].values
+    j_f = n_solv * data[j_f_components].values
     
     
-    solute_flux = fc.flux(J_s,times,"J_s")
-    solvent_flux = fc.flux(J_f,times,"J_f")
+    solute_flux = fc.flux(j_s, times, "J_s")
+    solvent_flux = fc.flux(j_f, times, "J_f")
     
     
     
-    
-    c11 = fc.correlation(solute_flux,solute_flux,max_delta)
-    c11.evaluate()
+    c11 = fc.correlation(solute_flux, solute_flux, max_delta)
+    c11.evaluate_acf()
 
     
     c12 = fc.correlation(solute_flux,solvent_flux,max_delta)
-    c12.evaluate()
+    c12.evaluate_ccf()
 
     
     c21 = fc.correlation(solvent_flux,solute_flux,max_delta)
-    c21.evaluate()
+    c21.evaluate_ccf()
 
     
     c22 = fc.correlation(solvent_flux,solvent_flux,max_delta)
-    c22.evaluate()
+    c22.evaluate_acf()
     
     
-    if save=="True":
+    if save == "True":
         c11.save('c11')
         c12.save('c12')
         c21.save('c21')
@@ -138,14 +145,61 @@ logger = cf.log(__file__, os.getcwd(),plot_dir)
 # Input parameters (SPECIFIC TO THE PROBLEM)
 # =============================================================================
 
-delta_t = 0.005
 root = "."
 directory_pattern = '[0-9]*'
 input_file = 'vdata.dat'
 
 
 
+#     # Testing for one folder
+
+
+# cwd = os.getcwd()
+# for folder in glob.glob(directory_pattern):
     
+#     os.chdir(folder)
+    
+#     data = cf.read_data_file(input_file)
+    
+    
+#     data1 = data.values
+#     delta_t = lu.read_value_from("log.lammps", 'timestep')[1]
+#     times = (data1[:,0]-data1[0,0])*delta_t
+#     max_delta = int(len(times)*0.004) #Maximum delta of time to measure the correlation
+    
+    
+    
+#     n_solv = lu.read_value_from("log.lammps", "atoms in group gSolv")
+#     n_solu = lu.read_value_from("log.lammps", "atoms in group gSolu")
+    
+    
+#     j_s_components = ["v_vx_Solu", "v_vy_Solu", "v_vz_Solu"]
+#     j_f_components = ["v_vx_Solv", "v_vy_Solv", "v_vz_Solv"]
+    
+#     j_s = n_solu * data[j_s_components].values
+#     j_f = n_solv * data[j_f_components].values
+    
+    
+#     solute_flux = fc.flux(j_s, times, "J_s")
+#     solvent_flux = fc.flux(j_f, times, "J_f")
+    
+
+#     # Evaluation using my function
+#     c1 = fc.correlation(solute_flux, solute_flux, max_delta)
+#     c1.evaluate_acf()
+#     print(c1.transport_coeff(0,10))
+
+
+#     # Evaluation using my acf
+#     c2 = fc.correlation(solute_flux, solute_flux, max_delta)
+#     c2.evaluate_ccf()
+#     print(c2.transport_coeff(0,10))
+#     os.chdir(cwd)
+
+
+
+    
+
 
 # For testing ONLY
 #remove_pkl(root)
@@ -181,26 +235,28 @@ if (len(glob.glob('c1*'))<1):
         
         if folder in unfinished_correlation[0]:
             print("Running the correlation analysis in %s\n"%folder)
-            c11,c12,c21,c22 = run_correlation_analysis(folder,input_file, delta_t)
+            c11,c12,c21,c22 = run_correlation_analysis(folder,input_file)
         
         else:
             print("Loading the results in %s\n"%folder)
-            c11,c12,c21,c22 = load_correlations(folder)
+            c11, c12, c21, c22 = load_correlations(folder)
             
         # Appending only the average of x,y,z
-        c11_array.append(c11.cor[-1])
-        c12_array.append(c12.cor[-1])
-        c21_array.append(c21.cor[-1])
-        c22_array.append(c22.cor[-1])
-        
-        #Extracting the times from one of the correlation
-        times = c11.times
+        c11_array.append(c11.cor)
+        c12_array.append(c12.cor)
+        c21_array.append(c21.cor)
+        c22_array.append(c22.cor)
+    
+    print(np.shape(c11_array))
+    print(np.shape(np.ravel(c11_array)))
+    #Extracting the times from one of the correlation
+    times = c11.times
     
     #Creating the bundle instances 
-    c11 = fc.bundle_correlation(c11_array,times,"J_s","J_s")
-    c12 = fc.bundle_correlation(c12_array,times,"J_s","J_f")
-    c21 = fc.bundle_correlation(c21_array,times,"J_f","J_s")
-    c22 = fc.bundle_correlation(c22_array,times,"J_f","J_f")
+    c11 = fc.bundle_correlation(c11_array, times, "J_s", "J_s")
+    c12 = fc.bundle_correlation(c12_array, times, "J_s", "J_f")
+    c21 = fc.bundle_correlation(c21_array, times, "J_f", "J_s")
+    c22 = fc.bundle_correlation(c22_array, times, "J_f", "J_f")
     
     #TODO this could be done iterating over all the instances
     c11.save('c11')
@@ -218,6 +274,10 @@ else:
     print ("loading c21\n")
     c21 = cf.load_instance("c21.pkl")
     
+
+
+
+
 
 
 # =============================================================================
@@ -298,17 +358,11 @@ pref = 1/(3*V)
 #Todo, this could be added to each integral
 
 
-print("The c11 is %s\n" %c11.transport_coeff(0, xmax))
-print("The c12 is %s\n" %c12.transport_coeff(0, xmax))
-print("The c21 is %s\n" %c21.transport_coeff(0, xmax))
-print("The c22 is %s\n" %c22.transport_coeff(0, xmax))
+logger.info("The c11 is %s\n" %(pref*c11.transport_coeff(0, xmax)))
+logger.info("The c12 is %s\n" %(pref*c12.transport_coeff(0, xmax)))
+logger.info("The c21 is %s\n" %(pref*c21.transport_coeff(0, xmax)))
+logger.info("The c22 is %s\n" %(pref*c22.transport_coeff(0, xmax)))
 
-f=open("GK.out",'w')
-f.write("The c11 is %s\n" %c11.transport_coeff(0, xmax))
-f.write("The c12 is %s\n" %c12.transport_coeff(0, xmax))
-f.write("The c21 is %s\n" %c21.transport_coeff(0, xmax))
-f.write("The c22 is %s\n" %c22.transport_coeff(0, xmax))
-f.close
 
 
 
