@@ -367,7 +367,7 @@ class bundle_correlation(correlation):
         for dim in range(self.dimension):
             normalisation = self.cor[dim][0]
             self.norm[dim] = normalisation
-            self.cor_norm = self.cor[dim]/normalisation
+            self.cor_norm[dim] = self.cor[dim]/normalisation
             
 
         
@@ -405,7 +405,7 @@ class bundle_correlation(correlation):
         self.cor = unumpy.uarray(np.average(array, axis=0), sem(array,
                                     axis=0, ddof=ddof))
            
-    def plot(self, fig, ax, dim=0, alpha=0.4, every=1, ax_label=True,
+    def plot(self, fig, ax, dim = 0, alpha=0.4, every=1, ax_label=True,
              norm=True):
         """
         Args:
