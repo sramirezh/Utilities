@@ -55,22 +55,51 @@ errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error
 
 
 
-def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,species):
+def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk, sim_type):
+    """
+    SPECIFIC FUNCTION FOR THIS PROBLEM
+    
+    
+    Constructs a bundle of simulations based on a directory tree.
+    suppose a directory tree as follows:
+         |-mus_force_*
+         | |-202000
+         | |-203000
+         | |-...
+         |-muf_force_*
+         | |-202000
+         | |-203000
+         | |-...
+         
+    And creates the specific parameters for this analysis
+         
+    Args: 
+        root_pattern: in the example above "4.Applying_force_*"
+        directory_pattern: the runs inside each root, in the example "[0-9]*"
+        rho_bulk: Density of the fluid in the bulk
+        cs_bulk: Density on solutes in the bulk
+        sim_type: identifier of the simulations in the bundle, could be "s", "f", etc
+        
+    
+    Returns:
+        final_mu: an instance of sr.simulation_bundle containing all the 
+                    information from the simulation bundle
+        
+    """
 
     dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
 
-    # TODO This function could be included inside the class simulation_bundle
     #If the object was not saved
-    if not glob.glob("mu%s.pkl"%species):
+    if not glob.glob("mu%s.pkl"%sim_type):
         bundles_mu = sr.initialise_sim_bundles(root_pattern,'mu',directory_pattern,dictionary)
         final_mu = sr.simulation_bundle(bundles_mu,'mu_bundle',3,cwd,dictionary = dictionary, ave = False)
-        final_mu.save("mu%s"%species)
+        final_mu.save("mu%s"%sim_type)
 
     # =============================================================================
     # Calculations of the transport coefficients from DP problem
     # =============================================================================
 
-    final_mu=cf.load_instance("mu%s.pkl"%species) 
+    final_mu = cf.load_instance("mu%s.pkl"%sim_type) 
     
     final_mu.average = False
     count = 0
@@ -79,17 +108,18 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
         #This is just to compute the excess of solute flux
         
         for sim in bund.simulations:
-            n_solutes=sim.get_property('cSolu')[1][0][0]
-            n_solvents=sim.get_property('cSolv')[1][0][0]
-            c_total = (n_solutes+n_solvents)/box_vf 
-            c_solvents = n_solvents/box_volume
+            n_solutes = sim.get_property('cSolu')[1][0][0]
+            n_solvents = sim.get_property('cSolv')[1][0][0]
+            c_total = (n_solutes + n_solvents) / box_volume
+            c_solvents = n_solvents / box_volume
+            c_solutes = n_solutes / box_volume
             
-            vx_solu=ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
-            vx_solv=ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
+            vx_solu = ufloat(sim.get_property('vx_Solu')[1][0][0],sim.get_property('vx_Solu')[1][0][1])
+            vx_solv = ufloat(sim.get_property('vx_Solv')[1][0][0],sim.get_property('vx_Solv')[1][0][1])
             
-            J_s = c_solutes*vx_solu
-            J_f = c_solvents*vx_solv
-            Q=ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
+            J_s = c_solutes * vx_solu
+            J_f = c_solvents * vx_solv
+            Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
             pref = c_total*cs_bulk/rho_bulk
             exc_sol_flux = J_s - pref * Q
             
@@ -106,63 +136,63 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
         #Adding specific properties to the secondary bundle
         
         bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
-        bund.add_upd_properties() # To update the bundle
+        bund.update_properties() # To update the bundle
 
 
-    final_mu.add_upd_properties()
+    final_mu.update_properties()
     
     
     return final_mu
 
 
 
-def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, plot_name=None):
-    """
-    TODO this could be part of the class simulation_bundle, actually I could make the get_property to return either the average or the list
-    This is a partly based on simulation_bundle.plot_property that 
-    """
+# def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, plot_name=None):
+#     """
+#     TODO this could be part of the class simulation_bundle, actually I could make the get_property to return either the average or the list
+#     This is a partly based on simulation_bundle.plot_property that 
+#     """
     
-    cf.set_plot_appearance()
+#     cf.set_plot_appearance()
     
-    y=[i.n for i in instance.get_property(y_name, exact = True)[1][0]]
-    y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
+#     y=[i.n for i in instance.get_property(y_name, exact = True)[1][0]]
+#     y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
 
-    x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
-
-
-    fig,ax=plt.subplots()
-
-    plt.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
+#     x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
 
 
+#     fig,ax=plt.subplots()
 
-    pinit=[1.0]
-    out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
-    pfinal = out[0] #fitting coefficients
-    error = np.sqrt(out[1]) 
-    print("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name,x_name, pfinal[0],error[0][0]))
+#     plt.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
+
+
+
+#     pinit=[1.0]
+#     out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
+#     pfinal = out[0] #fitting coefficients
+#     error = np.sqrt(out[1]) 
+#     print("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name,x_name, pfinal[0],error[0][0]))
         
-    #Checking if there are axis names
-    if x_label == None:
-        x_label = re.sub('_',' ', x_name)
-        ax.set_xlabel(x_label) #The zeroth-property is the param_id
-    else:
-        ax.set_xlabel(x_label)
+#     #Checking if there are axis names
+#     if x_label == None:
+#         x_label = re.sub('_',' ', x_name)
+#         ax.set_xlabel(x_label) #The zeroth-property is the param_id
+#     else:
+#         ax.set_xlabel(x_label)
         
-    if y_label == None:
+#     if y_label == None:
 
-        if y_name in list(instance.dictionary.keys()):
-            y_label = instance.dictionary[y_name]
-        else:
-            y_label = re.sub('_',' ',y_name)
-        ax.set_ylabel(y_label)
-    else:
-        ax.set_ylabel(y_label)
+#         if y_name in list(instance.dictionary.keys()):
+#             y_label = instance.dictionary[y_name]
+#         else:
+#             y_label = re.sub('_',' ',y_name)
+#         ax.set_ylabel(y_label)
+#     else:
+#         ax.set_ylabel(y_label)
      
-    plt.tight_layout()
+#     plt.tight_layout()
     
-    fig.savefig("%s.pdf"%plot_name, transparent=True)
-    cf.save_instance(ax,"%s"%plot_name)
+#     fig.savefig("%s.pdf"%plot_name, transparent=True)
+#     cf.save_instance(ax,"%s"%plot_name)
 
 
 
@@ -197,8 +227,8 @@ logger.info("I am using the following parameters:\n box volume = %f\n rho_bulk =
 #     Loading all the results for different gradients
 # =============================================================================
 
-final_mus = mu_simulations(ms_path, ms_dir, box_volume,rho_bulk,cs_bulk,"s")
-final_muf = mu_simulations(mf_path, mf_dir, box_volume,rho_bulk,cs_bulk,"f")
+final_mus = build_bundle(ms_path, ms_dir, box_volume,rho_bulk,cs_bulk,"s")
+final_muf = build_bundle(mf_path, mf_dir, box_volume,rho_bulk,cs_bulk,"f")
 
 
 # =============================================================================
