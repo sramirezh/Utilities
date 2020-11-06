@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 """
 Created on Wed Aug 14 14:55:09 2019
 This scripts computes the correlation between fluxes
@@ -11,18 +10,18 @@ TODO optimise and simplify
 import numpy as np
 import os
 import sys
+import glob
+from uncertainties import unumpy,ufloat
+import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.Pore.qsub.simulation_results as sr
 import Lammps.lammps_utilities as lu
-import glob
 import flux_correlation as fc 
-from uncertainties import unumpy,ufloat
-import matplotlib.pyplot as plt
 
 
+print(os.getcwd())
 
-global solute_flux
 
 def run_correlation_analysis(folder, input_file, save = "True"):
     
@@ -235,7 +234,7 @@ if (len(glob.glob('c1*'))<1):
         
         if folder in unfinished_correlation[0]:
             print("Running the correlation analysis in %s\n"%folder)
-            c11,c12,c21,c22 = run_correlation_analysis(folder,input_file)
+            c11,c12,c21,c22 = run_correlation_analysis(folder, input_file)
         
         else:
             print("Loading the results in %s\n"%folder)
@@ -289,7 +288,7 @@ plt.close('all')
 cf.set_plot_appearance()
 
 #For c11
-fig,ax=plt.subplots()
+fig,ax = plt.subplots()
 
 fig,ax = c11.plot(fig,ax)
 ax.set_xscale('log')
@@ -318,13 +317,12 @@ plt.savefig("correlation21.pdf")
 
 
 #For c22
-fig,ax=plt.subplots()
+fig,ax = plt.subplots()
 
 fig,ax = c22.plot(fig,ax)
 ax.set_xscale('log')
 plt.tight_layout()
 plt.savefig("correlation22.pdf")
-
 
 
 # =============================================================================
@@ -347,7 +345,6 @@ plt.savefig("crossed.pdf")
 
 
 
-
 # =============================================================================
 # Performing the integration
 # =============================================================================
@@ -365,4 +362,15 @@ logger.info("The c22 is %s\n" %(pref*c22.transport_coeff(0, xmax)))
 
 
 
+# =============================================================================
+# Checking the plotting methods
+# =============================================================================
+
+#For c11
+fig,ax = plt.subplots()
+
+ax = c11.plot_bundle(ax, dim = -1)
+ax.set_xscale('log')
+plt.tight_layout()
+plt.savefig("correlation11_bundle.pdf")
 

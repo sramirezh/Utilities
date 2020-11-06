@@ -9,17 +9,21 @@ import numpy as np
 from tqdm import tqdm
 from joblib import Parallel, delayed
 import pickle as pickle
-import Lammps.core_functions as cf
 from scipy.stats import sem
 import uncertainties as un
 from uncertainties import unumpy  # Must be imported like this
 from statsmodels.tsa.stattools import acf, ccf
 import time as t
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
+import Lammps.core_functions as cf
+
 # =============================================================================
 # Class definition
 # =============================================================================
 
-
+print(os.getcwd())
 class flux(object):
     """
     Flux is a vectorial or scalar entity
@@ -218,6 +222,7 @@ class correlation(object):
         
     def plot_individual(self, ax, dim=0, alpha=0.4, every=1, norm=True):
         """
+        Plots the correlation for the given dimension
         Args:
             ax axes object
             fig Figure
@@ -253,6 +258,9 @@ class correlation(object):
         return ax
     
     def plot_all(self, ax, alpha=0.4, norm=True):
+        """
+        Plots the correlation in all dimensions
+        """
         for dim in range(self.dimension + 1):
            ax = self.plot_individual( ax, dim, norm=norm)
         
@@ -338,8 +346,8 @@ class bundle_correlation(correlation):
         self.flux1_name = flux1_name
         self.flux2_name = flux2_name
         self.times = times
-        
         self.initial_computes()
+        self.dic_label = {0: r'$x$', 1: r'$y$', 2: r'$z$', -1: 'Total', self.dimension:'Total'}
         
         # self.norm = max(self.cor).nominal_value
         # self.cor_norm = [self.cor / self.norm]
@@ -358,7 +366,6 @@ class bundle_correlation(correlation):
         """
         
         self.n_runs, self.dimension, self.n_points = np.shape(self.arrays)
-        
         # Initilising the lists
         self.norm = (self.dimension ) * [0]  
         self.cor_norm = (self.dimension ) * [0]  
@@ -368,12 +375,6 @@ class bundle_correlation(correlation):
             normalisation = self.cor[dim][0]
             self.norm[dim] = normalisation
             self.cor_norm[dim] = self.cor[dim]/normalisation
-            
-
-        
-        
-        
-
 
     def averaging(self):
         """
@@ -442,19 +443,59 @@ class bundle_correlation(correlation):
 
         return fig, ax
 
-    def plot_bundle(self, fig, ax):
-        """
-        Plots all the correlations
+    # def plot_bundle(self, fig, ax, dim):
+    #     """
+    #     Plots all the correlations from the individual runs in the given direction
 
-        Returns:
-            fig, ax
-        """
+    #     Returns:
+    #         fig, ax
+    #     """
 
-        for cor in self.arrays:
-            ax.plot(self.times, cor)
-        ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
-        return fig, ax
+    #     for cor in self.arrays:
+    #         ax.plot(self.times, cor[dim])
+    #     ax.axhline(y = 0, xmin=0, xmax=1,ls='--',c='black')
+    #     return fig, ax
         
+
+
+    def plot_bundle(self, ax, dim, alpha=0.4, every = 1):
+        """
+        Plots all the correlations from the individual runs in the given direction
+        
+        TODO: Add the normalised option
+        Args:
+            ax axes object
+            fig Figure
+            dim is the dimension, for example:in a 3D vector, 0-x, 1-y, 2-z
+            and 3-total.
+            alpha is the transparency of the filling
+            every to not have so many points
+            The axis label is given here but it could be renamed later
+        """
+        
+        
+        for array in self.arrays:
+            
+            cor = array[dim]
+            # checking the first entry to see if it is a ufloat   
+            if isinstance(cor[0], un.UFloat):
+        
+                y = np.array([i.n for i in cor])
+                y_error = np.array([i.s for i in cor])
+                
+                # Getting time, y, error, with the frequency
+                times = self.times[::every]
+                y = y[::every]
+                y_error = y_error[::every]
+                ax.plot(times, y, label = self.dic_label[dim])
+                ax.fill_between(times, y - y_error, y + y_error, alpha=0.4)
+            
+            else:
+                ax.plot(self.times[::every], cor[::every], 
+                        label = self.dic_label[dim])
+            
+        return ax
+
 
 
 

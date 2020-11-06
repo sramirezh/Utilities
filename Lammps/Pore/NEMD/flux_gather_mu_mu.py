@@ -3,8 +3,8 @@
 """
 Created on Sat Jun  1 17:35:55 2019
 
-Gathers the flow from diffusio-osmotic simulations, both from Pressure and chemical potential simulations
-Uses the classes in simulation_results.py
+Gathers the flow from simulations where the  
+chemical potential on each one of the species
 
 @author: sr802
 """
@@ -62,7 +62,6 @@ def mu_simulations(root_pattern, directory_pattern, box_volume,rho_bulk,cs_bulk,
     # TODO This function could be included inside the class simulation_bundle
     #If the object was not saved
     if not glob.glob("mu%s.pkl"%species):
-        print("\nAnalysing the mu grad simulations\n")
         bundles_mu = sr.initialise_sim_bundles(root_pattern,'mu',directory_pattern,dictionary)
         final_mu = sr.simulation_bundle(bundles_mu,'mu_bundle',3,cwd,dictionary = dictionary, ave = False)
         final_mu.save("mu%s"%species)
@@ -167,6 +166,16 @@ def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, pl
 
 
 
+# =============================================================================
+#     Main
+# =============================================================================
+
+plot_dir = "plots/3.fluxes"
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+
+logger = cf.log(__file__, os.getcwd(),plot_dir)   
+
 
 def main(ms_pat, mf_pat, ms_dir, mf_dir):
     
@@ -207,21 +216,21 @@ def main(ms_pat, mf_pat, ms_dir, mf_dir):
     
 
 
-# TODO change group pattern to something more flexible as just file_names
-if __name__ == "__main__":
-    """
-    THIS IS VERY SPECIFIC
-    The arguments of this depend on the application
-    """
-    parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='mus_force_*')
-    parser.add_argument('-mf_pat', metavar='mf_pat',help='Generic name of the directories with mu_f gradient',default='muf_force_*')
-    parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
-    parser.add_argument('-mf_dir', metavar='mf_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
-    args = parser.parse_args()
+# # TODO change group pattern to something more flexible as just file_names
+# if __name__ == "__main__":
+#     """
+#     THIS IS VERY SPECIFIC
+#     The arguments of this depend on the application
+#     """
+#     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+#     parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='mus_force_*')
+#     parser.add_argument('-mf_pat', metavar='mf_pat',help='Generic name of the directories with mu_f gradient',default='muf_force_*')
+#     parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
+#     parser.add_argument('-mf_dir', metavar='mf_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
+#     args = parser.parse_args()
 
     
-    main(args.ms_pat,args.mf_pat,args.ms_dir,args.mf_dir)
+#     main(args.ms_pat,args.mf_pat,args.ms_dir,args.mf_dir)
     
     
     

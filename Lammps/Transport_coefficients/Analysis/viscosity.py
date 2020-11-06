@@ -171,7 +171,7 @@ def savgol_n(data, order, window, poly):
 # Defining all the types of simulations
 
 # High sampling frequency
-N2 = SimulationViscosity("N2", 1000000,1000000, "log.lammps", "pressures.dat") 
+N2 = SimulationViscosity("N2",1000000,1000000, "log.lammps", "pressures.dat") 
 Octane = SimulationViscosity("Octane", 300000, 150000, "log.lammps", "pressures.dat") 
 
 cwd = os.getcwd()

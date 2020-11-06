@@ -9,20 +9,23 @@ import pandas as pd
 import os
 import sys
 import glob
-Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
-sys.path.append(Utilities_path) #This falls into Utilities path
-import Lammps.core_functions as cf
-import Others.Statistics.FastAverager as stat
-import Lammps.General.thermo_analyser as thermo
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
 import re
 from scipy import optimize
 import pickle as pickle
+import uncertainties as un
+
+Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
+sys.path.append(Utilities_path) #This falls into Utilities path
+import Lammps.core_functions as cf
+import Others.Statistics.FastAverager as stat
+import Lammps.General.thermo_analyser as thermo
+
 import Lammps.lammps_utilities as lu
 
-import uncertainties as un
+
 
 
 cwd = os.getcwd() #current working directory
@@ -72,17 +75,20 @@ def check_terminated_simulation(folder_name):
     """
     counter=1
     cwd=os.getcwd()
+
+    print("Check_terminated %s"%cwd)
+
     os.chdir(folder_name)
     if os.path.isfile("log.lammps")==False:
         print("The simulation crashed before starting, as there is no log.lammpsd")
         counter=0
     else:
-        tail,error=cf.bash_command("""tail -2 log.lammps""")
+        tail,error = cf.bash_command("""tail -2 log.lammps""")
         tail = str(tail)
         if "Total wall" in tail:
             print("This simulation terminated")
         else:
-            last_step=cf.extract_digits(tail)
+            last_step = cf.extract_digits(tail)
             print("This simulation stopped at %s" %last_step[0])
     os.chdir(cwd)
     return counter
@@ -101,7 +107,7 @@ def check_terminated_by_file(file_name):
     return counter
     
 
-def filter_directories(folders,key_file):
+def filter_directories(folders, key_file):
     """
     THIS IS A VERY SPECIFIC FUNCTION
     checks if all the simulations inside all the directories finished, if not, deletes the directory from the analysis
@@ -111,13 +117,13 @@ def filter_directories(folders,key_file):
         directories contains the directories that passed the test, i.e finished
     """
     os.chdir(cwd)
-    directories=copy.copy(folders)
+    directories = copy.copy(folders)
     for directory in folders:
         print('\n%s' %directory)
-        finished=1
-        finished*=check_terminated_simulation(directory)
-        finished*=check_terminated_by_file(directory+'/'+key_file)
-        if finished==0:
+        finished = 1
+        finished *= check_terminated_simulation(directory)
+        finished *= check_terminated_by_file(directory+'/'+key_file)
+        if finished == 0:
             directories.remove(directory)
         
     return directories
