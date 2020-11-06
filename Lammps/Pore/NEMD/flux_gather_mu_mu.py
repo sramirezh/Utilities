@@ -17,7 +17,7 @@ import Lammps.core_functions as cf
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import optimize
-import simulation_results as sr
+import Lammps.Pore.qsub.simulation_results as sr
 from uncertainties import ufloat,unumpy
 import glob
 import argparse
@@ -176,10 +176,40 @@ if not os.path.exists(plot_dir):
 
 logger = cf.log(__file__, os.getcwd(),plot_dir)   
 
+ms_path = 'mus_force_*'
+mf_path = 'muf_force_*'
+ms_dir = '[0-9]*'
+mf_dir = '[0-9]*'
+
+
+logger.info("Analysing %s and %s"%(ms_path, mf_path))
+
+# =============================================================================
+# Assumptions and external parameters
+# =============================================================================
+box_volume = 20**3
+rho_bulk =  0.752375
+cs_bulk = 0.375332
+
+logger.info("I am using the following parameters:\n box volume = %f\n rho_bulk = %f\n cs_bulk = %f\n"%(box_volume, rho_bulk, cs_bulk ))
+
+# =============================================================================
+#     Loading all the results for different gradients
+# =============================================================================
+
+final_mus = mu_simulations(ms_path, ms_dir, box_volume,rho_bulk,cs_bulk,"s")
+final_muf = mu_simulations(mf_path, mf_dir, box_volume,rho_bulk,cs_bulk,"f")
+
+
+# =============================================================================
+#  Plotting
+# =============================================================================
+cf.set_plot_appearance()
+plt.close("all")
+
 
 def main(ms_pat, mf_pat, ms_dir, mf_dir):
     
-    global final_mus,final_muf
 
     # =============================================================================
     # Assumptions and external parameters
@@ -189,9 +219,7 @@ def main(ms_pat, mf_pat, ms_dir, mf_dir):
     ##The following two parameters are obtained from the knowledge of the bulk properties
     # TODO this can be obtained with lammps_utilities.py, add this property to class
 
-    box_volume = 20**3
-    rho_bulk =  0.752375
-    cs_bulk = 0.375332
+
 
     print("I am using the following parameters:\n box volume = %f\n rho_bulk = %f\n cs_bulk = %f\n"%(box_volume, rho_bulk, cs_bulk ))
 
@@ -204,9 +232,6 @@ def main(ms_pat, mf_pat, ms_dir, mf_dir):
     # T_qs = 0.0594056
     # T_ss = 0.0167278
 
-
-    final_mus = mu_simulations(ms_pat, ms_dir, box_volume,rho_bulk,cs_bulk,"s")
-    final_muf = mu_simulations(mf_pat, mf_dir, box_volume,rho_bulk,cs_bulk,"f")
     
     
     plot_properties(final_mus, 'grad_mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
