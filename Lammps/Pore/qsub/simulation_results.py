@@ -16,6 +16,7 @@ import re
 from scipy import optimize
 import pickle as pickle
 import uncertainties as un
+import traceback
 
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
@@ -538,6 +539,9 @@ class simulation_bundle(simulation):
         """
         
         root is the directory where the plot folder and the statistic summary is going to be created
+        
+        Atributes:
+            logger is an istance of the log class from the core functions
         """
         self.simulations = simulations
         self.param_value = float(parameter_value)
@@ -550,6 +554,7 @@ class simulation_bundle(simulation):
         #Ask Shaltiel if this is oK?
         self.update_properties()
         self.dictionary = dictionary
+        self.logger = []
         
     
     def update_properties(self):
@@ -602,73 +607,62 @@ class simulation_bundle(simulation):
             self.properties.insert(0, self.param_value)
             
             
-    def plot_property(self,p_name,plot_name=None,x_name=None,y_name=None,fit=False):
+    def plot_property(self,ax, y_name, x_name=None, fit=False):
         """
-        Could be extended to plot against any parameter
-        """
-        print("%s/plots_%s/"%(self.root,self.param_id))
-        directory="%s/plots_%s/"%(self.root,self.param_id)
-        if not os.path.exists(directory):
-            os.mkdir(directory)
-    
-        cf.set_plot_appearance()
-        #Create array time vs vx_Sol
-        x=[]
-        y=[]
-        y_error=[]
-        
-        for sim in self.simulations:
-            x.append(sim.param_value)
-            
-            values = sim.get_property(p_name,exact=True)
-            
-            if len(values[1]) == 0:
-                print("The property does not exist")
-                return
-                
-            values = values[1][0]
-            if np.size(values)>1: #Has error
-                y.append(values[0])
-                y_error.append(values[1])
-            else:
-                y.append(values)
-                
-        
-        fig,ax=plt.subplots()
-        ax.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
-        
-        #Checking if there are axis names
-        if x_name==None:
-            x_name = re.sub('_',' ',self.property_names[0])
-            ax.set_xlabel(x_name) #The zeroth-property is the param_id
-        else:
-            ax.set_xlabel(x_name)
-        if y_name==None:
+        Plots the specific property from the bundle, against another
+        property. The property in the x axis does not include error bars.
 
-            if p_name in list(self.dictionary.keys()):
-                y_name=self.dictionary[p_name]
-            else:
-                y_name=re.sub('_',' ',p_name)
-            ax.set_ylabel(y_name)
-        else:
-            ax.set_ylabel(y_name)
+        Hint: the names are in self.property_names
+
+        Args: 
+        y_name: name of the property to be plotted
+        ax is the axis from as described in matplotlib 
+        x_name: optional name of the property to plot agains, if not given,
+                the x axis is the sim.parameter_value
+        fit: boolean to define if a linear fit is desired
+        """
+
+        df = self.data_frame
+
+        if not x_name:
+            x_name = self.param_id
+
+        try: 
+            y_array = df[y_name].values
+            y = un.unumpy.nominal_values(y_array)
+            y_error = un.unumpy.std_devs(y_array)
+        except KeyError: 
+            self.logger.info("The property in y does not exist")
+
+        try: 
+            x = df[x_name].values
+            x = un.unumpy.nominal_values(x)
+        except KeyError:  
+            self.logger.info("The property in x does not exist")
+        
+        ax.errorbar(x, y, yerr = y_error, fmt='o')
         
         # Adding a fitting line
-        if fit==True and np.size(values)>1: #Has error
+        if fit == True and np.sum(y_error) != 0: #Has error
             #Same procedure as in statistic_parameters.py
             pinit=[1.0]
-            print(x,y,y_error)
             out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
             pfinal = out[0] #fitting coefficients
-            x=np.insert(x,0,0)
+            x = np.insert(x,0,0)
+            error = np.sqrt(out[1])
             ax.plot(np.unique(x),fitfunc1(pfinal,np.unique(x)),linestyle='--')
+
+            
+            self.logger.info("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name, x_name, pfinal[0],error[0][0]))
+    
+
+
         else:
             #Just plot the average
-            ax.axhline(y=self.get_property(p_name,exact=True)[1][0][0],c='black',ls=':')
+            ax.axhline(self.get_property(y_name,exact=True)[1][0][0].nominal_value,c='black',ls=':')
             
         
-        plt.tight_layout()
-        fig.savefig("%s/plots_%s/%s.pdf"%(self.root,self.param_id,p_name), transparent=True)
+        return ax
         
     
     def plot_all_properties(self):
