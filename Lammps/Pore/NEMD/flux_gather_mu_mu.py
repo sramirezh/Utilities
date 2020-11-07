@@ -120,7 +120,7 @@ def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk,
             J_s = c_solutes * vx_solu
             J_f = c_solvents * vx_solv
             Q = ufloat(sim.get_property('vx_Sol',exact=True)[1][0][0],sim.get_property('vx_Sol',exact=True)[1][0][1])
-            pref = c_total*cs_bulk/rho_bulk
+            pref = c_total * cs_bulk/rho_bulk
             exc_sol_flux = J_s - pref * Q
             
             
@@ -135,7 +135,7 @@ def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk,
         
         #Adding specific properties to the secondary bundle
         
-        bund.add_property('grad_mu',rho_bulk/(rho_bulk-cs_bulk)*float(bund.get_property('mu',exact=True)[1][0]))
+        bund.add_property('grad_mu',float(bund.get_property('mu',exact=True)[1][0]))
         bund.update_properties() # To update the bundle
 
 
@@ -146,53 +146,49 @@ def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk,
 
 
 
-# def plot_properties(instance, x_name, y_name, x_label = None, y_label = None, plot_name=None):
-#     """
-#     TODO this could be part of the class simulation_bundle, actually I could make the get_property to return either the average or the list
-#     This is a partly based on simulation_bundle.plot_property that 
-#     """
+def plot_properties(instance, x_name, y_name, ax, plot_fit = True):
+    """
+    COPIED from diffusio-osmosis flux_gather_mu_p.py
+    TODO this could be part of the class simulation_bundle, actually I could 
+    make the get_property to return either the average or the list
+    This is a partly based on simulation_bundle.plot_property 
     
-#     cf.set_plot_appearance()
+    Args:
+        instance: instance of simulation bundle
+        x_name: property in the x axis
+        y_name: property in the y axis
+        x_label: label of the x axis in latex format, eg: r'\nabla p'
+        y_label: label of the y axis in latex format
+        plot_name: name of the pdf file without extension
+        ax: an axis could be passed
     
-#     y=[i.n for i in instance.get_property(y_name, exact = True)[1][0]]
-#     y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
-
-#     x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
-
-
-#     fig,ax=plt.subplots()
-
-#     plt.errorbar(x,y,yerr=y_error,xerr=None,fmt='o')
-
-
-
-#     pinit=[1.0]
-#     out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
-#     pfinal = out[0] #fitting coefficients
-#     error = np.sqrt(out[1]) 
-#     print("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name,x_name, pfinal[0],error[0][0]))
-        
-#     #Checking if there are axis names
-#     if x_label == None:
-#         x_label = re.sub('_',' ', x_name)
-#         ax.set_xlabel(x_label) #The zeroth-property is the param_id
-#     else:
-#         ax.set_xlabel(x_label)
-        
-#     if y_label == None:
-
-#         if y_name in list(instance.dictionary.keys()):
-#             y_label = instance.dictionary[y_name]
-#         else:
-#             y_label = re.sub('_',' ',y_name)
-#         ax.set_ylabel(y_label)
-#     else:
-#         ax.set_ylabel(y_label)
-     
-#     plt.tight_layout()
+    Returns:
+        ax:
+    """
     
-#     fig.savefig("%s.pdf"%plot_name, transparent=True)
-#     cf.save_instance(ax,"%s"%plot_name)
+    y = [i.n for i in instance.get_property(y_name, exact = True)[1][0]]
+    y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
+
+    x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
+    
+
+    ax.errorbar(x, y, yerr=y_error, fmt='o')
+    pinit = [1.0]
+    out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
+    pfinal = out[0] #fitting coefficients
+
+    
+    error = np.sqrt(out[1])
+    logger.info("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name, x_name, pfinal[0],error[0][0]))
+    
+    if plot_fit == True:
+        x.sort()
+        y_fit = fitfunc1(pfinal, x)
+        ax.plot(x, y_fit, ls = '--', c = ax.lines[-1].get_color())
+    
+    plt.tight_layout()
+    
+    return ax
 
 
 
@@ -230,6 +226,8 @@ logger.info("I am using the following parameters:\n box volume = %f\n rho_bulk =
 final_mus = build_bundle(ms_path, ms_dir, box_volume,rho_bulk,cs_bulk,"s")
 final_muf = build_bundle(mf_path, mf_dir, box_volume,rho_bulk,cs_bulk,"f")
 
+final_mus.logger = logger
+final_muf.logger = logger
 
 # =============================================================================
 #  Plotting
@@ -238,37 +236,24 @@ cf.set_plot_appearance()
 plt.close("all")
 
 
-def main(ms_pat, mf_pat, ms_dir, mf_dir):
-    
+# plot_properties(final_mus, 'grad_mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
+#     plot_properties(final_mus, 'grad_mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
+#     plot_properties(final_muf, 'grad_mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
+#     plot_properties(final_muf, 'grad_mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
 
-    # =============================================================================
-    # Assumptions and external parameters
-    # =============================================================================
+# Js vs grad mu_s
+fig1, ax1 = plt.subplots()
+final_mus.plot_property( ax1,'Js','grad_mu', fit = True) 
+ax1.set_ylabel(r'$J_s$')
+ax1.set_xlabel(r"$-\nabla \mu_{s}$")
+#ax.legend(loc = 'upper right')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+fig1.tight_layout()
+fig1.savefig('%s/Js_vs_grad_mu_s.pdf'%(plot_dir), Transparent = True)
 
 
-    ##The following two parameters are obtained from the knowledge of the bulk properties
-    # TODO this can be obtained with lammps_utilities.py, add this property to class
 
-
-
-    print("I am using the following parameters:\n box volume = %f\n rho_bulk = %f\n cs_bulk = %f\n"%(box_volume, rho_bulk, cs_bulk ))
-
-
-    # Transport coefficients from GK
-
-    # # E_3.0
-    # T_sq = 0.0601964
-    # T_qq = 0.3412958
-    # T_qs = 0.0594056
-    # T_ss = 0.0167278
-
-    
-    
-    plot_properties(final_mus, 'grad_mu','Js', x_label = r'$-\nabla \mu_s$', y_label = r'$J_s$', plot_name ="ss" )
-    plot_properties(final_mus, 'grad_mu','Jf', x_label = r'$-\nabla \mu_s$',  y_label = r'$J_f$', plot_name ="fs" )
-    plot_properties(final_muf, 'grad_mu','Js',x_label = r'$-\nabla \mu_f$', y_label = r'$J_s$' ,plot_name ="sf" )
-    plot_properties(final_muf, 'grad_mu','Jf', x_label = r'$-\nabla \mu_f$', y_label = r'$J_f$', plot_name ="ff"  )
-    
 
 
 # # TODO change group pattern to something more flexible as just file_names
