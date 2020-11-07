@@ -317,6 +317,11 @@ final_p = build_bundle(mp_path, mp_dir, rho_bulk, cs_bulk,"grad_p")
 n_s = final_mus.simulations[0].get_property('cSolu',True)[1][0][0]
 n_f = final_mus.simulations[0].get_property('cSolv',True)[1][0][0]
 
+
+# =============================================================================
+# Any modifications to the data can be done here as defining the 
+# scaled chemical potential gradient used by Hiroaki et al
+# =============================================================================
 for bund in final_mus.simulations:
         
 #        bund.add_property('grad_mu_primed',(n_s+n_f)/(n_f)*float(bund.get_property('grad_mu_s',exact=True)[1][0]))
