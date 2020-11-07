@@ -26,30 +26,30 @@ import re
 cwd = os.getcwd() #current working directory
 
 
-def specific_plot_all(sim_bundle,fit=True):
-    """
-    Very specific function
-    Plots all the properties but only fits to a line the velocities
-    Args:
-        simulation_bundle
-    """
+# def specific_plot_all(sim_bundle,fit=True):
+#     """
+#     Very specific function
+#     Plots all the properties but only fits to a line the velocities
+#     Args:
+#         simulation_bundle
+#     """
     
-    #Copy of plot_all_properties
-    for i,prop in enumerate(sim_bundle.simulations[-1].property_names):
+#     #Copy of plot_all_properties
+#     for i,prop in enumerate(sim_bundle.simulations[-1].property_names):
         
-        if prop!="time" and i>0:
-            print("\ncreating the plot of %s"%prop)
+#         if prop!="time" and i>0:
+#             print("\ncreating the plot of %s"%prop)
             
-            if "vx" in prop: 
+#             if "vx" in prop: 
                 
-                sim_bundle.plot_property(prop,fit=fit)
+#                 sim_bundle.plot_property(prop,fit=fit)
             
-            else:
-                sim_bundle.plot_property(prop)
+#             else:
+#                 sim_bundle.plot_property(prop)
 
 
-fitfunc1 = lambda p, x: p * x  #Fitting to a line that goes through the origin
-errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error in the least squares
+# fitfunc1 = lambda p, x: p * x  #Fitting to a line that goes through the origin
+# errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error in the least squares
 
 
 
@@ -144,54 +144,6 @@ def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk,
     
     return final_mu
 
-
-
-def plot_properties(instance, x_name, y_name, ax, plot_fit = True):
-    """
-    COPIED from diffusio-osmosis flux_gather_mu_p.py
-    TODO this could be part of the class simulation_bundle, actually I could 
-    make the get_property to return either the average or the list
-    This is a partly based on simulation_bundle.plot_property 
-    
-    Args:
-        instance: instance of simulation bundle
-        x_name: property in the x axis
-        y_name: property in the y axis
-        x_label: label of the x axis in latex format, eg: r'\nabla p'
-        y_label: label of the y axis in latex format
-        plot_name: name of the pdf file without extension
-        ax: an axis could be passed
-    
-    Returns:
-        ax:
-    """
-    
-    y = [i.n for i in instance.get_property(y_name, exact = True)[1][0]]
-    y_error=[i.s for i in instance.get_property(y_name, exact = True)[1][0]]
-
-    x = [i.n for i in instance.get_property(x_name, exact = True)[1][0]]
-    
-
-    ax.errorbar(x, y, yerr=y_error, fmt='o')
-    pinit = [1.0]
-    out = optimize.leastsq(errfunc1, pinit, args=(x, y, y_error), full_output=1)
-    pfinal = out[0] #fitting coefficients
-
-    
-    error = np.sqrt(out[1])
-    logger.info("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name, x_name, pfinal[0],error[0][0]))
-    
-    if plot_fit == True:
-        x.sort()
-        y_fit = fitfunc1(pfinal, x)
-        ax.plot(x, y_fit, ls = '--', c = ax.lines[-1].get_color())
-    
-    plt.tight_layout()
-    
-    return ax
-
-
-
 # =============================================================================
 #     Main
 # =============================================================================
@@ -253,7 +205,39 @@ fig1.tight_layout()
 fig1.savefig('%s/Js_vs_grad_mu_s.pdf'%(plot_dir), Transparent = True)
 
 
+# Jf vs grad mu_s
+fig1, ax1 = plt.subplots()
+final_mus.plot_property( ax1,'Jf','grad_mu', fit = True) 
+ax1.set_ylabel(r'$J_s$')
+ax1.set_xlabel(r"$-\nabla \mu_{s}$")
+#ax.legend(loc = 'upper right')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+fig1.tight_layout()
+fig1.savefig('%s/Jf_vs_grad_mu_s.pdf'%(plot_dir), Transparent = True)
 
+
+# vs vs grad mu_s
+fig1, ax1 = plt.subplots()
+final_muf.plot_property( ax1,'Js','grad_mu', fit = True) 
+ax1.set_ylabel(r'$J_s$')
+ax1.set_xlabel(r"$-\nabla \mu_{f}$")
+#ax.legend(loc = 'upper right')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+fig1.tight_layout()
+fig1.savefig('%s/Js_vs_grad_mu_f.pdf'%(plot_dir), Transparent = True)
+
+# vs vs grad mu_s
+fig1, ax1 = plt.subplots()
+final_muf.plot_property( ax1,'Jf','grad_mu', fit = True) 
+ax1.set_ylabel(r'$J_f$')
+ax1.set_xlabel(r"$-\nabla \mu_{f}$")
+#ax.legend(loc = 'upper right')
+#ax.set_ylim(0, None)
+#ax.set_xlim(0, 8)
+fig1.tight_layout()
+fig1.savefig('%s/Jf_vs_grad_mu_f.pdf'%(plot_dir), Transparent = True)
 
 
 # # TODO change group pattern to something more flexible as just file_names
