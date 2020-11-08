@@ -106,7 +106,7 @@ class BuildPBSScript(object):
 
 
     def __init__(self, queue_type, nodes, cores, wall_time, lammps_input, output_dir=None, no_days=False, spatial=False,
-                 out_dir=None,lmp_version='/home/sr802/Programs/mylammps/src/lmp_dexter'):
+                 out_dir=None,lmp_version='/home/sr802/Programs/mylammps/src/lmp_mpi'):
         self.qtype = queue_type
         self.nodes = nodes
         self.cores = cores
