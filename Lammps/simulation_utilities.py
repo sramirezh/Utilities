@@ -104,8 +104,9 @@ class BuildPBSScript(object):
     *outdir is the directory where to redirect the standard output
     """
 
+
     def __init__(self, queue_type, nodes, cores, wall_time, lammps_input, output_dir=None, no_days=False, spatial=False,
-                 out_dir=None,lmp_version='/home/sr802/Programs/lammps-12Dec18/src/lmp_dexter'):
+                 out_dir=None,lmp_version='/home/sr802/Programs/mylammps/src/lmp_dexter'):
         self.qtype = queue_type
         self.nodes = nodes
         self.cores = cores
