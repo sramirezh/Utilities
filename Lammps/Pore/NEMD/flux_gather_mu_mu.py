@@ -91,8 +91,8 @@ def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk,
 
     #If the object was not saved
     if not glob.glob("mu%s.pkl"%sim_type):
-        bundles_mu = sr.initialise_sim_bundles(root_pattern,'mu',directory_pattern,dictionary)
-        final_mu = sr.simulation_bundle(bundles_mu,'mu_bundle',3,cwd,dictionary = dictionary, ave = False)
+        bundles_mu = sr.initialise_sim_bundles(root_pattern,'mu',directory_pattern, dictionary)
+        final_mu = sr.simulation_bundle(bundles_mu,'mu_bundle',3,cwd, dictionary = dictionary, ave = False)
         final_mu.save("mu%s"%sim_type)
 
     # =============================================================================
@@ -178,8 +178,6 @@ logger.info("I am using the following parameters:\n box volume = %f\n rho_bulk =
 final_mus = build_bundle(ms_path, ms_dir, box_volume,rho_bulk,cs_bulk,"s")
 final_muf = build_bundle(mf_path, mf_dir, box_volume,rho_bulk,cs_bulk,"f")
 
-final_mus.logger = logger
-final_muf.logger = logger
 
 # =============================================================================
 #  Plotting
@@ -195,7 +193,7 @@ plt.close("all")
 
 # Js vs grad mu_s
 fig1, ax1 = plt.subplots()
-final_mus.plot_property( ax1,'Js','grad_mu', fit = True) 
+final_mus.plot_property( ax1,'Js','grad_mu', fit = True, logger= logger) 
 ax1.set_ylabel(r'$J_s$')
 ax1.set_xlabel(r"$-\nabla \mu_{s}$")
 #ax.legend(loc = 'upper right')
@@ -207,8 +205,8 @@ fig1.savefig('%s/Js_vs_grad_mu_s.pdf'%(plot_dir), Transparent = True)
 
 # Jf vs grad mu_s
 fig1, ax1 = plt.subplots()
-final_mus.plot_property( ax1,'Jf','grad_mu', fit = True) 
-ax1.set_ylabel(r'$J_s$')
+final_mus.plot_property( ax1,'Jf','grad_mu', fit = True , logger= logger) 
+ax1.set_ylabel(r'$J_f$')
 ax1.set_xlabel(r"$-\nabla \mu_{s}$")
 #ax.legend(loc = 'upper right')
 #ax.set_ylim(0, None)
@@ -219,7 +217,7 @@ fig1.savefig('%s/Jf_vs_grad_mu_s.pdf'%(plot_dir), Transparent = True)
 
 # vs vs grad mu_s
 fig1, ax1 = plt.subplots()
-final_muf.plot_property( ax1,'Js','grad_mu', fit = True) 
+final_muf.plot_property( ax1,'Js','grad_mu', fit = True , logger= logger) 
 ax1.set_ylabel(r'$J_s$')
 ax1.set_xlabel(r"$-\nabla \mu_{f}$")
 #ax.legend(loc = 'upper right')
@@ -230,7 +228,7 @@ fig1.savefig('%s/Js_vs_grad_mu_f.pdf'%(plot_dir), Transparent = True)
 
 # vs vs grad mu_s
 fig1, ax1 = plt.subplots()
-final_muf.plot_property( ax1,'Jf','grad_mu', fit = True) 
+final_muf.plot_property( ax1,'Jf','grad_mu', fit = True , logger= logger) 
 ax1.set_ylabel(r'$J_f$')
 ax1.set_xlabel(r"$-\nabla \mu_{f}$")
 #ax.legend(loc = 'upper right')
