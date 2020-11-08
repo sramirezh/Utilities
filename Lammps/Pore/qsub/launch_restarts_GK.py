@@ -9,11 +9,12 @@ Created on Tue May 28 09:24:03 2019
 import glob
 import sys
 import os
+import shutil
+import argparse
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-import shutil
-from simulation_utilities import simulation
-import argparse
+from Lammps.simulation_utilities import simulation_launcher
+
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
@@ -57,7 +58,7 @@ def main(name, root, template, conf_folder, n_conf, identifier, run):
     #     Creating the simulation instance 
     # =============================================================================
         
-        sim = simulation(home, template, name, restart)
+        sim = simulation_launcher(home, template, name, restart)
         sim.create_folder()
         # TODO if there is a qsub in template, keep it
         sim.create_qsub('short', 1, 16, 1, 'input.lmp')
