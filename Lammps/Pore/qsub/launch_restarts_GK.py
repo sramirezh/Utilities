@@ -5,7 +5,19 @@ Created on Tue May 28 09:24:03 2019
 "Creates replicas of simulations starting from configurations during the equilibration"
 
 It reads a template file and copies the files creating simulation instances
-each one 
+each one containing a copy of the template with the modifications indicated
+in the example block of code or as in the example below
+
+
+
+Here we modify the imput file, modifying one line with the pattern as given
+by cf.modify_file
+        
+file_name = "input.lmp"
+file_path = sim.folder+'/'+file_name
+value_modify = sim.initial_conf.split('/')[-1]
+cf.modify_file(file_path, 'read_restart', 'read_restart\t%s\n'%value_modify)
+
 
 @author: sr802
 """
@@ -33,17 +45,17 @@ def main(name, root, template, conf_folder, n_conf, identifier, run):
     Args:
     """       
     #Getting the path to all the restart files
-    files=glob.glob('%s/*'%conf_folder)
+    files = glob.glob('%s/*'%conf_folder)
     
     
     
-    times=cf.extract_digits(files)
-    times=[str(int(time[-1])) for time in times]
+    times = cf.extract_digits(files)
+    times = [str(int(time[-1])) for time in times]
     #Takign the last N configurations
     
     
-    conf_times=times[-n_conf:]
-    home=root+'/'+name+'_%s'%identifier
+    conf_times = times[-n_conf:]
+    home = root+'/'+name+'_%s'%identifier
     files_analysis = cf.parameter_finder(files,conf_times)
     
     shutil.rmtree(home,ignore_errors=True)
@@ -54,9 +66,9 @@ def main(name, root, template, conf_folder, n_conf, identifier, run):
     #     The extraction of the parameters for the simulation comes here
     # =============================================================================
     
-        time=int(cf.extract_digits(files[i])[-1])
-        name=str(time)
-        restart=files[i]
+        time = int(cf.extract_digits(files[i])[-1])
+        name = str(time)
+        restart = files[i]
         
     # =============================================================================
     #     Creating the simulation instance 
@@ -65,7 +77,7 @@ def main(name, root, template, conf_folder, n_conf, identifier, run):
         sim = simulation_launcher(home, template, name, restart)
         sim.create_folder()
         
-        
+        print('\nworking on %s'%sim.name)
         
         # IF the template has qsub
         
