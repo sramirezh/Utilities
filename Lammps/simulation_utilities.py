@@ -51,17 +51,24 @@ class simulation_launcher(object):
     def clean_template(self, keep_qsub = True):
         """
         Clean the template files except for in* or optionally the qsub file
+        
+        Args:
+            keep_qsub: if there is a qsub file in the template, it keeps it
         """
         useful_files = glob.glob(self.template+'/in*')
         
-        qsub_path = glob.glob(self.template+'/*.qsub')[0]
-        self.qsub_file = os.path.basename(qsub_path)
+
+        qsub_file = glob.glob(self.template+'/*.qsub')
         
-        if self.qsub_file and keep_qsub == True:
+        if qsub_file and keep_qsub == True:
+            self.qsub_file = os.path.basename(qsub_file[0])
             self.has_qsub = True
             useful_files.extend(glob.glob(self.template+'/*.qsub'))
+            
         all_files = glob.glob(self.template+'/*')
+        
         remove_files = [f for f in all_files if f not in useful_files]
+        
         for fil in remove_files:
             os.remove(fil)
         
@@ -92,6 +99,7 @@ class simulation_launcher(object):
         
         
     def run_simulation(self):
+        print("running the file")
         os.chdir(self.folder)
         cf.bash_command("""qsub run.qsub""")
         return 0
