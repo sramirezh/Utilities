@@ -207,7 +207,7 @@ def construct_simulations(directories,files = ["statistics.dat","thermo.dat"]):
 
 #TODO This function has to be generalised
 # TODO add to the bundle method
-def initialise_sim_bundles(root_pattern, parameter_id, directory_pattern, 
+def initialise_sim_bundles(root_pattern, parameter_id, directory_pattern, logger, 
                            dictionary={}, finished_marker = "vdata.dat",
                            stat_markers="statistics.dat",
                            thermo_markers = "thermo.dat", plot = True):
@@ -535,13 +535,14 @@ class simulation_bundle(simulation):
             update properties.
             TODO improve what I mentioned above
     """
-    def __init__(self,simulations,parameter_id,parameter_value,root,dictionary = None, ave = True):
+    def __init__(self,simulations,parameter_id,parameter_value,root, dictionary = None, ave = True):
         """
         
-        root is the directory where the plot folder and the statistic summary is going to be created
+        Args:
+            root: is the directory where the plot folder and the statistic summary is going to be created
         
         Atributes:
-            logger is an istance of the log class from the core functions
+            
         """
         self.simulations = simulations
         self.param_value = float(parameter_value)
@@ -554,7 +555,7 @@ class simulation_bundle(simulation):
         #Ask Shaltiel if this is oK?
         self.update_properties()
         self.dictionary = dictionary
-        self.logger = []
+  
         
     
     def update_properties(self):
@@ -607,7 +608,7 @@ class simulation_bundle(simulation):
             self.properties.insert(0, self.param_value)
             
             
-    def plot_property(self,ax, y_name, x_name=None, fit=False):
+    def plot_property(self,ax, y_name, x_name=None, fit=False, logger = None):
         """
         Plots the specific property from the bundle, against another
         property. The property in the x axis does not include error bars.
@@ -625,7 +626,7 @@ class simulation_bundle(simulation):
         df = self.data_frame
 
         if not x_name:
-            x_name = self.param_id
+            x_name = df.columns[0]
 
         try: 
             y_array = df[y_name].values
@@ -652,25 +653,33 @@ class simulation_bundle(simulation):
             error = np.sqrt(out[1])
             ax.plot(np.unique(x),fitfunc1(pfinal,np.unique(x)),linestyle='--')
 
-            
-            self.logger.info("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name, x_name, pfinal[0],error[0][0]))
+        if logger:
+            logger.info("The transport coefficient \Gamma_{%s%s} is %.6f +/- %.6f"%(y_name, x_name, pfinal[0],error[0][0]))
     
 
 
         else:
             #Just plot the average
-            ax.axhline(self.get_property(y_name,exact=True)[1][0][0].nominal_value,c='black',ls=':')
+            try:
+                ax.axhline(self.get_property(y_name,exact=True)[1][0][0].nominal_value,c='black',ls=':')
+            except:
+                ax.axhline(self.get_property(y_name,exact=True)[1][0][0], c='black',ls=':')
             
         
         return ax
         
     
     def plot_all_properties(self):
+        cf.set_plot_appearance()
         for i,prop in enumerate(self.simulations[-1].property_names):
             
-            if prop!="time" and i>0:
+            if prop != "time" and i>0:
+                fig, ax = plt.subplots()
                 print("\ncreating the plot of %s"%prop)
-                self.plot_property(prop)
+                self.plot_property(ax, prop)
+                fig.tight_layout()
+                fig.savefig('%s/%s.pdf'%( self.root, prop), Transparent = True)
+                
     
 
     @property
