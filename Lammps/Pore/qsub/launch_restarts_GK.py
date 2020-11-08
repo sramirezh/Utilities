@@ -3,6 +3,10 @@
 """
 Created on Tue May 28 09:24:03 2019
 "Creates replicas of simulations starting from configurations during the equilibration"
+
+It reads a template file and copies the files creating simulation instances
+each one 
+
 @author: sr802
 """
 
@@ -60,8 +64,21 @@ def main(name, root, template, conf_folder, n_conf, identifier, run):
         
         sim = simulation_launcher(home, template, name, restart)
         sim.create_folder()
-        # TODO if there is a qsub in template, keep it
-        sim.create_qsub('short', 1, 16, 1, 'input.lmp')
+        
+        
+        
+        # IF the template has qsub
+        
+        if sim.has_qsub == False:
+            sim.create_qsub('short', 1, 16, 1, 'input.lmp')
+            
+        else:
+            # Modifying as below
+            file_name = sim.qsub_file
+            file_path = sim.folder+'/'+file_name
+            value_modify = sim.name
+            cf.modify_file(file_path, '#PBS -N', '#PBS -N %s\n'%value_modify)
+            
 
     # =============================================================================
     #     #Mofications to the files here (THIS IS SPECIFIC)

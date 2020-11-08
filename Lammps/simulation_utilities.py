@@ -35,22 +35,30 @@ def sec_to_pbs_time(seconds, nodays=False):
 class simulation_launcher(object):
     def __init__(self, home, template, name, initial_conf=None):
         """
+        Attributes:
         home is where the folder for all the simulation is going to be created
         template points to the folder where the template is hosted
         name ex. DP_0020, the name of the folder that contains everything
         initial_conf is the initial configuration file if it is required
+        has_qsub: True if the template has qsub file
         """
         self.initial_conf = initial_conf
         self.home = home
         self.template = template
         self.name = name
+        self.has_qsub = False
 
-    def clean_template(self, keep_qsub = False):
+    def clean_template(self, keep_qsub = True):
         """
         Clean the template files except for in* or optionally the qsub file
         """
         useful_files = glob.glob(self.template+'/in*')
-        if keep_qsub == True:
+        
+        qsub_path = glob.glob(self.template+'/*.qsub')[0]
+        self.qsub_file = os.path.basename(qsub_path)
+        
+        if self.qsub_file and keep_qsub == True:
+            self.has_qsub = True
             useful_files.extend(glob.glob(self.template+'/*.qsub'))
         all_files = glob.glob(self.template+'/*')
         remove_files = [f for f in all_files if f not in useful_files]
@@ -58,7 +66,7 @@ class simulation_launcher(object):
             os.remove(fil)
         
     
-    def create_folder(self, keep_qsub = False):
+    def create_folder(self, keep_qsub = True):
         """
         Copies the template and adds the input configuration to the folder
         """
@@ -128,7 +136,7 @@ class BuildPBSScript(object):
         *fname [string]: name of the pbs bash script where to write
         *job_name [string]: name of the pbs job
         """
-        print("writing PBS file")
+        print("writing PBS file with %s nodes in %s cores and walltime %s"%(self.nodes, self.cores, self.dhms_wtime))
 #        if ".sh" not in fname:
 #            fname += ".sh"
         f = open(fname, 'w')
