@@ -47,7 +47,7 @@ def run_correlation_analysis(folder, input_file, save = "True"):
     data1 = data.values
     delta_t = lu.read_value_from("log.lammps", 'timestep')[1]
     times = (data1[:,0]-data1[0,0])*delta_t
-    max_delta = int(len(times)*0.05) #Maximum delta of time to measure the correlation
+    max_delta = int(len(times)*0.5) #Maximum delta of time to measure the correlation
     
     
     
@@ -358,7 +358,7 @@ xmax = 10
 #Todo, this could be added to each integral
 
 
-logger.info("The c11 is %s\n" %(pref*c11.transport_coeff(0, xmax)))
+logger.info("The c11 is %s\n" %(pref * c11.transport_coeff(0, xmax)))
 # logger.info("The c12 is %s\n" %(pref*c12.transport_coeff(0, xmax)))
 # logger.info("The c21 is %s\n" %(pref*c21.transport_coeff(0, xmax)))
 # logger.info("The c22 is %s\n" %(pref*c22.transport_coeff(0, xmax)))
@@ -382,7 +382,7 @@ plt.savefig("%s/correlation11_bundle.pdf"%plot_dir)
 # =============================================================================
 # # Plot c11 vs tau
 # =============================================================================
-
+xmax_plot = 100
 fig,ax = plt.subplots()
 
 tau_array = np.linspace(c11.times[0], c11.times[-1], 100)
@@ -419,7 +419,7 @@ ax.axhline(y = c_array[index] , xmin=0, xmax=1,ls='--',c='black', label = r'$\et
 ax.axvline(x = tau_integration,ls='-.',c='black')
 xmin,xmax = ax.get_xlim()
 ymin,ymax = ax.get_ylim()
-ax.set_xlim(0, c11.times[-1])
+ax.set_xlim(0, xmax_plot)
 ax.set_ylim(0, ymax)
 ax.set_ylabel(r'$c_{11}$')
 ax.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
