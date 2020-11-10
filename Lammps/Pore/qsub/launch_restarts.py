@@ -9,11 +9,14 @@ Created on Tue May 28 09:24:03 2019
 import glob
 import sys
 import os
+import argparse
+import shutil
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
-import shutil
-from simulation_utilities import simulation
-import argparse
+from Lammps.simulation_utilities import simulation_launcher
+
+
+
 
 cwd = os.getcwd() #current working directory
 dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python script
@@ -25,17 +28,17 @@ dir_path = os.path.dirname(os.path.realpath(__file__))#Path of this python scrip
 # =============================================================================
 def main(name,root,template,conf_folder,n_conf,epsilon,force,run):       
     #Getting the path to all the restart files
-    files=glob.glob('%s/*'%conf_folder)
+    files = glob.glob('%s/*'%conf_folder)
     
-    home=root+'/'+name+'_%s'%force
+    home = root+'/'+name+'_%s'%force
     
-    times=cf.extract_digits(files)
-    times=[str(int(time[-1])) for time in times]
+    times = cf.extract_digits(files)
+    times = [str(int(time[-1])) for time in times]
     #Takign the last N configurations
     
     
-    conf_times=times[-n_conf:]
-    files_analysis=cf.parameter_finder(files,conf_times)
+    conf_times = times[-n_conf:]
+    files_analysis = cf.parameter_finder(files,conf_times)
     
     shutil.rmtree(home,ignore_errors=True)
     
@@ -45,33 +48,44 @@ def main(name,root,template,conf_folder,n_conf,epsilon,force,run):
     #     The extraction of the parameters for the simulation comes here
     # =============================================================================
     
-        time=int(cf.extract_digits(files[i])[-1])
-        name=str(time)
-        restart=files[i]
+        time = int(cf.extract_digits(files[i])[-1])
+        name = str(time)
+        restart = files[i]
         
     # =============================================================================
     #     Creating the simulation instance 
     # =============================================================================
         
-        sim=simulation(home,template,name,restart)
+        sim = simulation_launcher(home, template, name, restart)
         sim.create_folder()
-        sim.create_qsub('short',1,16,24,'input.lmp')
+        
+        print('\nworking on %s'%sim.name)
+
+        if sim.has_qsub == False:
+            sim.create_qsub('short', 1, 16, 1, 'input.lmp')
+            
+        else:
+            # Modifying as below
+            file_name = sim.qsub_file
+            file_path = sim.folder+'/'+file_name
+            value_modify = sim.name
+            cf.modify_file(file_path, '#PBS -N', '#PBS -N %s\n'%value_modify)
     # =============================================================================
     #     #Mofications to the files here (THIS IS SPECIFIC)
     # =============================================================================
         
-        file_name="input.lmp"
-        file_path=sim.folder+'/'+file_name
-        value_modify=sim.initial_conf.split('/')[-1]
+        file_name = "input.lmp"
+        file_path = sim.folder+'/'+file_name
+        value_modify = sim.initial_conf.split('/')[-1]
         cf.modify_file(file_path,'read_restart','read_restart\t%s\n'%value_modify)
         
-        value_modify=force
+        value_modify = force
         cf.modify_file(file_path,'force','variable\tforce equal %s\n'%value_modify)
         
         
-        file_name="in.interaction"
-        file_path=sim.folder+'/'+file_name
-        value_modify=epsilon
+        file_name = "in.interaction"
+        file_path = sim.folder+'/'+file_name
+        value_modify = epsilon
         cf.modify_file(file_path,'2 3','pair_coeff\t2 3 %s 1.0\n'%value_modify)
         
     # =============================================================================
