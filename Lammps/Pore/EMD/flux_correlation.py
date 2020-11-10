@@ -140,22 +140,22 @@ class correlation(object):
         self.cor[dim] = np.array(cor)
         self.cor_norm[dim] = np.array(cor) / norm
    
-    # def evaluate(self):
-    #     """
-    #     DO NOT USE, THE CORRELATE USING COV does not work! see my logbook on Pore
-    #     or my autocorrelation_and_GK jupyter
-    #     Performs the correlations of the 1d components,calling
-    #     correlate_one_d, and adds them up to the total.
+    def evaluate(self):
+        """
+        DO NOT USE, THE CORRELATE USING COV does not work! see my logbook on Pore
+        or my autocorrelation_and_GK jupyter
+        Performs the correlations of the 1d components,calling
+        correlate_one_d, and adds them up to the total.
         
-    #     """
-    #     total = np.zeros(self.max_delta)
-    #     for dim in range(self.dimension):
-    #         self.correlate_one_d(dim)
-    #         total = total + self.cor[dim]
-    #     total = total / 3
-    #     self.cor[-1] = total
-    #     self.norm[-1] = total[0]
-    #     self.cor_norm[-1] = total / total[0]
+        """
+        total = np.zeros(self.max_delta)
+        for dim in range(self.dimension):
+            self.correlate_one_d(dim)
+            total = total + self.cor[dim]
+        total = total / 3
+        self.cor[-1] = total
+        self.norm[-1] = total[0]
+        self.cor_norm[-1] = total / total[0]
 
     def evaluate_acf(self):
         """
@@ -382,9 +382,9 @@ class bundle_correlation(correlation):
         Takes the average of the array of correlations.
         Sometimes the individual correlations have errors, therefore
         each point has (average + std)
-        
-        TODO propagate the error when the data is from uncertainties, at the 
-        moment I am striping the uncertainties
+
+        At the moment it strips the error from uncertainties and analyses
+        everypoint as independent.
 
         Returns
         -------
@@ -404,7 +404,7 @@ class bundle_correlation(correlation):
         
         
         self.cor = unumpy.uarray(np.average(array, axis=0), sem(array,
-                                    axis=0, ddof=ddof))
+                                axis=0, ddof=ddof))
            
     def plot(self, fig, ax, dim = 0, alpha=0.4, every=1, ax_label=True,
              norm=True):
