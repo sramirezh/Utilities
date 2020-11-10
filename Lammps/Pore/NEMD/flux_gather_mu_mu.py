@@ -11,49 +11,18 @@ chemical potential on each one of the species
 
 import os
 import sys
+import matplotlib.pyplot as plt
+import glob
+from uncertainties import ufloat,unumpy
+from scipy.stats import sem
+import numpy as np
 Utilities_path=os.path.join(os.path.dirname(__file__), '../../../')
 sys.path.append(Utilities_path) #This falls into Utilities path
 import Lammps.core_functions as cf
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy import optimize
 import Lammps.Pore.qsub.simulation_results as sr
-from uncertainties import ufloat,unumpy
-import glob
-import argparse
-import re
+
 
 cwd = os.getcwd() #current working directory
-
-
-# def specific_plot_all(sim_bundle,fit=True):
-#     """
-#     Very specific function
-#     Plots all the properties but only fits to a line the velocities
-#     Args:
-#         simulation_bundle
-#     """
-    
-#     #Copy of plot_all_properties
-#     for i,prop in enumerate(sim_bundle.simulations[-1].property_names):
-        
-#         if prop!="time" and i>0:
-#             print("\ncreating the plot of %s"%prop)
-            
-#             if "vx" in prop: 
-                
-#                 sim_bundle.plot_property(prop,fit=fit)
-            
-#             else:
-#                 sim_bundle.plot_property(prop)
-
-
-# fitfunc1 = lambda p, x: p * x  #Fitting to a line that goes through the origin
-# errfunc1 = lambda p, x, y, err: (y - fitfunc1(p, x)) / err #To include the error in the least squares
-
-
-
-
 
 def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk, sim_type):
     """
@@ -87,7 +56,7 @@ def build_bundle(root_pattern, directory_pattern, box_volume, rho_bulk, cs_bulk,
         
     """
 
-    dictionary={'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
+    dictionary = {'vx_Solv':r'$v^x_{f}$','vx_Solu':r'$v^x_{s}$','vx_Sol':r'$v^x_{sol}$'}
 
     #If the object was not saved
     if not glob.glob("mu%s.pkl"%sim_type):
@@ -237,25 +206,30 @@ ax1.set_xlabel(r"$-\nabla \mu_{f}$")
 fig1.tight_layout()
 fig1.savefig('%s/Jf_vs_grad_mu_f.pdf'%(plot_dir), Transparent = True)
 
+# =============================================================================
+# Worst error estimation, assuming that the 
+# =============================================================================
+logger.info("The estimates of the transport coefficients assuming, independent estimations for each number")
 
-# # TODO change group pattern to something more flexible as just file_names
-# if __name__ == "__main__":
-#     """
-#     THIS IS VERY SPECIFIC
-#     The arguments of this depend on the application
-#     """
-#     parser = argparse.ArgumentParser(description='Launch simulations from restart',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-#     parser.add_argument('-ms_pat', metavar='ms_pat',help='Generic name of the directories with mu_s gradient',default='mus_force_*')
-#     parser.add_argument('-mf_pat', metavar='mf_pat',help='Generic name of the directories with mu_f gradient',default='muf_force_*')
-#     parser.add_argument('-ms_dir', metavar='ms_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
-#     parser.add_argument('-mf_dir', metavar='mf_dir',help='Patter of the files inside, in this case restart are like 202000',default='[0-9]*')
-#     args = parser.parse_args()
+df_s = final_mus.data_frame
+df_f = final_muf.data_frame
 
-    
-#     main(args.ms_pat,args.mf_pat,args.ms_dir,args.mf_dir)
-    
-    
-    
+c_ss = unumpy.nominal_values(df_s['Js']/df_s['mu'])
+c_fs = unumpy.nominal_values(df_s['Jf']/df_s['mu'])
+c_sf = unumpy.nominal_values(df_f['Js']/df_f['mu'])
+c_ff = unumpy.nominal_values(df_f['Jf']/df_f['mu'])
+
+css_average = ufloat(np.average(c_ss), sem(c_ss))
+csf_average = ufloat(np.average(c_sf), sem(c_sf))
+cfs_average = ufloat(np.average(c_fs), sem(c_fs))
+cff_average = ufloat(np.average(c_ff), sem(c_ff))
+
+logger.info("c_ss = %s"%css_average )
+logger.info("c_fs = %s"%cfs_average )
+logger.info("c_sf = %s"%csf_average )
+logger.info("c_ff = %s"%cff_average )
+
+
 
 # # =============================================================================
 # # Peclet number computation
