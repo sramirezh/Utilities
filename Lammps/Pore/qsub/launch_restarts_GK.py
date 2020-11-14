@@ -132,5 +132,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     
-    main(args.name, args.root, args.template, args.conf_folder, args.n_conf, args.epsilon
+    main(args.name, args.root, args.template, args.conf_folder, args.n_conf, args.epsilon,
         args.identifier, args.run)
