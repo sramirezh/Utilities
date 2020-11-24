@@ -13,12 +13,12 @@ import sys
 from copy import deepcopy
 from io import StringIO
 from scipy.stats import sem
+from scipy import optimize
+import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.General.chunk_utilities as cu
 import Lammps.core_functions as cf
-import matplotlib.pyplot as plt
 import Others.Statistics.FastAverager as stat
-from scipy import optimize
 import Lammps.DO.EMD.density_analysis as da
 import Lammps.lammps_utilities as lu
 
@@ -97,7 +97,7 @@ for grad_p in grad_p_array:
 # =============================================================================
 #     # Plotting
 # =============================================================================
-    ax1.plot(fluid.positions, fluid.data_frame['vx'], label = r'$-\nabla P = %s$'%grad_p, ls = '--')
+    ax1.plot(fluid.positions, fluid.data_frame['vx'], label = r'$F^e = %s$'%grad_p, ls = '--')
     ax1.plot(fluid.positions[indexes_bulk], vx_predicted, c = ax1.lines[-1].get_color(), ls = '-')
  
 ax1.set_xlabel(r'$z[\sigma] $')
