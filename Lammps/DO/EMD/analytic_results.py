@@ -203,7 +203,7 @@ solute.plot_property_dist("integrand_first", ax = ax)
 
 
 ax.set_xlabel(r'$z[\sigma] $')
-ax.set_ylabel(r'$I_L(z)$')
+ax.set_ylabel(r'$I_{\xi(z)}$')
 
 
 ax.legend([r'$z_0 = %s$'%solute.lower_limit, r'$z_0 = %s$'%solvent.lower_limit, r'$z_0 = 0$'], loc = 'upper right')
