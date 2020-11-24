@@ -96,11 +96,11 @@ logger.info("plotted %s/Result_comparison_2.pdf"%plot_dir)
 fig, ax = plt.subplots()
 
 
-ax.errorbar(fdmd_free[:,0],-fdmd_free[:,1],yerr= fdmd_free[:,2],label="EF-NEMD", fmt='o', ls = '--')
+ax.errorbar(fdmd_free[:,0],-fdmd_free[:,1],yerr= fdmd_free[:,2],label="FD-NEMD", fmt='o', ls = '--')
 #ax.plot(theory[1:,0], theory[1:,1], label=r"Theory $v_0$", marker = "s", ls = '--')
-ax.plot(theory[:,0], theory[:,2], label=r"$\text{Theory} \quad r_c=\sigma_{cs}$", marker = "s", ls = '--')
-ax.plot(theory_r[:,0], theory_r[:,2], label=r"$\text{Theory} \quad r_c=R_h^{\text{slip}}$", marker = "s", ls = '--')
-ax.plot(theory_r_ns[:,0], theory_r_ns[:,2], label=r"$\text{Theory} \quad r_c=R_h^{\text{non-slip}}$", marker = "s", ls = '--')
+ax.plot(theory[:,0], theory[:,2], label=r"$\text{Theory} \quad a=\sigma_{cs}$", marker = "s", ls = '--')
+ax.plot(theory_r[:,0], theory_r[:,2], label=r"$\text{Theory} \quad a=R_H^{\text{slip}}$", marker = "s", ls = '--')
+ax.plot(theory_r_ns[:,0], theory_r_ns[:,2], label=r"$\text{Theory} \quad a=R_H^{\text{non-slip}}$", marker = "s", ls = '--')
 ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 
 ax.set_xlabel(r'$\varepsilon_{cs} $')
