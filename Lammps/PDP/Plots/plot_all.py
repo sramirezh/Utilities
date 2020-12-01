@@ -75,7 +75,7 @@ def plot_results(all_data, interactions, theory = False, out_results = False):
         #out = optimize.leastsq(errfunc, pinit, args=(x, y, yerror), full_output=1)
         #cov=out[1] #Covariance in the
         #pfinal = out[0] #fitting coefficients
-        #print "for %s The slope is %f error is %f" %(interaction,pfinal,np.sqrt(cov))
+        #logger.info "for %s The slope is %f error is %f" %(interaction,pfinal,np.sqrt(cov))
     
         epsilon=float(cf.extract_digits(interaction)[0])
         sigma=float(cf.extract_digits(interaction)[1])
@@ -97,12 +97,12 @@ def plot_results(all_data, interactions, theory = False, out_results = False):
         ax.errorbar(lengths,mobility,yerr=error_mobility,label=interaction, color=color, fmt='o')
     
         """
-        Printing the fitting factors and their errors
+        Prints the fitting factors and their errors
         """
     
-        print("For epsilon=%s and sigma=%s" %(epsilon,sigma))
-#        print("The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1])))
-#        print("The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0])))
+        logger.info("For epsilon=%s and sigma=%s" %(epsilon,sigma))
+#        logger.info("The slope is %f and the error is %f" %(pfinal[1],np.sqrt(cov[1,1])))
+#        logger.info("The intercept is %f and the error is %f" %(pfinal[0],np.sqrt(cov[0,0])))
         
     if out_results == True:
         return fig, ax, results
@@ -127,6 +127,13 @@ parser.add_argument('-theory', metavar='theory',help='Theoretical filename, cont
 args = parser.parse_args()
 files=args.file_name
 
+# Creating the logger
+logger = cf.log(__file__, os.getcwd())   
+
+logger.info("Using the following arguments for the paser")
+logger.info(args)
+
+
 
 if files==None:
     dat_files=glob.glob('*Results.dat') #Set this as the option for no input.
@@ -144,7 +151,7 @@ for f in dat_files:
     """
     Inserts the data from the files in order based on the length of the polymer.
     """
-    print("reading file %s \n"%f)
+    logger.info("reading file %s \n"%f)
     length=int(cf.extract_digits(f)[0])
     position=bisect.bisect(lengths,length)
     lengths.insert(position,length)
@@ -197,7 +204,7 @@ yoffset=0.8
 # =============================================================================
 ax.set_xlabel(r'$N_m $')
 ax.grid(False)
-ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
+ax.set_ylabel(r'$M_{ps} [\tau/m]$')
 
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 #ax.axvline(x=0, ymin=0, ymax=1,ls=':',c='black')
@@ -227,7 +234,7 @@ y2offset=1
 
 ax2.set_xlabel(r'$N_m $')
 ax2.grid(False)
-ax2.set_ylabel(r'$\ln |\Gamma_{ps}|$')
+ax2.set_ylabel(r'$\ln |M_{ps}|$')
 
 ax2.set_yscale('log')
 ax2.set_ylim(0,1)
@@ -284,14 +291,15 @@ theory = [theory_dep,theory_ads]
 
 if args.theory==True:
     
-    theory_ind = 2 # 1 for Kirkwood, 2 lambda
+    theory_ind = 1 # 1 for Kirkwood, 2 lambda
+    logger.info("Defined the theory ind as %s,1 for Kirkwood, 2 lambda"%theory_ind)
     
     fig3, ax3 = plt.subplots()
 
     color = ["blue","red"]
     color2 = ["black","green"]
     for i,interaction in enumerate(results):
-        print(interaction,color[i])
+        logger.info(interaction,color[i])
     
         ax3.errorbar(interaction[1][:,0],interaction[1][:,1],yerr=interaction[1][:,2],label=r'Simulation $\varepsilon_{ms}=%s$'%interaction[0][0], color=color[i], fmt='o')
         
@@ -328,7 +336,7 @@ if args.theory==True:
         #cov=out[1] #Covariance in the
         pfinal = out[0] #fitting coefficients
         
-        print (pfinal[0])
+        logger.info (pfinal[0])
         
         ax3.plot(theory[i][:,0],pfinal[0]*np.abs(theory[i][:,theory_ind]),marker = 's', ls = '--', color=color[i],
                  label=r'$1+b/L= %1.2f$'%pfinal[0])
@@ -339,7 +347,7 @@ if args.theory==True:
     
     ax3.set_xlabel(r'$N_m $')
     ax3.grid(False)
-    ax3.set_ylabel(r'$|\Gamma_{ps}|$')
+    ax3.set_ylabel(r'$|M_{ps}|$')
     fig3.tight_layout()
     
     
