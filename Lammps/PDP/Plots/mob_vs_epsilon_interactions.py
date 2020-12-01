@@ -72,7 +72,7 @@ Plotting
 """
 
 
-names = ["SRLJ","LJ"]
+names = ["GLJ","LJ"]
 plt.close('all')
 cf.set_plot_appearance()
 ax,fig=general_plotter(data_to_plot,yerror=2)
@@ -80,8 +80,8 @@ ax,fig=general_plotter(data_to_plot,yerror=2)
 
 
 ax.set_xlabel(r'$\varepsilon_{ms} $')
-ax.set_ylabel(r'$\Gamma_{ps} [\tau/m]$')
-plt.legend(names,loc='upper_left')
+ax.set_ylabel(r'$M_{ps} [\tau/m]$')
+plt.legend(names, loc='upper left')
 ax.axhline(y=0.07155442595335286, xmin=0, xmax=1,ls='--',c='black')
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.set_xlim(0,ax.get_xlim()[1])
@@ -101,7 +101,7 @@ if insert == True:
     
     ax2.set_ylabel(r'$V(r)$',fontsize =17, labelpad=-5)
     ax2.set_xlabel(r'$r$' ,fontsize =17, labelpad=-5)
-    ax2.plot(potentials[:,0],potentials[:,1],label="SRLJ")
+    ax2.plot(potentials[:,0],potentials[:,1],label="GLJ")
     ax2.plot(potentials[:,0],potentials[:,2],label="LJ")
     ax2.tick_params(axis='both', which='major', labelsize=14)
     ax2.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
