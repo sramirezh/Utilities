@@ -80,11 +80,11 @@ solution = da.DensityDistribution("properties_short.dat", "rBulk", directory = d
 # #changing the viscosity to the average local
 # =============================================================================
 
-rho_ladm = solution.compute_ladm(1)
+#rho_ladm = solution.compute_ladm(1)
 
-viscosity_array = solution.rho_dist.copy()
-viscosity_array = [eta_meyer(rho, 1) for rho in rho_ladm]
-sim.eta = viscosity_array
+# viscosity_array = solution.rho_dist.copy()
+# viscosity_array = [eta_meyer(rho, 1) for rho in rho_ladm]
+# sim.eta = viscosity_array
 
 #average_density = solution.get_property_ave('density/mass',[solution.lower_limit, solution.limits_b[0]])
 #sim.eta = eta_meyer(average_density, sim.T)
@@ -108,7 +108,7 @@ for grad in grad_mu_s:
     
     # Getting the contribution from both species
     v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
-    v_f =solvent.vx_dist(sim, grad_c_f, solvent.lower_limit) # zero for solvents
+    v_f = solvent.vx_dist(sim, grad_c_f, solvent.lower_limit) # zero for solvents
     
     v_total = v_s + v_f
     velocity_s_dist.append(v_s)
@@ -155,13 +155,13 @@ fig1, ax1 = plt.subplots()
 
 ax1.plot(fluid_f1.positions, fluid_f1.data_frame["vx"],marker = 'o', ls = '--', label = r'$\nabla \mu_s = -0.125$')
 ax1.plot(solute.positions,velocity_t_dist[0],c = ax1.lines[-1].get_color(), ls = '-.')
-ax1.plot(solute.positions,velocity_s_dist[0],c = ax1.lines[-1].get_color(), ls = ':')
+#ax1.plot(solute.positions,velocity_s_dist[0],c = ax1.lines[-1].get_color(), ls = ':')
 ax1.plot(fluid_f2.positions, fluid_f2.data_frame["vx"],marker = 'o', ls = '--', label = r'$\nabla \mu_s = -0.063$')
 ax1.plot(solute.positions,velocity_t_dist[1],c = ax1.lines[-1].get_color(), ls = '-.')
-ax1.plot(solute.positions,velocity_s_dist[1],c = ax1.lines[-1].get_color(), ls = ':')
+#ax1.plot(solute.positions,velocity_s_dist[1],c = ax1.lines[-1].get_color(), ls = ':')
 ax1.plot(fluid_f3.positions, fluid_f3.data_frame["vx"],marker = 'o', ls = '--', label = r'$\nabla \mu_s = -0.025$')
 ax1.plot(solute.positions,velocity_t_dist[2],c = ax1.lines[-1].get_color(), ls = '-.')
-ax1.plot(solute.positions,velocity_s_dist[2],c = ax1.lines[-1].get_color(), ls = ':')
+#ax1.plot(solute.positions,velocity_s_dist[2],c = ax1.lines[-1].get_color(), ls = ':')
 
 
 #ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
@@ -200,10 +200,10 @@ fig1.savefig('%s/v_theo_sim.pdf'%plot_dir)
 fig1, ax1 = plt.subplots()
 
 
-ax1.plot(fluid_f1.positions, fluid_f1.data_frame["vx"],marker = 'o', ls = '--', label = r'$F_s = -\nabla \mu_s = 0.125$')
-ax1.plot(solute.positions,velocity_t_dist[0], ls = '-.', label = "Theory solutes + solvents")
-ax1.plot(solute.positions,velocity_s_dist[0], ls = ':', label = "Theory only solutes")
-ax1.plot(fluid_f4.positions, fluid_f4.data_frame["vx"],marker = 'o', ls = '--', label = r'$F_s = -\frac{N^B-N_s^B}{N^B}\nabla \mu_s$')
+ax1.plot(fluid_f1.positions, fluid_f1.data_frame["vx"],marker = 'o', ls = '--', label = r'$F_s^{\mu} = -\nabla \mu_s $')
+#ax1.plot(solute.positions,velocity_t_dist[0], ls = '-.', label = "Theory solutes + solvents")
+#ax1.plot(solute.positions,velocity_s_dist[0], ls = ':', label = "Theory only solutes")
+ax1.plot(fluid_f4.positions, fluid_f4.data_frame["vx"],marker = 'o', ls = '--', label = r"$F_s^{\mu,Y} = -\nabla \mu'_s$")
 ax1.set_xlim(0, 30)
 ymin, ymax = ax1.get_ylim()
 ax1.set_ylim(0, 1.25* ymax)
@@ -214,32 +214,32 @@ fig1.tight_layout()
 fig1.savefig('%s/theo_sim_bench.pdf'%plot_dir)
 
 
-# =============================================================================
-# Plotting LADM
-# =============================================================================
-logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
-# Densities
-fig, ax = plt.subplots()
-ax.plot(solution.positions, solution.rho_dist, label = 'Measured')
-ax.plot(solution.positions, solution.data_frame['ladm'], label = 'LADM')
-ax.set_ylabel(r'$c(z)$')
-ax.set_xlabel(r'$z$')
-ax.legend(loc = 'upper right')
-ax.set_ylim(0, None)
-ax.set_xlim(0, 8)
-fig.tight_layout()
-fig.savefig('%s/ladm.pdf'%(plot_dir))
+# # =============================================================================
+# # Plotting LADM
+# # =============================================================================
+# logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
+# # Densities
+# fig, ax = plt.subplots()
+# ax.plot(solution.positions, solution.rho_dist, label = 'Measured')
+# ax.plot(solution.positions, solution.data_frame['ladm'], label = 'LADM')
+# ax.set_ylabel(r'$c(z)$')
+# ax.set_xlabel(r'$z$')
+# ax.legend(loc = 'upper right')
+# ax.set_ylim(0, None)
+# ax.set_xlim(0, 8)
+# fig.tight_layout()
+# fig.savefig('%s/ladm.pdf'%(plot_dir))
 
-# Viscosity
-fig, ax = plt.subplots()
-ax.plot(solution.positions, sim.eta)
-ax.axhline(y=Yoshida.eta, xmin=0, xmax=1,ls='--',c='black')
-ax.set_ylabel(r'$\eta(z)$')
-ax.set_xlabel(r'$z$')
-ax.set_ylim(0, None)
-ax.set_xlim(0, 8)
-fig.tight_layout()
-fig.savefig('%s/eta.pdf'%(plot_dir))
+# # Viscosity
+# fig, ax = plt.subplots()
+# ax.plot(solution.positions, sim.eta)
+# ax.axhline(y=Yoshida.eta, xmin=0, xmax=1,ls='--',c='black')
+# ax.set_ylabel(r'$\eta(z)$')
+# ax.set_xlabel(r'$z$')
+# ax.set_ylim(0, None)
+# ax.set_xlim(0, 8)
+# fig.tight_layout()
+# fig.savefig('%s/eta.pdf'%(plot_dir))
 
 
 
