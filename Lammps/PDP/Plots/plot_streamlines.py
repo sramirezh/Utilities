@@ -44,10 +44,8 @@ import multiprocessing
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Others.Statistics.FastAverager as stat
+import Lammps.lammps_utilities as lu
 
-
-from ovito.modifiers import *
-import ovito.io as ov
 
 def semi_circle(origin,r):
     tetha=np.linspace(0,np.pi,1000)
@@ -70,17 +68,17 @@ def data_contour(x,y,z):
     
     return x,y,z
 
+
+simulation = lu.Simulation("log.lammps")
+
 data = np.loadtxt("prof2d_vel.dat",skiprows=4)
 
 data_rho = np.loadtxt("prof2d_con.dat",skiprows=4)
 
 #data_f = np.loadtxt("prof2d_force.dat", skiprows = 4)
 
-R_h = 3.23 #4.67520164
+R_h =  4.67520164 #3.23
 print((("Remember to define the Hydrodynamic radius, at the moment it is %s")%R_h))
-
-
-    
 
 
 #Reading data and removing anomalous
@@ -106,10 +104,14 @@ xmesh,rmesh,density = data_contour(x,r,density)
 
 
 # Getting the box properties using Ovito
-node = ov.import_file("equil.dat", multiple_frames = False)
-box = node.compute(0).cell # getting the properties of the box
-L = np.diag(box.matrix) 
-center = L/2.0
+# node = ov.import_file("equil.dat", multiple_frames = False)
+# box = node.compute(0).cell # getting the properties of the box
+# L = np.diag(box.matrix) 
+# center = L/2.0
+
+limits = simulation.limits
+box_length = limits[1,:] - limits[0,:]
+center = box_length/2
 
 
 circle = semi_circle([center[0],0],R_h)
