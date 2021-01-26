@@ -126,21 +126,32 @@ cf.set_plot_appearance()
 Velocity field and density contour
 Here the velocities do  have the polymer velocity substracted, as it was done in LAMMPS in the in.velprof
 """
-delta_r=0.2
-fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
 plt.close('all')
+delta_r = 0.2
+fig,(cax,ax)=plt.subplots(nrows = 2 , gridspec_kw={"height_ratios":[0.05, 1]})
 ax.axes.set_aspect('equal')
-cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be set
-cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+cntr1 = ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be set
+
+# Defining the color bar
+cbar = fig.colorbar(cntr1, cax=cax, orientation='horizontal')
 cbar.ax.tick_params(labelsize=10) 
 cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
+
+pos1 = cax.get_position() # get the original position 
+pos2 = [pos1.x0, pos1.y0*1.1,  pos1.width, pos1.height] 
+cax.set_position(pos2) # set a new position
+
 ax.quiver(x,r,vx,vr)
 ax.plot(circle[0],circle[1],color='black')
 ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
-ax.set_xlabel(r'$x$')
+ax.tick_params(axis='x', which='major', pad=1)
+ax.set_xlabel(r'$x$', horizontalalignment='right', x=1.0, labelpad = -22)
 ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
-fig.tight_layout()
+
+
+
+fig.tight_layout(pad = 0.05)
 fig.savefig('vfield.pdf', transparent = True)
 
 
