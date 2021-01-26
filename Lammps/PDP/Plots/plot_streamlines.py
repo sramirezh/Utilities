@@ -74,7 +74,7 @@ data = np.loadtxt("prof2d_vel.dat",skiprows=4)
 
 data_rho = np.loadtxt("prof2d_con.dat",skiprows=4)
 
-data_f = np.loadtxt("prof2d_force.dat", skiprows = 4)
+#data_f = np.loadtxt("prof2d_force.dat", skiprows = 4)
 
 R_h = 3.23 #4.67520164
 print((("Remember to define the Hydrodynamic radius, at the moment it is %s")%R_h))
@@ -98,8 +98,8 @@ density = data_rho[:-n_x,4]
 vx = data[:-n_x,5]
 vr = data[:-n_x,6]
 
-fx = data_f[:-n_x,5]
-fr = data_f[:-n_x,6]
+#fx = data_f[:-n_x,5]
+#fr = data_f[:-n_x,6]
 
 xmesh,rmesh,density = data_contour(x,r,density)
 
@@ -139,29 +139,29 @@ ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')
 ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
 fig.tight_layout()
-fig.savefig('vfield.pdf')
+fig.savefig('vfield.pdf', transparent = True)
 
 
 
-"""
-Force field and density contour
-"""
-delta_r=0.2
-fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
-plt.close('all')
-ax.axes.set_aspect('equal')
-cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be set
-cbar=fig.colorbar(cntr1, cax = cax, orientation='horizontal')
-cbar.ax.tick_params(labelsize=10) 
-cax.set_xlabel(r'$c_s$')
-cax.xaxis.set_label_position('top') 
-ax.quiver(x,r,fx,fr,scale =200)
-ax.plot(circle[0],circle[1],color='black')
-ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
-ax.set_xlabel(r'$x$')
-ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
-fig.tight_layout()
-fig.savefig('force_field.pdf')
+# """
+# Force field and density contour
+# """
+# delta_r=0.2
+# fig,(cax,ax)=plt.subplots(nrows=2,gridspec_kw={"height_ratios":[0.05, 1]})
+# plt.close('all')
+# ax.axes.set_aspect('equal')
+# cntr1=ax.contourf(xmesh,rmesh,density,alpha=0.8,cmap="RdBu_r") #cnap also could be set
+# cbar=fig.colorbar(cntr1, cax = cax, orientation='horizontal')
+# cbar.ax.tick_params(labelsize=10) 
+# cax.set_xlabel(r'$c_s$')
+# cax.xaxis.set_label_position('top') 
+# ax.quiver(x,r,fx,fr,scale =200)
+# ax.plot(circle[0],circle[1],color='black')
+# ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
+# ax.set_xlabel(r'$x$')
+# ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
+# fig.tight_layout()
+# fig.savefig('force_field.pdf')
 
 
 
@@ -267,27 +267,27 @@ fig.savefig('v_contour.pdf')
 
 
 
-"""
-F Contour
-The velocity of the fluid without substracting the bulk velocity
-"""
-f = fx
-xmesh,rmesh,f_contour=data_contour(x,r,f)
-delta_r=0.2
-fig,(cax,ax)=plt.subplots(nrows=2, gridspec_kw={"height_ratios":[0.05, 1]})
-plt.close('all')
-ax.axes.set_aspect('equal')
-cntr1=ax.contourf(xmesh,rmesh,f_contour,alpha=0.8,cmap="RdBu_r") #cnap also could be set
-cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
-cbar.ax.tick_params(labelsize=10) 
-cax.set_xlabel(r'$f$')
-cax.xaxis.set_label_position('top') 
-ax.plot(circle[0],circle[1],color='black')
-ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
-ax.set_xlabel(r'$x$')
-ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
-fig.tight_layout()
-fig.savefig('f_contour.pdf')
+# """
+# F Contour
+# The velocity of the fluid without substracting the bulk velocity
+# """
+# f = fx
+# xmesh,rmesh,f_contour=data_contour(x,r,f)
+# delta_r=0.2
+# fig,(cax,ax)=plt.subplots(nrows=2, gridspec_kw={"height_ratios":[0.05, 1]})
+# plt.close('all')
+# ax.axes.set_aspect('equal')
+# cntr1=ax.contourf(xmesh,rmesh,f_contour,alpha=0.8,cmap="RdBu_r") #cnap also could be set
+# cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+# cbar.ax.tick_params(labelsize=10) 
+# cax.set_xlabel(r'$f$')
+# cax.xaxis.set_label_position('top') 
+# ax.plot(circle[0],circle[1],color='black')
+# ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
+# ax.set_xlabel(r'$x$')
+# ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
+# fig.tight_layout()
+# fig.savefig('f_contour.pdf')
 
 
 
