@@ -216,7 +216,7 @@ ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')
 ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
 fig.tight_layout()
-fig.savefig('vel_pol.pdf')
+fig.savefig('vel_pol.pdf', transparent = True)
 
 
 
@@ -239,7 +239,7 @@ ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')
 ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
 fig.tight_layout()
-fig.savefig('vx_contour.pdf')
+fig.savefig('vx_contour.pdf', transparent = True)
 
 
 """
@@ -262,7 +262,7 @@ ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
 ax.set_xlabel(r'$x$')
 ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
 fig.tight_layout()
-fig.savefig('v_contour.pdf')
+fig.savefig('v_contour.pdf', transparent = True)
 
 
 
@@ -291,27 +291,27 @@ fig.savefig('v_contour.pdf')
 
 
 
-"""
-V contour
-The velocity of the fluid without substracting the bulk velocity
-"""
-v=np.sqrt(vx**2+vr**2)
-xmesh,rmesh,v_contour=data_contour(x,r,v)
-delta_r=0.2
-fig,(cax,ax)=plt.subplots(nrows=2, gridspec_kw={"height_ratios":[0.05, 1]})
-plt.close('all')
-ax.axes.set_aspect('equal')
-cntr1=ax.contourf(xmesh,rmesh,v_contour,alpha=0.8,cmap="RdBu_r") #cnap also could be set
-cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
-cbar.ax.tick_params(labelsize=10) 
-cax.set_xlabel(r'$|v|$')
-cax.xaxis.set_label_position('top') 
-ax.plot(circle[0],circle[1],color='black')
-ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
-ax.set_xlabel(r'$x$')
-ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
-fig.tight_layout()
-fig.savefig('v_contour.pdf')
+# """
+# V contour
+# The velocity of the fluid without substracting the bulk velocity
+# """
+# v=np.sqrt(vx**2+vr**2)
+# xmesh,rmesh,v_contour=data_contour(x,r,v)
+# delta_r=0.2
+# fig,(cax,ax)=plt.subplots(nrows=2, gridspec_kw={"height_ratios":[0.05, 1]})
+# plt.close('all')
+# ax.axes.set_aspect('equal')
+# cntr1=ax.contourf(xmesh,rmesh,v_contour,alpha=0.8,cmap="RdBu_r") #cnap also could be set
+# cbar=fig.colorbar(cntr1, cax=cax, orientation='horizontal')
+# cbar.ax.tick_params(labelsize=10) 
+# cax.set_xlabel(r'$|v|$')
+# cax.xaxis.set_label_position('top') 
+# ax.plot(circle[0],circle[1],color='black')
+# ax.set_ylabel(r'$r=\sqrt{y^2+z^2}$')
+# ax.set_xlabel(r'$x$')
+# ax.set_ylim(np.min(r)-delta_r,np.max(r)+delta_r)
+# fig.tight_layout()
+# fig.savefig('v_contour.pdf', transparent = True)
 
 
 
