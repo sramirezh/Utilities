@@ -36,3 +36,6 @@ source activate TARGET_ENVIRONMENT
 git clone git://github.com/pudo/dataset.git
 pip install ./dataset.  (after conda install pip)
 
+# To install the requirements file in the present environment 
+
+conda install --file requirements.txt
