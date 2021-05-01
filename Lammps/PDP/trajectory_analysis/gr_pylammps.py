@@ -15,7 +15,7 @@ import argparse
 import os
 import sys
 import pickle as pickle
-
+import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 
@@ -23,12 +23,10 @@ import time
 
 from joblib import Parallel, delayed
 import multiprocessing
-from lammps import IPyLammps
+
 
 try:
-    import matplotlib
-    matplotlib.use('agg')
-    import matplotlib.pyplot as plt
+    from lammps import IPyLammps
 except ImportError as err:
     print(err)
 
@@ -214,6 +212,12 @@ parser.add_argument('-nmin', help='Number of timesteps to be discarded', default
 args = parser.parse_args()
 input_files=args.input_files
 
+
+logger = cf.log(__file__, os.getcwd())  
+logger.info("Using the following arguments for the paser")
+logger.info(args)
+
+
 if args.mode=="run":
 
     imin=args.nmin
@@ -224,9 +228,9 @@ if args.mode=="run":
     g_r=run_analysis(input_files, p_types)
 
 else:
-    try:
-        g_r=load_gr(input_files)
-    except:
-        sys.exit("There is no file to load, run the analysis first!")
+#    try:
+    g_r = load_gr(input_files)
+#    except:
+#        sys.exit("There is no file to load, run the analysis first!")
 
 plot_gr(g_r)

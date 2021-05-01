@@ -137,7 +137,6 @@ cbar = fig.colorbar(cntr1, cax=cax, orientation='horizontal')
 cbar.ax.tick_params(labelsize=10) 
 cax.set_xlabel(r'$c_s$')
 cax.xaxis.set_label_position('top') 
-
 pos1 = cax.get_position() # get the original position 
 pos2 = [pos1.x0, pos1.y0*1.1,  pos1.width, pos1.height] 
 cax.set_position(pos2) # set a new position

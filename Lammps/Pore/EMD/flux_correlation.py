@@ -295,25 +295,25 @@ class correlation(object):
 
     def transport_coeff(self, xmin, xmax):
         """
+        computes the self.coeff, transport coefficients in all directions without 
+        multiplying for any prefactor, so, only the integration of the correlation
+
         Args:
+        ----------
             xmin: lower limit of the integral
             xmax: upper limit of the integral
-        Returns
-        self.coeff = The transport coefficients in all directions without 
-        multiplying for any
-        prefactor, so, only the integration of the correlation
-
-
-
+        Returns:
+        ----------
+            Nothing
         """
         coeff = []
         if self.dimension > 1:
-            for dim in range(self.dimension):
+            for dim in range(self.dimension+1):
                 integral = self.transport_coeff_comp(xmin, xmax, dim)
                 coeff.append(integral)
             self.coeff = np.array(coeff)
         else:
-            self.coeff = cf.integrate(self.times, self.cor,xmin, xmax )
+            self.coeff = cf.integrate(self.times, self.cor, xmin, xmax )
 
         return self.coeff
 

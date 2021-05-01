@@ -81,7 +81,7 @@ ax,fig=general_plotter(data_to_plot,yerror=2)
 
 ax.set_xlabel(r'$\varepsilon_{ms} $')
 ax.set_ylabel(r'$M_{ps} [\tau/m]$')
-plt.legend(names, loc='upper left')
+plt.legend(names, loc='upper right')
 ax.axhline(y=0.07155442595335286, xmin=0, xmax=1,ls='--',c='black')
 ax.axhline(y=0, xmin=0, xmax=1,ls=':',c='black')
 ax.set_xlim(0,ax.get_xlim()[1])
@@ -96,7 +96,7 @@ if insert == True:
     rmin = 0.985
     rmax = 2.5
     potentials = fna.get_potentials(rmin,rmax,epsilon_lj=1)
-    left, bottom, width, height = [0.55, 0.25, 0.4, 0.30]
+    left, bottom, width, height = [0.55, 0.25, 0.4, 0.29]
     ax2 = fig.add_axes([left, bottom, width, height])
     
     ax2.set_ylabel(r'$V(r)$',fontsize =17, labelpad=-5)

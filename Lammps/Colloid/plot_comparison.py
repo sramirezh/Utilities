@@ -144,9 +144,9 @@ fig, ax = plt.subplots()
 ax.plot(diffusion[:,0], diffusion[:,1], marker = "s", ls = '--')
 
 ax.set_xlabel(r'$\varepsilon_{cs} $')
-ax.set_ylabel(r'$D$')
+ax.set_ylabel(r'$D_c$')
 ymin,ymax=plt.ylim()
-ax.set_ylim(ymin, ymax*1.3)
+ax.set_ylim(0, ymax*1.3)
 #ax.legend(loc='upper right',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
 #       frameon=True, fancybox=False, edgecolor='k',ncol = 1, fontsize = 10)
 fig.tight_layout()
@@ -217,7 +217,7 @@ for end in range(len(dcv[:,0])):
     
     
     ax3.set_xlabel(r'$\varepsilon_{cs} $')
-    ax3.set_ylabel(r'$Pe$')
+    ax3.set_ylabel(r'$Pe^{BD}$')
     
     ax3.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
 #    ax.set_ylim(-0.01, 0.025)

@@ -106,7 +106,7 @@ def main(name, root, template, conf_folder, n_conf, epsilon, identifier, run):
         file_path = sim.folder+'/'+file_name
         value_modify = epsilon
         cf.modify_file(file_path,'2 3','pair_coeff\t2 3 %s 1.0\n'%value_modify)
-        
+
     # =============================================================================
     #     Running the simulation
     # =============================================================================

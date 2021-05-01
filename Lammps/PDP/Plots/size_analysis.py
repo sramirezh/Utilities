@@ -35,6 +35,10 @@ columns=args.columns
 path_name=args.path_name
 file_name=args.plot_name
 
+
+logger.info("Using the following arguments for the paser")
+logger.info(args)
+
 """
 This is the general structure of anything in a file
 """
@@ -65,7 +69,7 @@ plt.legend(names,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets
 
 """Axis"""
 
-ax.set_xlabel(r'$L[\sigma]$')
+ax.set_xlabel(r'$L_c[\sigma]$')
 ax.tick_params(direction='in',top=True, right=True)
 
 ax.set_ylabel(r'$|v_{\text{dp}}^x|[\sigma/\tau]$')

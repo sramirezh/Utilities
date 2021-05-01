@@ -68,14 +68,14 @@ solvent.compute_all_properties(solvent.lower_limit)
 # =============================================================================
 #  LADM
 # =============================================================================
-logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
-sigma_ladm = 1.5
-logger.info("Using sigma_ladm = %s\n"%sigma_ladm)
-rho_ladm = fluid.compute_ladm(1)
-viscosity_array = fluid.rho_dist.copy()
-viscosity_array = [eta_meyer(rho, 1) for rho in rho_ladm]
-fluid.data_frame['eta_ladm'] = viscosity_array
-sim.eta = viscosity_array
+# logger.info("\n\n!!!!!!!!!!!!!!!!!!!!!!!Performing LADM!!!!!!!!!!!!\n\n\n\n")
+# sigma_ladm = 1.5
+# logger.info("Using sigma_ladm = %s\n"%sigma_ladm)
+# rho_ladm = fluid.compute_ladm(1)
+# viscosity_array = fluid.rho_dist.copy()
+# viscosity_array = [eta_meyer(rho, 1) for rho in rho_ladm]
+# fluid.data_frame['eta_ladm'] = viscosity_array
+# sim.eta = viscosity_array
 
 # =============================================================================
 # Getting the velocities as in Anderson1984
@@ -203,7 +203,7 @@ solute.plot_property_dist("integrand_first", ax = ax)
 
 
 ax.set_xlabel(r'$z[\sigma] $')
-ax.set_ylabel(r'$I_{\xi(z)}$')
+ax.set_ylabel(r'$I_{\xi}(z)$')
 
 
 ax.legend([r'$z_0 = %s$'%solute.lower_limit, r'$z_0 = %s$'%solvent.lower_limit, r'$z_0 = 0$'], loc = 'upper right')
@@ -219,30 +219,30 @@ fig.savefig('%s/first_moment_integrand.pdf'%(plot_dir))
 # # Testing LADM
 # =============================================================================
 
-fig, ax = plt.subplots()
-ax.plot(fluid.positions, fluid.data_frame['density/mass'], label = 'density')
-ax.plot(fluid.positions, fluid.data_frame['ladm'], label = 'ladm')
-ax.set_xlabel(r'$z$')
-fig.tight_layout()
-fig.savefig('%s/ladm.pdf'%(plot_dir))
+# fig, ax = plt.subplots()
+# ax.plot(fluid.positions, fluid.data_frame['density/mass'], label = 'density')
+# ax.plot(fluid.positions, fluid.data_frame['ladm'], label = 'ladm')
+# ax.set_xlabel(r'$z$')
+# fig.tight_layout()
+# fig.savefig('%s/ladm.pdf'%(plot_dir))
 
-v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
+# v_s = solute.vx_dist(sim, grad_c_s, solute.lower_limit) # zero for solutes
 
-fig, ax = plt.subplots()
-ax.plot(solute.positions, solute.data_frame['integrand_k'], label = 'integrand k', marker ='o', markersize=2)
-ax.plot(fluid.positions, fluid.data_frame['ladm'], label = 'ladm', marker ='o', markersize=2)
-ax.plot(fluid.positions, fluid.data_frame['density/mass'], label = 'density', marker ='o', markersize=2)
-ax.plot(fluid.positions, fluid.data_frame['eta_ladm'], label = 'eta ladm', marker ='o', markersize=2)
-ax.plot(solute.positions, solute.data_frame['vx_integrand'], label = 'integrand vx', marker ='o', markersize=2)
-ax.plot(solute.positions, solute.data_frame['vx_z'], label = 'vx', marker ='o', markersize=2)
+# fig, ax = plt.subplots()
+# ax.plot(solute.positions, solute.data_frame['integrand_k'], label = 'integrand k', marker ='o', markersize=2)
+# ax.plot(fluid.positions, fluid.data_frame['ladm'], label = 'ladm', marker ='o', markersize=2)
+# ax.plot(fluid.positions, fluid.data_frame['density/mass'], label = 'density', marker ='o', markersize=2)
+# ax.plot(fluid.positions, fluid.data_frame['eta_ladm'], label = 'eta ladm', marker ='o', markersize=2)
+# ax.plot(solute.positions, solute.data_frame['vx_integrand'], label = 'integrand vx', marker ='o', markersize=2)
+# ax.plot(solute.positions, solute.data_frame['vx_z'], label = 'vx', marker ='o', markersize=2)
 
-ax.set_xlabel(r'$z$')
-ax = cf.plot_zoom(ax,[0,4])
-ax.legend(loc = 'upper right')
-ax.axhline(y = 0, ls='--',c='black')
-ax.axvline(x = solute.lower_limit, ls='--',c='black')
-fig.tight_layout()
-fig.savefig('%s/test_integrand.pdf'%(plot_dir))
+# ax.set_xlabel(r'$z$')
+# ax = cf.plot_zoom(ax,[0,4])
+# ax.legend(loc = 'upper right')
+# ax.axhline(y = 0, ls='--',c='black')
+# ax.axvline(x = solute.lower_limit, ls='--',c='black')
+# fig.tight_layout()
+# fig.savefig('%s/test_integrand.pdf'%(plot_dir))
 
 
 # =============================================================================

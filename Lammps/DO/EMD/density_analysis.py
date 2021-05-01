@@ -261,6 +261,7 @@ class DensityDistribution(PropertyDistribution):
         Args:
             low_limit: The lower limit for the integral
             species: instance of the class da.DensityDistribution
+
         
         Returns:
             integral: the integral from the lower limit to the the start of the bulk 
@@ -281,7 +282,10 @@ class DensityDistribution(PropertyDistribution):
             sim: Instance of the class SimulationEMD
             grad_c: Concentration gradient of the species.
             low_limit: Lower limit of the integral
-            
+        
+
+        Notice that the viscosity sim.eta is included in the inner integral
+
         Returns:
             The velocity at the given position
             

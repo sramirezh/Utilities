@@ -23,11 +23,7 @@ import glob
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../')) #This falls into Utilities path
 import Lammps.core_functions as cf
 import Lammps.lammps_utilities as lu
-
-
-
-import Lammps.Pore.GK.flux_correlation as fc
-
+import Lammps.Pore.EMD.flux_correlation as fc
 
 
 def run_analysis(press_file, time_step, max_tau):
@@ -57,11 +53,11 @@ def run_analysis(press_file, time_step, max_tau):
     pxy_flux = fc.flux(p_off_diag ,times,"P")
     
     
-    etha11 = fc.correlation(pxy_flux,pxy_flux, max_delta)
-    etha11.evaluate_acf()
-    etha11.save("etha11")
+    eta11 = fc.correlation(pxy_flux,pxy_flux, max_delta)
+    eta11.evaluate_acf()
+    eta11.save("eta11")
     
-    return etha11
+    return eta11
 
 # =============================================================================
 # Main
@@ -91,29 +87,29 @@ prefactor = volume / (Kb * Temperature)
 # =============================================================================
 
 # Loading the correlations if they were already computed, this saves almost 50 minutes in 16 cores (dexter)
-if (len(glob.glob('etha11*')) == 1):
+if (len(glob.glob('eta11*')) == 1):
     
-    logger.info("\nThere is a pkl, we need to load etha11!\n")
-    etha11 = cf.load_instance("etha11.pkl")
+    logger.info("\nThere is a pkl, we need to load eta11!\n")
+    eta11 = cf.load_instance("eta11.pkl")
     
 else:
     logger.info("There is no pkl file, so we need to analyse")
-    etha11 = run_analysis(press_file, time_step, max_tau)
+    eta11 = run_analysis(press_file, time_step, max_tau)
     
     
-integral = etha11.transport_coeff(1, 0, tau_integration) 
+integral = eta11.transport_coeff(0, tau_integration) 
 eta_tau_int = integral * prefactor 
 
-logger.info("The viscosity is %2.5f+/- %2.5f in LJ units"%(eta_tau_int.n, eta_tau_int.s))
+logger.info("The viscosity is %2.5f+/- %2.5f in LJ units"%(eta_tau_int[-1].n, eta_tau_int[-1].s))
 
 # =============================================================================
 # Computing the viscosity from lammps on-the-fly correlation
 # =============================================================================
 lammps_df = cf.read_data_file("S0St.dat")
 lammps_df = lammps_df.iloc[-400:]
-integral_lammps1 = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["v_pxy*v_pxy"],0,max_tau)
-integral_lammps2 = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["v_pxz*v_pxz"],0,max_tau)
-integral_lammps3 = cf.integrate(lammps_df["TimeDelta"]*time_step,lammps_df["v_pyz*v_pyz"],0,max_tau)
+integral_lammps1 = cf.integrate(lammps_df["TimeDelta"].values*time_step,lammps_df["v_pxy*v_pxy"].values,0,max_tau)
+integral_lammps2 = cf.integrate(lammps_df["TimeDelta"].values*time_step,lammps_df["v_pxz*v_pxz"].values,0,max_tau)
+integral_lammps3 = cf.integrate(lammps_df["TimeDelta"].values*time_step,lammps_df["v_pyz*v_pyz"].values,0,max_tau)
 
 eta_lammps = (integral_lammps1 + integral_lammps2 + integral_lammps3) * prefactor/3
 
@@ -129,7 +125,7 @@ cf.set_plot_appearance()
 #For c11
 fig,ax = plt.subplots()
 
-fig,ax = etha11.plot_all(fig, ax, norm = False)
+ax = eta11.plot_all(ax, norm = False)
 
 #ax.set_xlim(1000,2000)
 #ax.set_ylim(-0.0005,0.0005)
@@ -144,27 +140,27 @@ ax.set_xlim(xmin, max_tau)
 ax.set_xlabel(r'$t^*$')
 
 plt.legend([r'$xy$',r'$xz$',r'$yz$',"Total"], loc = 'upper right', fontsize = 12, ncol = 2)
-ax.set_ylabel(r'$\langle %s(t^*) %s(0)\rangle$'%(etha11.flux1.name,etha11.flux2.name))
+ax.set_ylabel(r'$\langle \Pi(t) \Pi(0)\rangle$')
 plt.tight_layout()
 plt.savefig("correlation11.pdf")
 
 # =============================================================================
-# # Plot eta vs tau
+# # Plot eta(average in all directions) vs tau
 # =============================================================================
 
 fig,ax = plt.subplots()
 
-tau_array = np.linspace(etha11.times[1], etha11.times[-1])
+tau_array = np.linspace(eta11.times[1], eta11.times[-1])
 # Need to add the integration time
 tau_array = np.sort(np.append(tau_array, tau_integration)) 
 
 eta_array = []
 eta_error = []
-
+plotting_component = -1
 
 for t in tau_array:
     # Taking only the nominal value
-    eta = prefactor * etha11.transport_coeff(1, 0, t)
+    eta = prefactor * eta11.transport_coeff_comp(0, t,plotting_component)
     error = 0
     if isinstance(eta, un.UFloat):
         error = eta.s
@@ -179,13 +175,13 @@ eta_array = np.array(eta_array)
 ax.plot(tau_array,eta_array)
 ax.fill_between(tau_array, eta_array - eta_error, eta_array + eta_error, alpha=0.4)
 ax.set_xlabel(r'$t^*$')
-ax.axhline(y = eta_tau_int.n , xmin=0, xmax=1,ls='--',c='black', label = r'$\eta^* = %2.4f$' %eta_tau_int.n)
-ax.axvline(x = tau_integration,ls='-.',c='black')
+ax.axhline(y = eta_tau_int[plotting_component].n , xmin=0, xmax=1,ls='--', 
+           c='black', label = r'$\eta^* = %2.4f$' %eta_tau_int[plotting_component].n)
 xmin,xmax = ax.get_xlim()
 ymin,ymax = ax.get_ylim()
-ax.set_xlim(0, etha11.times[-1])
+ax.set_xlim(0, eta11.times[-1])
 ax.set_ylim(0, ymax)
 ax.set_ylabel(r'$\eta^*$')
-plt.legend( loc = 'lower right')
+plt.legend( loc = 'lower right', fontsize = 20)
 plt.tight_layout()
 plt.savefig("eta_vs_tau.pdf")

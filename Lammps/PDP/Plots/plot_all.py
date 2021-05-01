@@ -291,7 +291,7 @@ theory = [theory_dep,theory_ads]
 
 if args.theory==True:
     
-    theory_ind = 1 # 1 for Kirkwood, 2 lambda
+    theory_ind = 2 # 1 for Kirkwood, 2 lambda
     logger.info("Defined the theory ind as %s,1 for Kirkwood, 2 lambda"%theory_ind)
     
     fig3, ax3 = plt.subplots()
@@ -311,9 +311,9 @@ if args.theory==True:
         # Insert for the theoretical results
         left, bottom, width, height = [0.55, 0.25, 0.4, 0.25]
         ax4 = fig3.add_axes([left, bottom, width, height])
-    
-    
         ax4.plot(theory[i][:,0],np.abs(theory[i][:,theory_ind]),marker = 'v', ls = '--' , color=color[i],label=r'$R_h^K$')
+        ymin, ymax = plt.ylim()
+        ax4.set_ylim(0, ymax*1.1)
         ax4.tick_params(axis='both', which='major', labelsize=14)
     
 

@@ -42,7 +42,7 @@ data,names = pre_processing(files, path_name)
 """
 Preprocessing data
 """
-index=cf.parameter_finder(names,"free")
+index = cf.parameter_finder(names,"free")
 data[1][:,1]*=-1 #As the free polymer moves in the opposite direction of the flow
 # Very bad way of getting the names but I will not spend time
 for i,file in enumerate(files):
@@ -70,7 +70,7 @@ plt.legend(names,loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets
 
 """Axis"""
 
-ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\epsilon/\sigma]$')
+ax.set_xlabel(r'$F_{s}^{\mu}=-\nabla_x \mu_s [\varepsilon/\sigma]$')
 ax.tick_params(direction='in',top=True, right=True)
 
 ax.set_ylabel(r'$|v_{\text{dp}}^x|[\sigma/\tau]$')
