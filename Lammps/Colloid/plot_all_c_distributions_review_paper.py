@@ -63,28 +63,33 @@ a = np.c_[a, files]
 sort_a = a[a[:,0].argsort()]
 files = sort_a[:,-1]
 
+# Only include the following epsilons
+epsilon_included = [0.5, 1, 1.5]
 
-for i,file in enumerate(files):
+for i, file in enumerate(files):
 
     data = cf.read_data_file(file).values
     x = data[:,0]
     solute_dist  = data[:,1]
     epsilon = file.strip('.dat').split('_')[-1]
-    ax.plot(x,solute_dist, label=r'$\varepsilon_{cs} = %s$'%epsilon, ls = '--', marker = markers[i], ms = 5)
+    print(epsilon)
+    if float(epsilon) in epsilon_included:
+        print (epsilon)
+        ax.plot(x,solute_dist, label=r'$\varepsilon_{cs} = %s$'%epsilon, ls = '--', marker = markers[i], ms = 5)
 
 
-ax.axvspan(Lx/2-r_colloid,Lx/2+r_colloid, alpha=0.5, color='green')
+ax.axvspan(Lx/2-r_colloid,Lx/2+r_colloid, alpha=0.3, color='green')
 ax.set_xlabel(r"$x$")
 ax.set_ylabel(r"$c_s^B(x)$")
 xmin,xmax = ax.get_xlim()
 ymin,ymax = ax.get_ylim()
 ax.set_xlim(0, x[-1]) 
 ax.set_ylim(0,0.87)
-#ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
-#ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
+# ax.axvspan(6*lattice_constant,9*lattice_constant, alpha=0.5, color='blue')
+# ax.axvspan(21*lattice_constant,24*lattice_constant, alpha=0.5, color='red')
 
-ax.legend(loc='upper left',labelspacing=0.5,borderpad=0.4,scatteryoffsets=[0.6],
-           frameon=True, fancybox=False, edgecolor='k',ncol=2, fontsize = 10)
+ax.legend(loc='upper left', labelspacing=0.5, borderpad=0.4, scatteryoffsets=[0.6], 
+           frameon=True, fancybox=False, edgecolor='k',ncol=1, fontsize = 10)
 
 # For more information about the legendloc
 # https://stackoverflow.com/questions/39803385/what-does-a-4-element-tuple-argument-for-bbox-to-anchor-mean-in-matplotlib
