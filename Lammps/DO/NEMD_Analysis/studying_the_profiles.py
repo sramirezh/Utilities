@@ -109,7 +109,7 @@ fluid.plot_property_dist("density/mass", ax = ax2)
 
 
 #ax.axhline(y=0, xmin=0, xmax=1,ls='--',c='black')
-ax2.axvspan(fluid.limits_b[0], fluid.limits_b[1], alpha=0.5, color='green')
+#ax2.axvspan(fluid.limits_b[0], fluid.limits_b[1], alpha=0.5, color='green')
 
 
 ax2.set_xlim(0, fluid.positions[-1])

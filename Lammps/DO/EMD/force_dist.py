@@ -114,10 +114,10 @@ def plot_force_dist(force, sim, fluid, ax):
     # Force distribution
 
     ax1.plot(force[:,0],force[:,1])
-    ax1.axvspan(fluid.limits_b[0], fluid.limits_b[1], alpha=0.5, color='green')
+    #ax1.axvspan(fluid.limits_b[0], fluid.limits_b[1], alpha=0.5, color='green')
     ax1.set_xlim(z_min, z_max)
     ax1.set_xticks(np.arange(z_min, z_max, x_tick_distance))
-    ax1.axhline(y=0, xmin=0, xmax=1,ls='-.',c='black')
+    ax1.axhline(y=0, xmin=0, xmax=1, ls='-.', c='black')
 
 
 
@@ -227,7 +227,7 @@ plot_force_dist(force_mu, sim, fluid, ax1)
 ax1.set_ylabel(r"$F^{\mu}_{\text{ave}}$")
 ax1.set_xlabel(r'$z[\sigma]$')
 ax1.set_xlim(0, 30)
-ax1.axvline(x = z_pos[-1], ymin=0, ymax=1,ls=':',c='black')
+#ax1.axvline(x = z_pos[-1], ymin=0, ymax=1,ls=':',c='black')
 fig1.tight_layout()
 fig1.savefig("%s/Force_mu_dist.pdf"%plot_dir)
 
