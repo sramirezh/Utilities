@@ -1,4 +1,3 @@
-
 from subprocess import Popen, PIPE
 from shlex import split
 import argparse
@@ -23,7 +22,8 @@ class log(logging.Logger):
     Class to print everything to a file and to screen.
     Instead of using print, use log.info("text") or read the documentation
     """
-    def __init__(self, path, cwd, aux =[]):
+
+    def __init__(self, path, cwd, aux=[]):
         """
         file_name is the name of the python file currently running
         path: given by __file__
@@ -36,29 +36,29 @@ class log(logging.Logger):
         self.cwd = cwd
 
         log_name = self.file_name.split('.')[0]
-        self.log_file = "%s.log"%log_name       
+        self.log_file = "%s.log" % log_name
         self._set_console_handler()
         self._set_file_handler()
 
         if aux:
             self.aux = aux
             self._set_aux_file_handler()
-        
+
         self.print_basic_info()
 
     def _set_console_handler(self):
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)  # or any other level
         self.addHandler(ch)
-        
+
     def _set_file_handler(self):
-        
+
         fh = logging.FileHandler(self.log_file, 'w')
         fh.setLevel(logging.INFO)  # or any level you want
         self.addHandler(fh)
 
     def _set_aux_file_handler(self):
-        ah = logging.FileHandler('%s/%s'%(self.aux, self.log_file), 'w')
+        ah = logging.FileHandler('%s/%s' % (self.aux, self.log_file), 'w')
         ah.setLevel(logging.INFO)  # or any level you want
         self.addHandler(ah)
 
@@ -68,19 +68,18 @@ class log(logging.Logger):
         hash_post = hash_pre.strip().decode("utf-8")
         self.hash = hash_post
         os.chdir(self.cwd)
-    
+
     def print_basic_info(self):
         import datetime
         self._get_git_hash()
         self.info("\n--------------------------------------------------------")
         self.info(datetime.datetime.now())
-        self.info("Running %s"%self.file_name)
+        self.info("Running %s" % self.file_name)
         self.info("The git hash is %s" % self.hash)
         self.info("Running inside %s" % self.cwd)
         if hasattr(self, 'aux'):
-            self.info("Auxiliary information saved at %s"%self.aux)
+            self.info("Auxiliary information saved at %s" % self.aux)
         self.info("--------------------------------------------------------\n")
-        
 
 
 def bash_command(cmd):
@@ -138,7 +137,6 @@ def parameter_finder(target_list, search_list, msgflag=False, exact=False):
 
     indexes = []
 
-
     if isinstance(search_list, str):
         cont = 0
         search_list = search_list.lower()
@@ -161,7 +159,6 @@ def parameter_finder(target_list, search_list, msgflag=False, exact=False):
                     print((s, t))
                     indexes.append(cont)
 
-    
     if msgflag == True:
         length = len(indexes)
         if length > 1: print("There were several ocurrences")
@@ -180,9 +177,9 @@ def read_data_file(input_file):
     Returns: A panda data frame, the column names can be obtained by data.columns.values and the numeric parameters with  data.values    
     """
     header_lines = 0
-    last_pound_pos =- 1
+    last_pound_pos = -1
     with open(input_file, 'r') as data_file:
-        while(data_file.read(1) == '#'):
+        while (data_file.read(1) == '#'):
             last_pound_pos = data_file.tell()
             header = data_file.readline()
             header_lines += 1
@@ -190,19 +187,20 @@ def read_data_file(input_file):
         #Read the next lines
         data_1 = data_file.readline().split()
         data_2 = data_file.readline().split()
-        data_file.seek(last_pound_pos+1) #Goes back to the last line of the header
+        data_file.seek(last_pound_pos + 1)  #Goes back to the last line of the header
 
         if header_lines == 0:
-            data=pd.read_csv(data_file, sep=" ", header=None).dropna(axis=1, how='all')
+            data = pd.read_csv(data_file, sep=" ", header=None).dropna(axis=1, how='all')
 
         else:
             # Single line file
-            if len(data_2)==0:
+            if len(data_2) == 0:
                 data_file.readline()
-                
+
             else:
-                
-                if len(data_1) != len(data_2): #If there is a line containing the number of particles,
+
+                if len(data_1) != len(
+                        data_2):  #If there is a line containing the number of particles,
                     data_file.readline()
                 data_file.readline()
 
@@ -214,6 +212,7 @@ def read_data_file(input_file):
                                 "there is an end of a line that has an additional space" %input_file)
 
     return data
+
 
 def extract_digits(strings, sort=True):
     """
@@ -235,7 +234,6 @@ def extract_digits(strings, sort=True):
         output = ([num.strip('.') for num in numbers])
         return np.array(output, dtype=float)
 
-
     if isinstance(strings, list):
         output = []
         for element in strings:
@@ -247,19 +245,15 @@ def extract_digits(strings, sort=True):
             If there are several parameters it is difficult to reshape
             """
             if sort == True:
-                unsorted = np.array(output,dtype=float).reshape((len(output)))
-                columns = np.column_stack(([unsorted,np.arange(0,len(unsorted))]))
-                columns = columns[columns[:,0].argsort()]
-                index_sorted = columns[:,1].astype(int)
+                unsorted = np.array(output, dtype=float).reshape((len(output)))
+                columns = np.column_stack(([unsorted, np.arange(0, len(unsorted))]))
+                columns = columns[columns[:, 0].argsort()]
+                index_sorted = columns[:, 1].astype(int)
 
-
-
-                return np.array(unsorted[index_sorted] ,dtype=float),index_sorted
+                return np.array(unsorted[index_sorted], dtype=float), index_sorted
             else:
-                output = np.array(output,dtype=float).reshape((len(output)))
-        return np.array(output,dtype=float)
-
-    
+                output = np.array(output, dtype=float).reshape((len(output)))
+        return np.array(output, dtype=float)
 
 
 def blockPrint():
@@ -268,6 +262,7 @@ def blockPrint():
     """
     sys.stdout = open(os.devnull, 'w')
 
+
 # Restore
 def enablePrint():
     sys.stdout = sys.__stdout__
@@ -275,7 +270,7 @@ def enablePrint():
 
 def str2bool(v):
     if isinstance(v, bool):
-       return v
+        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -284,27 +279,24 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-
-def set_plot_appearance(presentation_type = False):
-
+def set_plot_appearance(presentation_type=False):
     """
     Defines the appearence of the plot
 
     use rcParams.keys() to see the available parameters
     """
-    if presentation_type == False: 
+    if presentation_type == False:
         axis_font = 24
         tick_font = 20
         legend_font = 12
-
 
         #plt.rcParams['lines.linewidth'] = 1.5
         #plt.rcParams['lines.markeredgewidth'] = 1.0
         #plt.rcParams['lines.markersize'] = 2.5
 
         # Colors
-        plt.rcParams['axes.prop_cycle'] = cycler(linestyle=['-', '--', '-.']) * cycler(color=list('rbkgcmy'))
-
+        plt.rcParams['axes.prop_cycle'] = cycler(linestyle=['-', '--', '-.']) * cycler(
+            color=list('rbkgcmy'))
 
         # Fonts and symbols
         #plt.rcParams['font.family'] = 'serif'
@@ -315,68 +307,12 @@ def set_plot_appearance(presentation_type = False):
             plt.rcParams['text.usetex'] = True
 
             # Including packages
-            params = {'text.latex.preamble' : [r'\usepackage{amsmath}']}
+            params = {'text.latex.preamble': [r'\usepackage{amsmath}']}
             plt.rcParams.update(params)
 
         #plt.rcParams['mathtext.rm'] = 'serif'
         #plt.rcParams['mathtext.it'] = 'serif:italic'
         #plt.rcParams['mathtext.fontset'] = 'stix'
-
-
-        # Axes
-        plt.rcParams['axes.edgecolor'] = (0.0, 0.0, 0.0)
-        #plt.rcParams['axes.linewidth'] = 0.8
-        plt.rcParams['axes.spines.right'] = True
-        plt.rcParams['axes.spines.top'] = True
-        plt.rcParams['axes.labelsize'] = axis_font
-        plt.rcParams['axes.grid'] = False
-
-        # Ticks
-        plt.rcParams['xtick.direction'] = "in"
-        plt.rcParams['ytick.direction'] = "in"
-        plt.rcParams['ytick.labelsize'] = tick_font
-        plt.rcParams['xtick.labelsize'] = tick_font
-
-        # Legend
-
-        plt.rcParams['legend.fontsize'] = legend_font
-        plt.rcParams['legend.loc'] ='upper left'
-        plt.rcParams['legend.labelspacing'] = 0.5
-        plt.rcParams['legend.borderpad'] =0.4
-        plt.rcParams['legend.frameon'] = True
-        plt.rcParams['legend.fancybox'] = False
-        plt.rcParams['legend.edgecolor'] = 'k'
-        # Fonts and symbols
-
-
-        # Errorbar plots
-        plt.rcParams['errorbar.capsize'] = 4
-
-    if presentation_type == True: 
-        axis_font= 30
-        tick_font = 20
-        legend_font = 18
-
-
-        #plt.rcParams['lines.linewidth'] = 1.5
-        #plt.rcParams['lines.markeredgewidth'] = 1.0
-        #plt.rcParams['lines.markersize'] = 2.5
-
-        # Colors
-        plt.rcParams['axes.prop_cycle'] = cycler(color='rbkgcmy')
-
-
-        # Fonts and symbols
-        #plt.rcParams['font.family'] = 'serif'
-        #plt.rcParams['font.serif'] = 'Times New Roman'
-        #plt.rcParams['font.weight'] = 'normal'
-        plt.rcParams["mathtext.fontset"] = "cm"
-        if find_executable('latex'):
-            plt.rcParams['text.usetex'] = True
-        #plt.rcParams['mathtext.rm'] = 'serif'
-        #plt.rcParams['mathtext.it'] = 'serif:italic'
-        #plt.rcParams['mathtext.fontset'] = 'stix'
-
 
         # Axes
         plt.rcParams['axes.edgecolor'] = (0.0, 0.0, 0.0)
@@ -403,11 +339,62 @@ def set_plot_appearance(presentation_type = False):
         plt.rcParams['legend.edgecolor'] = 'k'
         # Fonts and symbols
 
+        # Errorbar plots
+        plt.rcParams['errorbar.capsize'] = 4
+
+    if presentation_type == True:
+        axis_font = 30
+        tick_font = 20
+        legend_font = 18
+
+        #plt.rcParams['lines.linewidth'] = 1.5
+        #plt.rcParams['lines.markeredgewidth'] = 1.0
+        #plt.rcParams['lines.markersize'] = 2.5
+
+        # Colors
+        plt.rcParams['axes.prop_cycle'] = cycler(color='rbkgcmy')
+
+        # Fonts and symbols
+        #plt.rcParams['font.family'] = 'serif'
+        #plt.rcParams['font.serif'] = 'Times New Roman'
+        #plt.rcParams['font.weight'] = 'normal'
+        plt.rcParams["mathtext.fontset"] = "cm"
+        if find_executable('latex'):
+            plt.rcParams['text.usetex'] = True
+        #plt.rcParams['mathtext.rm'] = 'serif'
+        #plt.rcParams['mathtext.it'] = 'serif:italic'
+        #plt.rcParams['mathtext.fontset'] = 'stix'
+
+        # Axes
+        plt.rcParams['axes.edgecolor'] = (0.0, 0.0, 0.0)
+        #plt.rcParams['axes.linewidth'] = 0.8
+        plt.rcParams['axes.spines.right'] = True
+        plt.rcParams['axes.spines.top'] = True
+        plt.rcParams['axes.labelsize'] = axis_font
+        plt.rcParams['axes.grid'] = False
+
+        # Ticks
+        plt.rcParams['xtick.direction'] = "in"
+        plt.rcParams['ytick.direction'] = "in"
+        plt.rcParams['ytick.labelsize'] = tick_font
+        plt.rcParams['xtick.labelsize'] = tick_font
+
+        # Legend
+
+        plt.rcParams['legend.fontsize'] = legend_font
+        plt.rcParams['legend.loc'] = 'upper left'
+        plt.rcParams['legend.labelspacing'] = 0.5
+        plt.rcParams['legend.borderpad'] = 0.4
+        plt.rcParams['legend.frameon'] = True
+        plt.rcParams['legend.fancybox'] = False
+        plt.rcParams['legend.edgecolor'] = 'k'
+        # Fonts and symbols
 
         # Errorbar plots
         plt.rcParams['errorbar.capsize'] = 4
 
-def get_interval(array, min_value, max_value, epsilon_1 = 0, epsilon_2 = 0):
+
+def get_interval(array, min_value, max_value, epsilon_1=0, epsilon_2=0):
     """
     returns the indexes of the closest values to the require values in the array
     from above for the minimum and from
@@ -430,9 +417,10 @@ def get_interval(array, min_value, max_value, epsilon_1 = 0, epsilon_2 = 0):
     min_index = np.min(np.where(array >= min_value + epsilon_1))
     max_index = np.max(np.where(array <= max_value - epsilon_2))
 
-    indexes = np.arange(min_index, max_index+1)
+    indexes = np.arange(min_index, max_index + 1)
 
     return indexes
+
 
 def integrate(x, y, xmin, xmax):
     """
@@ -452,11 +440,7 @@ def integrate(x, y, xmin, xmax):
     return integral
 
 
-
-
-
-
-def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
+def modify_file(file_name, key_word, modified_line, copy_name=None, n_ocurrence=0):
     """
     Replaces the entire line of the n-th occurrence of the key in the file
     Args:
@@ -467,21 +451,20 @@ def modify_file(file_name,key_word,modified_line,copy_name=None,n_ocurrence=0):
         n_ocurrence the ocurrence of the key that is of interest
         
     """
-    
-    
-    if copy_name==None:
-        copy_name=file_name
-    f=open(file_name,'r')
-    
-    lines=f.readlines()
-    line_number=parameter_finder(lines,key_word)[n_ocurrence]
-    lines[line_number]=modified_line
+
+    if copy_name == None:
+        copy_name = file_name
+    f = open(file_name, 'r')
+
+    lines = f.readlines()
+    line_number = parameter_finder(lines, key_word)[n_ocurrence]
+    lines[line_number] = modified_line
     f.close()
-    s=open(copy_name,'w')
+    s = open(copy_name, 'w')
     s.writelines(lines)
     s.close()
-    
-    print(("Modified the file %s"%(file_name.split('/')[-1])))
+
+    print(("Modified the file %s" % (file_name.split('/')[-1])))
 
 
 def load_instance(file_name):
@@ -494,6 +477,7 @@ def load_instance(file_name):
 
     return instance
 
+
 def save_instance(instance, file_name):
     """
     Saves the instance 
@@ -502,9 +486,9 @@ def save_instance(instance, file_name):
         file_name name without extension
     Returns: Nothing
     """
-    afile = open(r'%s.pkl'%file_name, 'wb')
+    afile = open(r'%s' % (file_name), 'wb')
     pickle.dump(instance, afile)
-    afile.close()   
+    afile.close()
 
 
 def str2list(input):
@@ -514,23 +498,22 @@ def str2list(input):
     Returns:
         a list
     """
-    if isinstance(input,str):
+    if isinstance(input, str):
         return [input]
-    
+
     else:
         return input
-
 
 
 def beware_msg(msg):
     """
     Prints a message that can be easily spotted
     """
-    print ("\n\n\n************************************************************")
-    print ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n")
-    print (msg)
-    print ("\n\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print ("************************************************************\n\n\n")
+    print("\n\n\n************************************************************")
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n")
+    print(msg)
+    print("\n\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("************************************************************\n\n\n")
 
 
 def group_consecutive(data):
@@ -543,15 +526,14 @@ def group_consecutive(data):
     """
     from itertools import groupby
     from operator import itemgetter
-    results=[]
-    for k, g in groupby(enumerate(data), lambda i_x: i_x[0]-i_x[1]):
+    results = []
+    for k, g in groupby(enumerate(data), lambda i_x: i_x[0] - i_x[1]):
         results.append(list(map(itemgetter(1), g)))
-        
-         
-    return results
-         
 
-def plateau_finder(data,tol=0.0003):
+    return results
+
+
+def plateau_finder(data, tol=0.0003):
     """
     Function that finds the plateaus of a distribution y, that has x spacing constant
     Args:
@@ -559,12 +541,12 @@ def plateau_finder(data,tol=0.0003):
         tol tolerance for the variance
     """
     from scipy.ndimage.filters import generic_filter
-    tol=0.0003
+    tol = 0.0003
     filt_data = generic_filter(data, np.std, size=3)
-    plat_index=np.where(filt_data<(np.min(filt_data)+tol))[0]
-    
-    plateaus=group_consecutive(plat_index)
-    
+    plat_index = np.where(filt_data < (np.min(filt_data) + tol))[0]
+
+    plateaus = group_consecutive(plat_index)
+
     return plateaus
 
 
@@ -580,11 +562,11 @@ def plot_zoom(ax, xlims):
     Returns:
         ax after the zooming
     """
-    
+
     xmin, xmax, ymin, ymax = get_y_lims(ax, xlims)
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
-    
+
     return ax
 
 
@@ -611,20 +593,20 @@ def get_y_lims(ax, xlims):
     """
     # Assuming that all objects have the same x coordinates
     x = ax.lines[0].get_data()[0]
-    
+
     indexes = get_interval(x, xlims[0], xlims[1])
     xmax = x[indexes[-1]]
     xmin = x[indexes[0]]
-    
+
     ymax_array = []
     ymin_array = []
-    
+
     for function in ax.lines:
         y = function.get_data()[1]
-        
+
         ymin_array.append(np.min(y[indexes]))
         ymax_array.append(np.max(y[indexes]))
-    
+
     ymax = max(ymax_array)
     ymin = min(ymin_array)
 
